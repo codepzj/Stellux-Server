@@ -1,0 +1,24 @@
+//go:build wireinject
+
+package {{.UnderlineName}}
+
+import (
+    "github.com/chenmingyong0423/go-mongox/v2"
+	"github.com/codepzj/stellux/server/{{.OutputDir}}/internal/repository"
+	"github.com/codepzj/stellux/server/{{.OutputDir}}/internal/repository/dao"
+	"github.com/codepzj/stellux/server/{{.OutputDir}}/internal/service"
+	"github.com/codepzj/stellux/server/{{.OutputDir}}/internal/web"
+	"github.com/google/wire"
+)
+
+var {{.DomainName}}Providers = wire.NewSet(web.New{{.DomainName}}Handler, service.New{{.DomainName}}Service, repository.New{{.DomainName}}Repository, dao.New{{.DomainName}}Dao,
+	wire.Bind(new(service.I{{.DomainName}}Service), new(*service.{{.DomainName}}Service)),
+	wire.Bind(new(repository.I{{.DomainName}}Repository), new(*repository.{{.DomainName}}Repository)),
+	wire.Bind(new(dao.I{{.DomainName}}Dao), new(*dao.{{.DomainName}}Dao)))
+	
+func Init{{.DomainName}}Module(mongoDB *mongox.Database) *Module {
+	panic(wire.Build(
+		{{.DomainName}}Providers,
+		wire.Struct(new(Module), "Svc", "Hdl"),
+	))
+}

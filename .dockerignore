@@ -1,0 +1,10 @@
+tmp
+config
+static
+.git
+.gitignore
+.DS_Store
+.vscode
+.idea
+.env
+config

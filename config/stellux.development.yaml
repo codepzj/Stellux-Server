@@ -1,0 +1,12 @@
+mongodb:
+  HOST: "localhost"
+  PORT: 27017
+  MONGO_INITDB_ROOT_USERNAME: "admin"
+  MONGO_INITDB_ROOT_PASSWORD: "123456"
+  MONGO_INITDB_DATABASE: "stellux"
+  MONGO_USERNAME: "codepzj"
+  MONGO_PASSWORD: "123456"
+
+server:
+  PORT: 9001
+  JWT_SECRET: "codepzj"

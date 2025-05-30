@@ -1,0 +1,20 @@
+package web
+
+import (
+	"github.com/codepzj/stellux/server/{{.OutputDir}}/internal/service"
+	"github.com/gin-gonic/gin"
+)
+
+func New{{.DomainName}}Handler(serv service.I{{.DomainName}}Service) *{{.DomainName}}Handler {
+	return &{{.DomainName}}Handler{
+		serv: serv,
+	}
+}
+
+type {{.DomainName}}Handler struct {
+	serv service.I{{.DomainName}}Service
+}
+
+func (h *{{.DomainName}}Handler) RegisterGinRoutes(engine *gin.Engine) {
+
+}

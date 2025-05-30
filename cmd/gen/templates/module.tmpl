@@ -1,0 +1,15 @@
+package {{.UnderlineName}}
+
+import (
+	"github.com/codepzj/stellux/server/{{.OutputDir}}/internal/service"
+	"github.com/codepzj/stellux/server/{{.OutputDir}}/internal/web"
+)
+
+type (
+	Handler = web.{{.DomainName}}Handler
+	Service = service.I{{.DomainName}}Service
+	Module   struct {
+		Svc Service
+		Hdl *Handler
+	}
+)

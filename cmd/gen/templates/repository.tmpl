@@ -1,0 +1,18 @@
+package repository
+
+import (
+	"github.com/codepzj/stellux/server/{{.OutputDir}}/internal/repository/dao"
+)
+
+type I{{.DomainName}}Repository interface {
+}
+
+var _ I{{.DomainName}}Repository = (*{{.DomainName}}Repository)(nil)
+
+func New{{.DomainName}}Repository(dao dao.I{{.DomainName}}Dao) *{{.DomainName}}Repository {
+	return &{{.DomainName}}Repository{dao: dao}
+}
+
+type {{.DomainName}}Repository struct {
+	dao dao.I{{.DomainName}}Dao
+}
