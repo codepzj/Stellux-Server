@@ -1,12 +1,12 @@
 mongodb:
-  HOST: "localhost"
-  PORT: 27017
-  MONGO_INITDB_ROOT_USERNAME: "admin"
-  MONGO_INITDB_ROOT_PASSWORD: "123456"
-  MONGO_INITDB_DATABASE: "stellux"
-  MONGO_USERNAME: "codepzj"
-  MONGO_PASSWORD: "123456"
+  HOST: "localhost" # 数据库地址
+  PORT: 27017 # 数据库端口
+  MONGO_INITDB_ROOT_USERNAME: "admin" # 数据库管理员用户名
+  MONGO_INITDB_ROOT_PASSWORD: "123456" # 数据库管理员密码
+  MONGO_INITDB_DATABASE: "stellux" # 数据库名称
+  MONGO_USERNAME: "stellux" # 数据库用户名
+  MONGO_PASSWORD: "123456" # 数据库密码
 
 server:
-  PORT: 9001
-  JWT_SECRET: "codepzj"
+  PORT: 9001 # 服务端口
+  JWT_SECRET: "stellux" # JWT密钥
