@@ -12,14 +12,18 @@ db.createUser({
 
 db.auth('$MONGO_USERNAME', '$MONGO_PASSWORD');
 
-// 用户表为用户名创建唯一升序索引
-db.user.createIndex({"username": 1}, {"unique": true});
-
 // 文章表创建文本索引
 db.post.createIndex({
     "title": "text",
+    "description": "text",
     "content": "text",
-    "description": "text"
+});
+
+// 文档表创建文本索引
+db.document.createIndex({
+    "title": "text",
+    "description": "text",
+    "content": "text",
 });
 
 let AdminId = ObjectId("67c453eda04b00c407b431fd");
@@ -59,48 +63,6 @@ db.casbin_rule.insertMany([{
     "v2": "DELETE"
 }]);
 
-// 普通用户权限
-db.casbin_rule.insertMany([{
-    "_id": ObjectId(),
-    "ptype": "p",
-    "v0": "user",
-    "v1": "/admin-api/user/list*",
-    "v2": "GET"
-}]);
-
-// 测试用户权限
-db.casbin_rule.insertMany([{
-    "_id": ObjectId(),
-    "ptype": "p",
-    "v0": "*",
-    "v1": "/admin-api/user/info",
-    "v2": "GET"
-}, {
-    "_id": ObjectId(),
-    "ptype": "p",
-    "v0": "*",
-    "v1": "/posts/*",
-    "v2": "GET"
-}, {
-    "_id": ObjectId(),
-    "ptype": "p",
-    "v0": "*",
-    "v1": "/user/login",
-    "v2": "POST"
-}, {
-    "_id": ObjectId(),
-    "ptype": "p",
-    "v0": "*",
-    "v1": "/images/*",
-    "v2": "GET"
-}, {
-    "_id": ObjectId(),
-    "ptype": "p",
-    "v0": "*",
-    "v1": "/picture/list*",
-    "v2": "GET"
-}]);
-
 // 为用户授权
 db.casbin_rule.insertMany([{
     "_id": ObjectId(),
@@ -124,7 +86,7 @@ db.user.insertMany([{
     "_id": AdminId,
     "username": "admin",
     "password": "\$2a\$10\$SLcnDmaJc1nLtUOsZS4yquXyVeu5E6qJHNTVeKSzTk4JO4Xq/FPSy",
-    "nickname": "芒果",
+    "nickname": "codezj",
     "role_id": 0,
     "created_at": new Date(),
     "updated_at": new Date(),
@@ -175,7 +137,8 @@ db.post.insertMany([{
     "_id": ObjectId("67c453eda04b00c407b43202"),
     "created_at": new Date(),
     "updated_at": new Date(),
-    "title": "stellux,一款简洁高效的知识库系统",
+    "author": "codepzj",
+    "title": "stellux知识库系统",
     "content": "如果你看到这篇文章,说明你已经成功安装了stellux,接下来你可以开始你的知识库之旅了😀",
     "description": "懂得都懂",
     "category_id": ObjectId("67c453eda04b00c407b43197"),
@@ -244,9 +207,28 @@ db.setting.insert( {
     value: {
         blog_title: "浩瀚星河",
         blog_subtitle: "代码,日常,人生",
-        blog_welcome: "纸上得来终觉浅，绝知此事要躬行。",
-        blog_motto: "低级的欲望通过放纵就可获得；高级的欲望通过自律方可获得；顶级的欲望通过煎熬才可获得。“所谓自由，不是随心所欲，而是自我主宰。”",
         blog_avatar: "https://image.codepzj.cn/image/20250529174726187.jpeg"
+    }
+} );
+
+db.setting.insert({
+    _id: ObjectId("683b4faac5451e983d5649d0"),
+    key: "about_setting",
+    value: {
+        github_username: "codepzj",
+        author: "浩瀚星河",
+        avatar_url: "https://image.codepzj.cn/image/20250529174726187.jpeg",
+        left_tags: [
+            "🧠 技术探索者",
+            "🛠️ 创意实践者",
+            "🌐 架构与开发者"
+        ],
+        right_tags: [
+            "兴趣点燃灵感火花 ✨",
+            "开源协作推动者 �",
+            "热情永不熄灭 🔥"
+        ],
+        know_me: "https://github.com/codepzj"
     }
 } );
 

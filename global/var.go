@@ -33,3 +33,10 @@ var (
 	LoadPermissionFailed = gin.H{"code": apiwrap.RequestLoadPermissionFailed, "msg": "权限加载失败"}
 	PermissionDenied     = gin.H{"code": apiwrap.RequestPermissionDenied, "msg": "权限不足,禁止访问"}
 )
+
+
+var RoleNames = map[int]string{
+	0: "admin",
+	1: "user",
+	2: "test",
+}

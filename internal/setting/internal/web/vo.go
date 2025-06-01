@@ -25,3 +25,12 @@ type BlogSettingVO struct {
 	BlogDarkLogo string `json:"blog_dark_logo"`
 	BlogLightLogo string `json:"blog_light_logo"`
 }
+
+type AboutSettingVO struct {
+	Author        string   `json:"author"`
+	AvatarUrl     string   `json:"avatar_url"`
+	LeftTags      []string `json:"left_tags"`
+	RightTags     []string `json:"right_tags"`
+	KnowMe        string   `json:"know_me"`
+	GithubUsername string   `json:"github_username"`
+}

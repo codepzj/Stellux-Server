@@ -23,12 +23,14 @@ func (h *SettingHandler) RegisterGinRoutes(engine *gin.Engine) {
 		settingGroup.GET("/basic", apiwrap.Wrap(h.GetBasicSetting))
 		settingGroup.GET("/seo", apiwrap.Wrap(h.GetSeoSetting))
 		settingGroup.GET("/blog", apiwrap.Wrap(h.GetBlogSetting))
+		settingGroup.GET("/about", apiwrap.Wrap(h.GetAboutSetting))
 	}
 	adminSettingGroup := engine.Group("/admin-api/setting")
 	{
 		adminSettingGroup.POST("/upsert/basic", apiwrap.WrapWithBody(h.AdminUpsertBasicSetting))
 		adminSettingGroup.POST("/upsert/seo", apiwrap.WrapWithBody(h.AdminUpsertSeoSetting))
 		adminSettingGroup.POST("/upsert/blog", apiwrap.WrapWithBody(h.AdminUpsertBlogSetting))
+		adminSettingGroup.POST("/upsert/about", apiwrap.WrapWithBody(h.AdminUpsertAboutSetting))
 	}
 }
 
@@ -54,6 +56,15 @@ func (h *SettingHandler) AdminUpsertBlogSetting(c *gin.Context, req BlogSettingR
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
 	}
 	return apiwrap.SuccessWithMsg("更新博客设置成功")
+}
+
+func (h *SettingHandler) AdminUpsertAboutSetting(c *gin.Context, req AboutSettingRequest) *apiwrap.Response[any] {
+
+	err := h.serv.AdminUpsertSetting(c, h.AboutSettingRequestToDomain(req))
+	if err != nil {
+		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+	}
+	return apiwrap.SuccessWithMsg("更新关于设置成功")
 }
 
 func (h *SettingHandler) GetBlogSetting(c *gin.Context) *apiwrap.Response[any] {
@@ -87,6 +98,17 @@ func (h *SettingHandler) GetBasicSetting(c *gin.Context) *apiwrap.Response[any] 
 		return apiwrap.SuccessWithDetail[any](BasicSettingVO{}, "获取基础设置成功")
 	}
 	return apiwrap.SuccessWithDetail(setting.Value, "获取基础设置成功")
+}
+
+func (h *SettingHandler) GetAboutSetting(c *gin.Context) *apiwrap.Response[any] {
+	setting, err := h.serv.GetSetting(c, "about_setting")
+	if err != nil {
+		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+	}
+	if setting.Value == nil {
+		return apiwrap.SuccessWithDetail[any](AboutSettingVO{}, "获取关于设置成功")
+	}
+	return apiwrap.SuccessWithDetail(setting.Value, "获取关于设置成功")
 }
 
 func (h *SettingHandler) BasicSettingRequestToDomain(req BasicSettingRequest) domain.Setting {
@@ -124,8 +146,20 @@ func (h *SettingHandler) BlogSettingRequestToDomain(req BlogSettingRequest) doma
 			"blog_avatar":    req.BlogAvatar,
 			"blog_title":     req.BlogTitle,
 			"blog_subtitle":  req.BlogSubtitle,
-			"blog_welcome":   req.BlogWelcome,
-			"blog_motto":     req.BlogMotto,
+		},
+	}
+}
+
+func (h *SettingHandler) AboutSettingRequestToDomain(req AboutSettingRequest) domain.Setting {
+	return domain.Setting{
+		Key: "about_setting",
+		Value: map[string]any{
+			"author":        req.Author,
+			"avatar_url":    req.AvatarUrl,
+			"left_tags":     req.LeftTags,
+			"right_tags":    req.RightTags,
+			"know_me":       req.KnowMe,
+			"github_username": req.GithubUsername,
 		},
 	}
 }

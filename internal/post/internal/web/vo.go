@@ -13,6 +13,7 @@ import (
 type PostVO struct {
 	ID          string    `json:"id"`
 	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 	Title       string    `json:"title"`
 	Content     string    `json:"content"`
 	Description string    `json:"description"`
@@ -112,6 +113,7 @@ func (h *PostHandler) PostToVO(post *domain.Post) *PostVO {
 	return &PostVO{
 		ID:          post.ID.Hex(),
 		CreatedAt:   post.CreatedAt,
+		UpdatedAt:   post.UpdatedAt,
 		Title:       post.Title,
 		Content:     post.Content,
 		Description: post.Description,

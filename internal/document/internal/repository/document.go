@@ -12,6 +12,7 @@ import (
 type IDocumentRepository interface {
 	Create(ctx context.Context, doc *domain.Document) error
 	CreateRoot(ctx context.Context, doc *domain.DocumentRoot) error
+	FindByKeyword(ctx context.Context, keyword string, documentID bson.ObjectID) ([]*domain.Document, error)
 	FindDocumentIsPublic(ctx context.Context, documentID bson.ObjectID) (bool, error)
 	FindAllRootDocument(ctx context.Context) ([]*domain.DocumentRoot, error)
 	FindAllPublicRootDocument(ctx context.Context) ([]*domain.DocumentRoot, error)
@@ -56,6 +57,15 @@ func (r *DocumentRepository) UpdateRootDocumentByID(ctx context.Context, id bson
 // 删除根文档
 func (r *DocumentRepository) DeleteRootDocumentByID(ctx context.Context, id bson.ObjectID) error {
 	return r.dao.DeleteRootDocumentByID(ctx, id)
+}
+
+// 根据关键词查询文档
+func (r *DocumentRepository) FindByKeyword(ctx context.Context, keyword string, documentID bson.ObjectID) ([]*domain.Document, error) {
+	documentList, err := r.dao.FindByKeyword(ctx, keyword, documentID)
+	if err != nil {
+		return nil, err
+	}
+	return r.DaoToDomainList(documentList), nil
 }
 
 // 根据id查询文档是否公开

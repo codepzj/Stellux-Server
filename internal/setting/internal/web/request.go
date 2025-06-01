@@ -22,6 +22,13 @@ type BlogSettingRequest struct {
 	BlogAvatar    string `json:"blog_avatar" binding:"required"`
 	BlogTitle     string `json:"blog_title" binding:"required"`
 	BlogSubtitle  string `json:"blog_subtitle" binding:"required"`
-	BlogWelcome   string `json:"blog_welcome" binding:"required"`
-	BlogMotto     string `json:"blog_motto" binding:"required"`
+}
+
+type AboutSettingRequest struct {
+	Author        string   `json:"author" binding:"required"`
+	AvatarUrl     string   `json:"avatar_url" binding:"required"`
+	LeftTags      []string `json:"left_tags" binding:"required"`
+	RightTags     []string `json:"right_tags" binding:"required"`
+	KnowMe        string   `json:"know_me" binding:"required"`
+	GithubUsername string   `json:"github_username" binding:"required"`
 }

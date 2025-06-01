@@ -27,6 +27,7 @@ type IDocumentDao interface {
 	Create(ctx context.Context, doc *Document) error
 	CreateRoot(ctx context.Context, doc *Document) error
 	FindDocumentIsPublic(ctx context.Context, documentID bson.ObjectID) (bool, error)
+	FindByKeyword(ctx context.Context, keyword string, documentID bson.ObjectID) ([]*Document, error)
 	FindAllByType(ctx context.Context, document_type string) ([]*Document, error)
 	FindAllPublicByType(ctx context.Context, document_type string) ([]*Document, error)
 	FindAllByTypeAndDocumentID(ctx context.Context, document_type string, documentID bson.ObjectID) ([]*Document, error)
@@ -101,6 +102,16 @@ func (d *DocumentDao) DeleteRootDocumentByID(ctx context.Context, id bson.Object
 		return errors.Wrap(err, "删除根文档失败")
 	}
 	return nil
+}
+
+// 根据关键词查询文档
+
+func (d *DocumentDao) FindByKeyword(ctx context.Context, keyword string, documentID bson.ObjectID) ([]*Document, error) {
+	documentList, err := d.coll.Finder().Filter(query.NewBuilder().Or(query.RegexOptions("title", keyword, "i"), query.RegexOptions("description", keyword, "i"), query.RegexOptions("content", keyword, "i")).And(query.Eq("document_id", documentID)).Build()).Find(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return documentList, nil
 }
 
 // 根据id查询文档是否公开

@@ -27,6 +27,7 @@ func (h *DocumentHandler) RegisterGinRoutes(engine *gin.Engine) {
 		documentGroup.GET("/tree", apiwrap.Wrap(h.GetDocumentTreeByID))
 		documentGroup.GET("/:id", apiwrap.Wrap(h.GetDocumentByID))
 		documentGroup.GET("/root/:id", apiwrap.Wrap(h.GetRootDocumentByID))
+		documentGroup.GET("/search", apiwrap.Wrap(h.GetDocumentByKeyword))
 	}
 	adminGroup := engine.Group("/admin-api/document")
 	{
@@ -84,6 +85,17 @@ func (h *DocumentHandler) GetDocumentByID(ctx *gin.Context) *apiwrap.Response[an
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
 	}
 	return apiwrap.SuccessWithDetail[any](h.DocumentDomainToVO(document), "获取文档成功")
+}
+
+// 根据关键词搜索文档
+func (h *DocumentHandler) GetDocumentByKeyword(ctx *gin.Context) *apiwrap.Response[any] {
+	keyword := ctx.Query("keyword")
+	documentID := ctx.Query("document_id")
+	documentList, err := h.serv.FindByKeyword(ctx, keyword, apiwrap.ConvertBsonID(documentID))
+	if err != nil {
+		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+	}
+	return apiwrap.SuccessWithDetail[any](h.DocumentDomainListToVOList(documentList), "获取文档成功")
 }
 
 // 新增文档

@@ -28,7 +28,7 @@ type UserUpdate struct {
 }
 
 type IUserDao interface {
-	Create(ctx context.Context, user *User) error
+	Create(ctx context.Context, user *User) (bson.ObjectID, error)
 	GetByUsername(ctx context.Context, username string) (*User, error)
 	Update(ctx context.Context, id bson.ObjectID, user *User) error
 	UpdatePassword(ctx context.Context, id bson.ObjectID, password string) error
@@ -47,15 +47,15 @@ type UserDao struct {
 	coll *mongox.Collection[User]
 }
 
-func (d *UserDao) Create(ctx context.Context, user *User) error {
+func (d *UserDao) Create(ctx context.Context, user *User) (bson.ObjectID, error) {
 	res, err := d.coll.Creator().InsertOne(ctx, user)
 	if err != nil {
-		return err
+		return bson.ObjectID{}, err
 	}
 	if res.InsertedID == nil {
-		return errors.Wrap(err, "新增用户失败")
+		return bson.ObjectID{}, errors.Wrap(err, "新增用户失败")
 	}
-	return nil
+	return res.InsertedID.(bson.ObjectID), nil
 }
 
 func (d *UserDao) GetByUsername(ctx context.Context, username string) (*User, error) {

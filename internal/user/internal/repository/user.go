@@ -11,7 +11,7 @@ import (
 )
 
 type IUserRepository interface {
-	Create(ctx context.Context, user *domain.User) error
+	Create(ctx context.Context, user *domain.User) (bson.ObjectID, error)
 	GetByUsername(ctx context.Context, username string) (*domain.User, error)
 	Update(ctx context.Context, user *domain.User) error
 	UpdatePassword(ctx context.Context, id string, password string) error
@@ -30,7 +30,7 @@ type UserRepository struct {
 	dao dao.IUserDao
 }
 
-func (r *UserRepository) Create(ctx context.Context, user *domain.User) error {
+func (r *UserRepository) Create(ctx context.Context, user *domain.User) (bson.ObjectID, error) {
 	return r.dao.Create(ctx, r.UserDomainToUserDO(user))
 }
 

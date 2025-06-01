@@ -12,6 +12,7 @@ import (
 type IDocumentService interface {
 	FindAllPublic(ctx context.Context) ([]*domain.DocumentRoot, error)
 	FindAllPublicByDocumentID(ctx context.Context, documentID bson.ObjectID) ([]*domain.Document, error)
+	FindByKeyword(ctx context.Context, keyword string, documentID bson.ObjectID) ([]*domain.Document, error)
 	GetDocumentByID(ctx context.Context, id bson.ObjectID) (*domain.Document, error)
 	GetRootDocumentByID(ctx context.Context, id bson.ObjectID) (*domain.DocumentRoot, error)
 	AdminCreate(ctx context.Context, doc *domain.Document) error
@@ -56,6 +57,12 @@ func (s *DocumentService) FindAllPublicByDocumentID(ctx context.Context, documen
 		return nil, global.ErrDocumentNotPublic
 	}
 	return s.repo.FindAllByDocumentID(ctx, documentID)
+}
+
+// 根据关键词查询文档
+func (s *DocumentService) FindByKeyword(ctx context.Context, keyword string, documentID bson.ObjectID) ([]*domain.Document, error) {
+	// TODO: 获取根文档的权限
+	return s.repo.FindByKeyword(ctx, keyword, documentID)
 }
 
 // 根据id获取根文档
