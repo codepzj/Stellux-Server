@@ -24,6 +24,7 @@ func (h *SettingHandler) RegisterGinRoutes(engine *gin.Engine) {
 		settingGroup.GET("/seo", apiwrap.Wrap(h.GetSeoSetting))
 		settingGroup.GET("/blog", apiwrap.Wrap(h.GetBlogSetting))
 		settingGroup.GET("/about", apiwrap.Wrap(h.GetAboutSetting))
+		settingGroup.GET("/comment", apiwrap.Wrap(h.GetCommentSetting))
 	}
 	adminSettingGroup := engine.Group("/admin-api/setting")
 	{
@@ -31,6 +32,7 @@ func (h *SettingHandler) RegisterGinRoutes(engine *gin.Engine) {
 		adminSettingGroup.POST("/upsert/seo", apiwrap.WrapWithBody(h.AdminUpsertSeoSetting))
 		adminSettingGroup.POST("/upsert/blog", apiwrap.WrapWithBody(h.AdminUpsertBlogSetting))
 		adminSettingGroup.POST("/upsert/about", apiwrap.WrapWithBody(h.AdminUpsertAboutSetting))
+		adminSettingGroup.POST("/upsert/comment", apiwrap.WrapWithBody(h.AdminUpsertCommentSetting))
 	}
 }
 
@@ -65,6 +67,15 @@ func (h *SettingHandler) AdminUpsertAboutSetting(c *gin.Context, req AboutSettin
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
 	}
 	return apiwrap.SuccessWithMsg("更新关于设置成功")
+}
+
+func (h *SettingHandler) AdminUpsertCommentSetting(c *gin.Context, req CommentSettingRequest) *apiwrap.Response[any] {
+
+	err := h.serv.AdminUpsertSetting(c, h.CommentSettingRequestToDomain(req))
+	if err != nil {
+		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+	}
+	return apiwrap.SuccessWithMsg("更新评论设置成功")
 }
 
 func (h *SettingHandler) GetBlogSetting(c *gin.Context) *apiwrap.Response[any] {
@@ -109,6 +120,17 @@ func (h *SettingHandler) GetAboutSetting(c *gin.Context) *apiwrap.Response[any] 
 		return apiwrap.SuccessWithDetail[any](AboutSettingVO{}, "获取关于设置成功")
 	}
 	return apiwrap.SuccessWithDetail(setting.Value, "获取关于设置成功")
+}
+
+func (h *SettingHandler) GetCommentSetting(c *gin.Context) *apiwrap.Response[any] {
+	setting, err := h.serv.GetSetting(c, "comment_setting")
+	if err != nil {
+		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+	}
+	if setting.Value == nil {
+		return apiwrap.SuccessWithDetail[any](CommentSettingVO{}, "获取评论设置成功")
+	}
+	return apiwrap.SuccessWithDetail(setting.Value, "获取评论设置成功")
 }
 
 func (h *SettingHandler) BasicSettingRequestToDomain(req BasicSettingRequest) domain.Setting {
@@ -160,6 +182,16 @@ func (h *SettingHandler) AboutSettingRequestToDomain(req AboutSettingRequest) do
 			"right_tags":    req.RightTags,
 			"know_me":       req.KnowMe,
 			"github_username": req.GithubUsername,
+		},
+	}
+}
+
+func (h *SettingHandler) CommentSettingRequestToDomain(req CommentSettingRequest) domain.Setting {
+	return domain.Setting{
+		Key: "comment_setting",
+		Value: map[string]any{
+			"env_id":           req.EnvId,
+			"allow_comment_type": req.AllowCommentType,
 		},
 	}
 }

@@ -32,3 +32,8 @@ type AboutSettingRequest struct {
 	KnowMe        string   `json:"know_me" binding:"required"`
 	GithubUsername string   `json:"github_username" binding:"required"`
 }
+
+type CommentSettingRequest struct {
+	EnvId           string `json:"env_id" binding:"required"`
+	AllowCommentType string `json:"allow_comment_type" binding:"required"`
+}

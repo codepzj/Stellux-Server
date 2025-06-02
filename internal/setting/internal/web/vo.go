@@ -34,3 +34,8 @@ type AboutSettingVO struct {
 	KnowMe        string   `json:"know_me"`
 	GithubUsername string   `json:"github_username"`
 }
+
+type CommentSettingVO struct {
+	EnvId           string `json:"env_id"`
+	AllowCommentType string `json:"allow_comment_type"`
+}
