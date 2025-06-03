@@ -12,16 +12,18 @@ import (
 	"github.com/codepzj/stellux/server/internal/post/internal/repository/dao"
 	"github.com/codepzj/stellux/server/internal/post/internal/service"
 	"github.com/codepzj/stellux/server/internal/post/internal/web"
+	"github.com/codepzj/stellux/server/internal/setting"
 	"github.com/google/wire"
 )
 
 // Injectors from wire.go:
 
-func InitPostModule(mongoDB *mongox.Database) *Module {
+func InitPostModule(mongoDB *mongox.Database, settingModule *setting.Module) *Module {
 	postDao := dao.NewPostDao(mongoDB)
 	postRepository := repository.NewPostRepository(postDao)
 	postService := service.NewPostService(postRepository)
-	postHandler := web.NewPostHandler(postService)
+	iSettingService := settingModule.Svc
+	postHandler := web.NewPostHandler(postService, iSettingService)
 	module := &Module{
 		Svc: postService,
 		Hdl: postHandler,

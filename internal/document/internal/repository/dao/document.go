@@ -33,6 +33,7 @@ type IDocumentDao interface {
 	FindAllByTypeAndDocumentID(ctx context.Context, document_type string, documentID bson.ObjectID) ([]*Document, error)
 	FindAllByDocumentID(ctx context.Context, documentID bson.ObjectID) ([]*Document, error)
 	FindAllPublicByDocumentID(ctx context.Context, documentID bson.ObjectID) ([]*Document, error)
+	FindAllByDocumentIDList(ctx context.Context, documentIDList []bson.ObjectID) ([]*Document, error)
 	GetDocumentByID(ctx context.Context, id bson.ObjectID) (*Document, error)
 	UpdateRootDocumentByID(ctx context.Context, id bson.ObjectID, doc *Document) error
 	UpdateDocumentByID(ctx context.Context, id bson.ObjectID, title string, content string) error
@@ -162,6 +163,15 @@ func (d *DocumentDao) FindAllByDocumentID(ctx context.Context, documentID bson.O
 // 根据文档id查询文档中的公开子文档
 func (d *DocumentDao) FindAllPublicByDocumentID(ctx context.Context, documentID bson.ObjectID) ([]*Document, error) {
 	documentList, err := d.coll.Finder().Filter(query.NewBuilder().Eq("document_id", documentID).Eq("is_public", true).Build()).Find(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return documentList, nil
+}
+
+// 根据document_id列表查询文档
+func (d *DocumentDao) FindAllByDocumentIDList(ctx context.Context, documentIDList []bson.ObjectID) ([]*Document, error) {
+	documentList, err := d.coll.Finder().Filter(query.In("document_id", documentIDList...)).Find(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -28,3 +28,13 @@ type DocumentRoot struct {
 	Thumbnail    string    // 文档缩略图
 	IsPublic     bool      // 是否公开
 }
+
+// 站点地图
+type DocumentSitemap struct {
+	ID           bson.ObjectID
+	UpdatedAt    time.Time
+	Alias        string
+	DocumentType string
+	ParentID     bson.ObjectID
+	DocumentID   bson.ObjectID
+}

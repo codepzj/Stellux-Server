@@ -1,23 +1,29 @@
 package web
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/codepzj/stellux/server/global"
 	"github.com/codepzj/stellux/server/internal/document/internal/domain"
 	"github.com/codepzj/stellux/server/internal/document/internal/service"
 	"github.com/codepzj/stellux/server/internal/pkg/apiwrap"
+	"github.com/codepzj/stellux/server/internal/setting"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
 )
 
-func NewDocumentHandler(serv service.IDocumentService) *DocumentHandler {
+func NewDocumentHandler(serv service.IDocumentService, settingService setting.Service) *DocumentHandler {
 	return &DocumentHandler{
-		serv: serv,
+		serv:           serv,
+		settingService: settingService,
 	}
 }
 
 type DocumentHandler struct {
-	serv service.IDocumentService
+	serv           service.IDocumentService
+	settingService setting.Service
 }
 
 func (h *DocumentHandler) RegisterGinRoutes(engine *gin.Engine) {
@@ -28,6 +34,7 @@ func (h *DocumentHandler) RegisterGinRoutes(engine *gin.Engine) {
 		documentGroup.GET("/:id", apiwrap.Wrap(h.GetDocumentByID))
 		documentGroup.GET("/root/:id", apiwrap.Wrap(h.GetRootDocumentByID))
 		documentGroup.GET("/search", apiwrap.Wrap(h.GetDocumentByKeyword))
+		documentGroup.GET("/sitemap", apiwrap.Wrap(h.GetDocumentSitemap))
 	}
 	adminGroup := engine.Group("/admin-api/document")
 	{
@@ -96,6 +103,23 @@ func (h *DocumentHandler) GetDocumentByKeyword(ctx *gin.Context) *apiwrap.Respon
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
 	}
 	return apiwrap.SuccessWithDetail[any](h.DocumentDomainListToVOList(documentList), "获取文档成功")
+}
+
+// 获取站点地图
+func (h *DocumentHandler) GetDocumentSitemap(ctx *gin.Context) *apiwrap.Response[any] {
+	documentList, err := h.serv.GenerateSitemap(ctx)
+	if err != nil {
+		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+	}
+	setting, err := h.settingService.GetSetting(ctx, "seo_setting")
+	if err != nil {
+		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+	}
+	var seoSetting SeoSettingVO
+	bj, _ := json.Marshal(setting.Value)
+	json.Unmarshal(bj, &seoSetting)
+	fmt.Println(seoSetting)
+	return apiwrap.SuccessWithDetail[any](h.DocumentSitemapDomainListToVOList(documentList, seoSetting.SiteUrl), "获取站点地图成功")
 }
 
 // 新增文档
@@ -310,5 +334,25 @@ func (h *DocumentHandler) DocumentDomainToVO(doc *domain.Document) *DocumentVO {
 func (h *DocumentHandler) DocumentDomainListToVOList(docList []*domain.Document) []*DocumentVO {
 	return lo.Map(docList, func(doc *domain.Document, _ int) *DocumentVO {
 		return h.DocumentDomainToVO(doc)
+	})
+}
+
+func (h *DocumentHandler) DocumentSitemapDomainListToVOList(docList []*domain.DocumentSitemap, siteUrl string) []*DocumentSitemapVO {
+	return lo.Map(docList, func(doc *domain.DocumentSitemap, _ int) *DocumentSitemapVO {
+		if doc.DocumentType == "root" {
+			return &DocumentSitemapVO{
+				Loc:        siteUrl + "/" + doc.Alias + "/" + doc.ID.Hex(),
+				Lastmod:    doc.UpdatedAt.String(),
+				Changefreq: "weekly",
+				Priority:   0.8,
+			}
+		} else {
+			return &DocumentSitemapVO{
+				Loc:        siteUrl + "/" + doc.Alias + "/" + doc.DocumentID.Hex() + "/" + doc.ID.Hex(),
+				Lastmod:    doc.UpdatedAt.String(),
+				Changefreq: "weekly",
+				Priority:   0.7,
+			}
+		}
 	})
 }

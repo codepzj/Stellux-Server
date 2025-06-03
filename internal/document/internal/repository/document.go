@@ -18,6 +18,7 @@ type IDocumentRepository interface {
 	FindAllPublicRootDocument(ctx context.Context) ([]*domain.DocumentRoot, error)
     FindAllByTypeAndDocumentID(ctx context.Context,document_type string,documentID bson.ObjectID) ([]*domain.Document, error)
 	FindAllByDocumentID(ctx context.Context, documentID bson.ObjectID) ([]*domain.Document, error)
+	FindAllByDocumentIDList(ctx context.Context, documentIDList []bson.ObjectID) ([]*domain.Document, error)
 	FindAllPublicByDocumentID(ctx context.Context, documentID bson.ObjectID) ([]*domain.Document, error)
 	UpdateDocumentByID(ctx context.Context, id bson.ObjectID, title string, content string) error
 	DeleteByID(ctx context.Context, id bson.ObjectID) error
@@ -112,6 +113,15 @@ func (r *DocumentRepository) FindAllByDocumentID(ctx context.Context, documentID
 // 根据文档id查询文档中的公开子文档
 func (r *DocumentRepository) FindAllPublicByDocumentID(ctx context.Context, documentID bson.ObjectID) ([]*domain.Document, error) {
 	documentList, err := r.dao.FindAllPublicByDocumentID(ctx, documentID)
+	if err != nil {
+		return nil, err
+	}
+	return r.DaoToDomainList(documentList), nil
+}
+
+// 根据id列表查询文档
+func (r *DocumentRepository) FindAllByDocumentIDList(ctx context.Context, documentIDList []bson.ObjectID) ([]*domain.Document, error) {
+	documentList, err := r.dao.FindAllByDocumentIDList(ctx, documentIDList)
 	if err != nil {
 		return nil, err
 	}

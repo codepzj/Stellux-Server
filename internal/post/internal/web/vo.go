@@ -41,8 +41,22 @@ type PostDetailVO struct {
 }
 
 type SiteMapVO struct {
-	ID          string    `json:"id"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	Loc        string `json:"loc"`
+	Lastmod    string `json:"lastmod"`
+	Changefreq string `json:"changefreq"`
+	Priority   float64 `json:"priority"`
+}
+
+type SeoSettingVO struct {
+	SiteAuthor    string `json:"site_author"`
+	SiteUrl       string `json:"site_url"`
+	SiteDescription string `json:"site_description"`
+	SiteKeywords    string `json:"site_keywords"`
+	Robots          string `json:"robots"`
+	OgImage         string `json:"og_image"`
+	OgType          string `json:"og_type"`
+	TwitterCard     string `json:"twitter_card"`
+	TwitterSite     string `json:"twitter_site"`
 }
 
 func GetCategoryNameFromLabel(label label.Domain) string {
@@ -134,11 +148,13 @@ func (h *PostHandler) PostListToVOList(posts []*domain.Post) []*PostVO {
 	})
 }
 
-func (h *PostHandler) PostListToSiteMapVOList(posts []*domain.Post) []*SiteMapVO {
+func (h *PostHandler) PostListToSiteMapVOList(posts []*domain.Post, siteUrl string) []*SiteMapVO {
 	return lo.Map(posts, func(post *domain.Post, _ int) *SiteMapVO {
 		return &SiteMapVO{
-			ID:          post.ID.Hex(),
-			UpdatedAt:   post.UpdatedAt,
+			Loc:        siteUrl + "/post/" + post.ID.Hex(),
+			Lastmod:    post.UpdatedAt.String(),
+			Changefreq: "weekly",
+			Priority:   0.8,
 		}
 	})
 }

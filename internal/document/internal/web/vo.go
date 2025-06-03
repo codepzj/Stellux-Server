@@ -36,3 +36,22 @@ type DocumentTreeVO struct {
 	ParentID     apiwrap.BsonID `json:"parent_id,omitzero"`
 	DocumentID   apiwrap.BsonID `json:"document_id,omitzero"`
 }
+
+type DocumentSitemapVO struct {
+	Loc        string `json:"loc"`
+	Lastmod    string `json:"lastmod"`
+	Changefreq string `json:"changefreq"`
+	Priority   float64 `json:"priority"`
+}
+
+type SeoSettingVO struct {
+	SiteAuthor    string `json:"site_author"`
+	SiteUrl       string `json:"site_url"`
+	SiteDescription string `json:"site_description"`
+	SiteKeywords    string `json:"site_keywords"`
+	Robots          string `json:"robots"`
+	OgImage         string `json:"og_image"`
+	OgType          string `json:"og_type"`
+	TwitterCard     string `json:"twitter_card"`
+	TwitterSite     string `json:"twitter_site"`
+}

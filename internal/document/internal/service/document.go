@@ -2,10 +2,12 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/codepzj/stellux/server/global"
 	"github.com/codepzj/stellux/server/internal/document/internal/domain"
 	"github.com/codepzj/stellux/server/internal/document/internal/repository"
+	"github.com/samber/lo"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -15,6 +17,7 @@ type IDocumentService interface {
 	FindByKeyword(ctx context.Context, keyword string, documentID bson.ObjectID) ([]*domain.Document, error)
 	GetDocumentByID(ctx context.Context, id bson.ObjectID) (*domain.Document, error)
 	GetRootDocumentByID(ctx context.Context, id bson.ObjectID) (*domain.DocumentRoot, error)
+	GenerateSitemap(ctx context.Context) ([]*domain.DocumentSitemap, error)
 	AdminCreate(ctx context.Context, doc *domain.Document) error
 	AdminCreateRoot(ctx context.Context, doc *domain.DocumentRoot) error
 	AdminFindAllRoot(ctx context.Context) ([]*domain.DocumentRoot, error)
@@ -75,6 +78,23 @@ func (s *DocumentService) GetRootDocumentByID(ctx context.Context, id bson.Objec
 func (s *DocumentService) GetDocumentByID(ctx context.Context, id bson.ObjectID) (*domain.Document, error) {
 	// TODO: 获取文档的权限
 	return s.repo.GetDocumentByID(ctx, id)
+}
+
+// 生成站点地图
+func (s *DocumentService) GenerateSitemap(ctx context.Context) ([]*domain.DocumentSitemap, error) {
+	rootDocumentList, err := s.repo.FindAllPublicRootDocument(ctx)
+	if err != nil {
+		return nil, err
+	}
+	rootIdList := lo.Map(rootDocumentList, func(item *domain.DocumentRoot, _ int) bson.ObjectID {
+		return item.ID
+	})
+	childDocumentList, err := s.repo.FindAllByDocumentIDList(ctx, rootIdList)
+	if err != nil {
+		return nil, err
+	}
+	sitemapList := DocumentListToSitemap(rootDocumentList, childDocumentList)
+	return sitemapList, nil
 }
 
 // 新增文档
@@ -140,4 +160,41 @@ func (s *DocumentService) AdminDeleteByID(ctx context.Context, id bson.ObjectID)
 // 管理员删除多个文档
 func (s *DocumentService) AdminDeleteByIDList(ctx context.Context, idList []bson.ObjectID) error {
 	return s.repo.DeleteByIDList(ctx, idList)
+}
+
+func DocumentListToSitemap(
+	rootDocumentList []*domain.DocumentRoot,
+	childDocumentList []*domain.Document,
+) []*domain.DocumentSitemap {
+	// 构建 root ID -> Alias 映射，避免在循环中重复查找
+	rootAliasMap := make(map[bson.ObjectID]string, len(rootDocumentList))
+	rootSitemapList := make([]*domain.DocumentSitemap, 0, len(rootDocumentList))
+
+	for _, root := range rootDocumentList {
+		rootAliasMap[root.ID] = root.Alias
+		rootSitemapList = append(rootSitemapList, &domain.DocumentSitemap{
+			ID:           root.ID,
+			UpdatedAt:    root.UpdatedAt,
+			Alias:        root.Alias,
+			DocumentType: root.DocumentType,
+			ParentID:     bson.ObjectID{},
+			DocumentID:   bson.ObjectID{},
+		})
+	}
+
+	childSitemapList := make([]*domain.DocumentSitemap, 0, len(childDocumentList))
+	for _, doc := range childDocumentList {
+		alias := rootAliasMap[doc.DocumentID] // 如果不存在，alias 会为空字符串
+		fmt.Println(alias, doc.DocumentID)
+		childSitemapList = append(childSitemapList, &domain.DocumentSitemap{
+			ID:           doc.ID,
+			UpdatedAt:    doc.UpdatedAt,
+			Alias:        alias,
+			DocumentType: doc.DocumentType,
+			ParentID:     doc.ParentID,
+			DocumentID:   doc.DocumentID,
+		})
+	}
+
+	return append(rootSitemapList, childSitemapList...)
 }

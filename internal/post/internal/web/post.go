@@ -1,21 +1,25 @@
 package web
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/codepzj/stellux/server/internal/pkg/apiwrap"
 	"github.com/codepzj/stellux/server/internal/post/internal/service"
+	"github.com/codepzj/stellux/server/internal/setting"
 	"github.com/gin-gonic/gin"
 )
 
-func NewPostHandler(serv service.IPostService) *PostHandler {
+func NewPostHandler(serv service.IPostService, settingService setting.Service) *PostHandler {
 	return &PostHandler{
-		serv: serv,
+		serv:           serv,
+		settingService: settingService,
 	}
 }
 
 type PostHandler struct {
-	serv service.IPostService
+	serv           service.IPostService
+	settingService setting.Service
 }
 
 func (h *PostHandler) RegisterGinRoutes(engine *gin.Engine) {
@@ -181,6 +185,13 @@ func (h *PostHandler) GetSiteMap(c *gin.Context) *apiwrap.Response[any] {
 	if err != nil {
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
 	}
-	siteMapVos := h.PostListToSiteMapVOList(postList)
+	setting, err := h.settingService.GetSetting(c, "seo_setting")
+	if err != nil {
+		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+	}
+	var seoSetting SeoSettingVO
+	bj, _ := json.Marshal(setting.Value)
+	json.Unmarshal(bj, &seoSetting)
+	siteMapVos := h.PostListToSiteMapVOList(postList, seoSetting.SiteUrl)
 	return apiwrap.SuccessWithDetail[any](siteMapVos, "获取站点地图成功")
 }
