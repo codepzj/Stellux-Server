@@ -2,7 +2,6 @@ package web
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/codepzj/stellux/server/global"
 	"github.com/codepzj/stellux/server/internal/document/internal/domain"
@@ -118,7 +117,6 @@ func (h *DocumentHandler) GetDocumentSitemap(ctx *gin.Context) *apiwrap.Response
 	var seoSetting SeoSettingVO
 	bj, _ := json.Marshal(setting.Value)
 	json.Unmarshal(bj, &seoSetting)
-	fmt.Println(seoSetting)
 	return apiwrap.SuccessWithDetail[any](h.DocumentSitemapDomainListToVOList(documentList, seoSetting.SiteUrl), "获取站点地图成功")
 }
 

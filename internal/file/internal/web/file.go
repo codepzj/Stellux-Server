@@ -1,8 +1,6 @@
 package web
 
 import (
-	"fmt"
-
 	"github.com/codepzj/stellux/server/internal/file/internal/service"
 	"github.com/codepzj/stellux/server/internal/pkg/apiwrap"
 	"github.com/gin-gonic/gin"
@@ -52,8 +50,6 @@ func (h *FileHandler) QueryFileList(c *gin.Context, page *apiwrap.Page) *apiwrap
 }
 
 func (h *FileHandler) DeleteFiles(c *gin.Context, deleteFilesRequest *DeleteFilesRequest) *apiwrap.Response[any] {
-	idList := deleteFilesRequest.IDList
-	fmt.Println(idList)
 	err := h.serv.DeleteFiles(c, deleteFilesRequest.IDList)
 	if err != nil {
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())

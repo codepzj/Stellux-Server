@@ -1,7 +1,6 @@
 package web
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/codepzj/stellux/server/internal/pkg/apiwrap"
@@ -65,13 +64,11 @@ func (h *UserHandler) Login(c *gin.Context, userRequest LoginRequest) *apiwrap.R
 func (h *UserHandler) RefreshToken(c *gin.Context) *apiwrap.Response[any] {
 	// 校验refresh_token是否有效
 	refreshToken := c.Query("refresh_token")
-	fmt.Println(refreshToken)
 	if refreshToken == "" {
 		return apiwrap.FailWithMsg(apiwrap.RuquestBadRequest, "refresh_token不能为空")
 	}
 	claims, err := utils.ParseToken(refreshToken)
 	if err != nil {
-		fmt.Println(err.Error())
 		return apiwrap.FailWithMsg(apiwrap.RequestRefreshTokenExpired, "refresh_token已过期,请重新登录")
 	}
 	accessToken, err := utils.GenerateAccessToken(claims.ID)

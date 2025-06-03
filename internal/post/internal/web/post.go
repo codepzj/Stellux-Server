@@ -2,7 +2,6 @@ package web
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/codepzj/stellux/server/internal/pkg/apiwrap"
 	"github.com/codepzj/stellux/server/internal/post/internal/service"
@@ -82,7 +81,6 @@ func (h *PostHandler) AdminRestorePost(c *gin.Context, postIDRequest PostIDReque
 }
 
 func (h *PostHandler) AdminRestorePostBatch(c *gin.Context, postIDListRequest PostIDListRequest) *apiwrap.Response[any] {
-	fmt.Println("postIDListRequest", postIDListRequest)
 	err := h.serv.AdminRestorePostBatch(c, apiwrap.ConvertBsonIDList(postIDListRequest.IDList))
 	if err != nil {
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
