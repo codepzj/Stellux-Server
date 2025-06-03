@@ -81,17 +81,16 @@ pnpm run dev
 * 普通用户：alice / 123456
 * 游客：test / 123456
 
-在控制端根目录创建 `.env.production`，内容：
+在控制端根目录创建 `.env.development`，内容：
 
 ```env
-VITE_API_URL=http://localhost:9002/api
+VITE_API_URL=http://localhost:9001
 ```
 
-在前端根目录创建 `.env.production`，内容：
+在前端根目录创建 `.env.development`，内容：
 
 ```env
 NEXT_PUBLIC_PROJECT_API=http://localhost:9001
-NEXT_PUBLIC_SITE_URL=http://localhost:9003
 ```
 
 ### 后端
