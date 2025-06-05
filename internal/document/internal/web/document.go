@@ -339,14 +339,14 @@ func (h *DocumentHandler) DocumentSitemapDomainListToVOList(docList []*domain.Do
 	return lo.Map(docList, func(doc *domain.DocumentSitemap, _ int) *DocumentSitemapVO {
 		if doc.DocumentType == "root" {
 			return &DocumentSitemapVO{
-				Loc:        siteUrl + "/" + doc.Alias + "/" + doc.ID.Hex(),
+				Loc:        siteUrl + "/doc/" + doc.Alias + "/" + doc.ID.Hex(),
 				Lastmod:    doc.UpdatedAt.String(),
 				Changefreq: "weekly",
 				Priority:   0.8,
 			}
 		} else {
 			return &DocumentSitemapVO{
-				Loc:        siteUrl + "/" + doc.Alias + "/" + doc.DocumentID.Hex() + "/" + doc.ID.Hex(),
+				Loc:        siteUrl + "/doc/" + doc.Alias + "/" + doc.DocumentID.Hex() + "/" + doc.ID.Hex(),
 				Lastmod:    doc.UpdatedAt.String(),
 				Changefreq: "weekly",
 				Priority:   0.7,
