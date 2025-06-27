@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/codepzj/stellux/server/global"
 	"github.com/codepzj/stellux/server/internal/document/internal/domain"
@@ -185,7 +184,6 @@ func DocumentListToSitemap(
 	childSitemapList := make([]*domain.DocumentSitemap, 0, len(childDocumentList))
 	for _, doc := range childDocumentList {
 		alias := rootAliasMap[doc.DocumentID] // 如果不存在，alias 会为空字符串
-		fmt.Println(alias, doc.DocumentID)
 		childSitemapList = append(childSitemapList, &domain.DocumentSitemap{
 			ID:           doc.ID,
 			UpdatedAt:    doc.UpdatedAt,

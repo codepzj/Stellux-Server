@@ -14,7 +14,6 @@ func NewEnforcer(url string) *casbin.Enforcer {
 	}
 	enforcer, err := casbin.NewEnforcer("config/policy.conf", adapter)
 	if err != nil {
-		fmt.Println(err.Error())
 		panic(err)
 	}
 	err = enforcer.LoadPolicy()

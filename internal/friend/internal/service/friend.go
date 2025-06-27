@@ -5,12 +5,14 @@ import (
 
 	"github.com/codepzj/stellux/server/internal/friend/internal/domain"
 	"github.com/codepzj/stellux/server/internal/friend/internal/repository"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-
 type IFriendService interface {
-	Create(ctx context.Context, friend *domain.Friend) error
-	FindAll(ctx context.Context) ([]*domain.Friend, error)
+	CreateFriend(ctx context.Context, friend *domain.Friend) error
+	FindAllFriends(ctx context.Context) ([]*domain.Friend, error)
+	UpdateFriend(ctx context.Context, id bson.ObjectID, friend *domain.Friend) error
+	DeleteFriend(ctx context.Context, id bson.ObjectID) error
 }
 
 var _ IFriendService = (*FriendService)(nil)
@@ -25,10 +27,22 @@ type FriendService struct {
 	repo repository.IFriendRepository
 }
 
-func (s *FriendService) Create(ctx context.Context, friend *domain.Friend) error {
+// CreateFriend 创建好友
+func (s *FriendService) CreateFriend(ctx context.Context, friend *domain.Friend) error {
 	return s.repo.Create(ctx, friend)
 }
 
-func (s *FriendService) FindAll(ctx context.Context) ([]*domain.Friend, error) {
+// FindAllFriends 查询所有好友
+func (s *FriendService) FindAllFriends(ctx context.Context) ([]*domain.Friend, error) {
 	return s.repo.FindAll(ctx)
+}
+
+// UpdateFriend 更新好友信息
+func (s *FriendService) UpdateFriend(ctx context.Context, id bson.ObjectID, friend *domain.Friend) error {
+	return s.repo.Update(ctx, id, friend)
+}
+
+// DeleteFriend 删除好友
+func (s *FriendService) DeleteFriend(ctx context.Context, id bson.ObjectID) error {
+	return s.repo.Delete(ctx, id)
 }

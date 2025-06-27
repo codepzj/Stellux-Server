@@ -6,11 +6,14 @@ import (
 	"github.com/codepzj/stellux/server/internal/friend/internal/domain"
 	"github.com/codepzj/stellux/server/internal/friend/internal/repository/dao"
 	"github.com/samber/lo"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type IFriendRepository interface {
 	Create(ctx context.Context, friend *domain.Friend) error
 	FindAll(ctx context.Context) ([]*domain.Friend, error)
+	Update(ctx context.Context, id bson.ObjectID, friend *domain.Friend) error
+	Delete(ctx context.Context, id bson.ObjectID) error
 }
 
 var _ IFriendRepository = (*FriendRepository)(nil)
@@ -35,6 +38,14 @@ func (r *FriendRepository) FindAll(ctx context.Context) ([]*domain.Friend, error
 	return r.FriendDaoToDomainList(friends), nil
 }
 
+func (r *FriendRepository) Update(ctx context.Context, id bson.ObjectID, friend *domain.Friend) error {
+	return r.dao.Update(ctx, id, r.FriendDomainToDao(friend))
+}
+
+func (r *FriendRepository) Delete(ctx context.Context, id bson.ObjectID) error {
+	return r.dao.Delete(ctx, id)
+}
+
 func (r *FriendRepository) FriendDomainToDao(friend *domain.Friend) *dao.Friend {
 	return &dao.Friend{
 		Name:        friend.Name,
@@ -42,6 +53,7 @@ func (r *FriendRepository) FriendDomainToDao(friend *domain.Friend) *dao.Friend 
 		SiteUrl:     friend.SiteUrl,
 		AvatarUrl:   friend.AvatarUrl,
 		WebsiteType: friend.WebsiteType,
+		IsActive:    friend.IsActive,
 	}
 }
 

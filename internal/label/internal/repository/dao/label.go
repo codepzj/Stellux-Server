@@ -3,7 +3,6 @@ package dao
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/chenmingyong0423/go-mongox/v2"
 	"github.com/chenmingyong0423/go-mongox/v2/builder/aggregation"
@@ -23,12 +22,12 @@ type LabelUpdate struct {
 	Name      string `bson:"name"`
 }
 
-// 每种标签文章的数量
-type LabelPostCount struct{
+// LabelPostCount 每种标签文章的数量
+type LabelPostCount struct {
 	ID        bson.ObjectID `bson:"_id"`
 	LabelType string        `bson:"label_type"`
-	Name string
-	Count int
+	Name      string
+	Count     int
 }
 
 type ILabelDao interface {
@@ -38,7 +37,7 @@ type ILabelDao interface {
 	Get(ctx context.Context, id bson.ObjectID) (*Label, error)
 	GetList(ctx context.Context, labelType string, limit int64, skip int64) ([]*Label, int64, error)
 	GetAllByType(ctx context.Context, labelType string) ([]*Label, error)
-    GetCategoryPostCount(ctx context.Context) (*LabelPostCount,error)
+	GetCategoryPostCount(ctx context.Context) (*LabelPostCount, error)
 }
 
 var _ ILabelDao = (*LabelDao)(nil)
@@ -112,18 +111,17 @@ func (d *LabelDao) LabelToUpdate(label *Label) *LabelUpdate {
 	}
 }
 
-func (d *LabelDao) GetCategoryPostCount(ctx context.Context) (*LabelPostCount,error){
+func (d *LabelDao) GetCategoryPostCount(ctx context.Context) (*LabelPostCount, error) {
 	aggregationBuilder := aggregation.NewStageBuilder()
-	aggregationBuilder.Lookup("post","label_post_list",&aggregation.LookUpOptions{
+	aggregationBuilder.Lookup("post", "label_post_list", &aggregation.LookUpOptions{
 		LocalField:   "_id",
 		ForeignField: "category",
 	})
 	aggregationBuilder.AddFields(aggregation.NewStageBuilder().Count("$label_post_list").Build())
 	var labelPostCount LabelPostCount
-	err :=d.coll.Aggregator().Pipeline(aggregationBuilder.Build()).AggregateWithParse(ctx,&labelPostCount)
+	err := d.coll.Aggregator().Pipeline(aggregationBuilder.Build()).AggregateWithParse(ctx, &labelPostCount)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
-	return &labelPostCount,nil
+	return &labelPostCount, nil
 }
