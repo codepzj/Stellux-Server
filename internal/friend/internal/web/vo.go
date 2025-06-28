@@ -19,6 +19,7 @@ type FriendVO struct {
 type FriendShowVO struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`
+	Description string `json:"description"`
 	SiteUrl     string `json:"site_url"`
 	AvatarUrl   string `json:"avatar_url"`
 	WebsiteType int    `json:"website_type"`
@@ -47,6 +48,7 @@ func FriendDomainToShowVOList(friends []*domain.Friend) []*FriendShowVO {
 		return &FriendShowVO{
 			ID:          friend.ID.Hex(),
 			Name:        friend.Name,
+			Description: friend.Description,
 			SiteUrl:     friend.SiteUrl,
 			AvatarUrl:   friend.AvatarUrl,
 			WebsiteType: friend.WebsiteType,

@@ -1,6 +1,6 @@
 module github.com/codepzj/stellux/server
 
-go 1.24.4
+go 1.24.3
 
 require (
 	github.com/casbin/casbin/v2 v2.107.0
