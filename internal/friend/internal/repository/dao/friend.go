@@ -17,13 +17,14 @@ type Friend struct {
 	Description  string
 	SiteUrl      string `bson:"site_url"`
 	AvatarUrl    string `bson:"avatar_url"`
-	WebsiteType  string `bson:"website_type"`
+	WebsiteType  int    `bson:"website_type"`
 	IsActive     bool   `bson:"is_active"`
 }
 
 type IFriendDao interface {
 	Create(ctx context.Context, friend *Friend) error
 	FindAll(ctx context.Context) ([]*Friend, error)
+	FindAllActive(ctx context.Context) ([]*Friend, error)
 	Update(ctx context.Context, id bson.ObjectID, friend *Friend) error
 	Delete(ctx context.Context, id bson.ObjectID) error
 }
@@ -51,6 +52,11 @@ func (d *FriendDao) Create(ctx context.Context, friend *Friend) error {
 
 func (d *FriendDao) FindAll(ctx context.Context) ([]*Friend, error) {
 	return d.coll.Finder().Find(ctx)
+}
+
+// FindAllActive 查询所有活跃的友链
+func (d *FriendDao) FindAllActive(ctx context.Context) ([]*Friend, error) {
+	return d.coll.Finder().Filter(query.Eq("is_active", true)).Find(ctx)
 }
 
 func (d *FriendDao) Update(ctx context.Context, id bson.ObjectID, friend *Friend) error {

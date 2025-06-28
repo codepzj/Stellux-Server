@@ -22,14 +22,28 @@ type FriendHandler struct {
 func (h *FriendHandler) RegisterGinRoutes(engine *gin.Engine) {
 	friendGroup := engine.Group("/friend")
 	{
-		friendGroup.POST("/create", apiwrap.WrapWithBody(h.CreateFriend))
-		friendGroup.GET("/all", apiwrap.Wrap(h.FindAllFriends))
-		friendGroup.PUT("/update", apiwrap.WrapWithBody(h.UpdateFriend))
-		friendGroup.DELETE("/delete/:id", apiwrap.Wrap(h.DeleteFriend))
+		friendGroup.GET("/list", apiwrap.Wrap(h.FindFriendList))
+	}
+	adminGroup := engine.Group("/admin-api")
+	{
+		adminGroup.POST("/friend/create", apiwrap.WrapWithBody(h.CreateFriend))
+		adminGroup.GET("/friend/all", apiwrap.Wrap(h.FindAllFriends))
+		adminGroup.PUT("/friend/update", apiwrap.WrapWithBody(h.UpdateFriend))
+		adminGroup.DELETE("/friend/delete/:id", apiwrap.Wrap(h.DeleteFriend))
 	}
 
 }
 
+// FindFriendList 获取友链列表
+func (h *FriendHandler) FindFriendList(c *gin.Context) *apiwrap.Response[any] {
+	friends, err := h.serv.FindFriendList(c)
+	if err != nil {
+		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
+	}
+	return apiwrap.SuccessWithDetail[any](FriendDomainToShowVOList(friends), "获取友链列表成功")
+}
+
+// CreateFriend 创建友链
 func (h *FriendHandler) CreateFriend(c *gin.Context, friend *FriendRequest) *apiwrap.Response[any] {
 	err := h.serv.CreateFriend(c, &domain.Friend{
 		Name:        friend.Name,
@@ -44,6 +58,7 @@ func (h *FriendHandler) CreateFriend(c *gin.Context, friend *FriendRequest) *api
 	return apiwrap.Success()
 }
 
+// FindAllFriends 获取所有友链
 func (h *FriendHandler) FindAllFriends(c *gin.Context) *apiwrap.Response[any] {
 	friends, err := h.serv.FindAllFriends(c)
 	if err != nil {
@@ -52,6 +67,7 @@ func (h *FriendHandler) FindAllFriends(c *gin.Context) *apiwrap.Response[any] {
 	return apiwrap.SuccessWithDetail[any](FriendDomainToVOList(friends), "获取朋友列表成功")
 }
 
+// UpdateFriend 更新友链
 func (h *FriendHandler) UpdateFriend(c *gin.Context, friend *FriendUpdateRequest) *apiwrap.Response[any] {
 	err := h.serv.UpdateFriend(c, apiwrap.ConvertBsonID(friend.ID), &domain.Friend{
 		Name:        friend.Name,
@@ -67,6 +83,7 @@ func (h *FriendHandler) UpdateFriend(c *gin.Context, friend *FriendUpdateRequest
 	return apiwrap.SuccessWithMsg("更新好友成功")
 }
 
+// DeleteFriend 删除友链
 func (h *FriendHandler) DeleteFriend(c *gin.Context) *apiwrap.Response[any] {
 	err := h.serv.DeleteFriend(c, apiwrap.ConvertBsonID(c.Param("id")))
 	if err != nil {

@@ -10,6 +10,7 @@ import (
 
 type IFriendService interface {
 	CreateFriend(ctx context.Context, friend *domain.Friend) error
+	FindFriendList(ctx context.Context) ([]*domain.Friend, error)
 	FindAllFriends(ctx context.Context) ([]*domain.Friend, error)
 	UpdateFriend(ctx context.Context, id bson.ObjectID, friend *domain.Friend) error
 	DeleteFriend(ctx context.Context, id bson.ObjectID) error
@@ -30,6 +31,11 @@ type FriendService struct {
 // CreateFriend 创建好友
 func (s *FriendService) CreateFriend(ctx context.Context, friend *domain.Friend) error {
 	return s.repo.Create(ctx, friend)
+}
+
+// FindFriendList 查询友链列表
+func (s *FriendService) FindFriendList(ctx context.Context) ([]*domain.Friend, error) {
+	return s.repo.FindAllActive(ctx)
 }
 
 // FindAllFriends 查询所有好友

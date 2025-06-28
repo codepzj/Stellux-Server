@@ -11,6 +11,7 @@ import (
 
 type IFriendRepository interface {
 	Create(ctx context.Context, friend *domain.Friend) error
+	FindAllActive(ctx context.Context) ([]*domain.Friend, error)
 	FindAll(ctx context.Context) ([]*domain.Friend, error)
 	Update(ctx context.Context, id bson.ObjectID, friend *domain.Friend) error
 	Delete(ctx context.Context, id bson.ObjectID) error
@@ -30,6 +31,16 @@ func (r *FriendRepository) Create(ctx context.Context, friend *domain.Friend) er
 	return r.dao.Create(ctx, r.FriendDomainToDao(friend))
 }
 
+// FindAllActive 查询所有活跃的友链
+func (r *FriendRepository) FindAllActive(ctx context.Context) ([]*domain.Friend, error) {
+	friends, err := r.dao.FindAllActive(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return r.FriendDaoToDomainList(friends), nil
+}
+
+// FindAll 查询所有友链
 func (r *FriendRepository) FindAll(ctx context.Context) ([]*domain.Friend, error) {
 	friends, err := r.dao.FindAll(ctx)
 	if err != nil {
