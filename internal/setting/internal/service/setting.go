@@ -8,8 +8,8 @@ import (
 )
 
 type ISettingService interface {
-	AdminUpsertSetting(ctx context.Context, setting domain.Setting) error
-	GetSetting(ctx context.Context, key string) (*domain.Setting, error)
+	AdminUpsertSetting(ctx context.Context, setting domain.SiteSetting) error
+	GetSetting(ctx context.Context, key string) (*domain.SiteSetting, error)
 }
 
 var _ ISettingService = (*SettingService)(nil)
@@ -24,10 +24,10 @@ type SettingService struct {
 	repo repository.ISettingRepository
 }
 
-func (s *SettingService) AdminUpsertSetting(ctx context.Context, setting domain.Setting) error {
+func (s *SettingService) AdminUpsertSetting(ctx context.Context, setting domain.SiteSetting) error {
 	return s.repo.Upsert(ctx, setting)
 }
 
-func (s *SettingService) GetSetting(ctx context.Context, key string) (*domain.Setting, error) {
+func (s *SettingService) GetSetting(ctx context.Context, key string) (*domain.SiteSetting, error) {
 	return s.repo.GetSetting(ctx, key)
 }

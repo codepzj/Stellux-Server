@@ -10,9 +10,23 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
+
 type Setting struct {
 	Key   string `bson:"key"`
-	Value any    `bson:"value"`
+	Value SiteConfig    `bson:"value"`
+}
+
+type SiteConfig struct {
+	SiteTitle   string `bson:"site_title"` // 网站标题
+	SiteSubTitle string `bson:"site_sub_title"` // 网站副标题
+	SiteFavicon  string `bson:"site_favicon"` // 网站图标
+	SiteAvatar   string `bson:"site_avatar"` // 网站头像
+	SiteKeywords string `bson:"site_keywords"` // 网站关键词
+	SiteDescription string `bson:"site_description"` // 网站描述
+	SiteCopyright   string `bson:"site_copyright"` // 网站版权
+	SiteICP         string `bson:"site_icp"` // 网站备案号
+	SiteICPLink     string `bson:"site_icp_link"` // 网站备案号链接
+	GithubUsername  string `bson:"github_username"` // Github用户名
 }
 
 type ISettingDao interface {
@@ -46,7 +60,7 @@ func (s *SettingDao) GetSetting(ctx context.Context, key string) (*Setting, erro
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		return &Setting{
 			Key:   key,
-			Value: nil,
+			Value: SiteConfig{},
 		}, nil
 	}
 	if err != nil {
