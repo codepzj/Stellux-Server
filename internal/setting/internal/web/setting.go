@@ -71,11 +71,12 @@ func (h *SettingHandler) SiteConfigDomainToVO(req domain.SiteSetting) SiteConfig
 		SiteTitle:       req.Value.SiteTitle,
 		SiteSubTitle:    req.Value.SiteSubTitle,
 		SiteFavicon:     req.Value.SiteFavicon,
+		SiteAvatar:      req.Value.SiteAvatar,
 		SiteDescription: req.Value.SiteDescription,
 		SiteKeywords:    req.Value.SiteKeywords,
 		SiteCopyright:   req.Value.SiteCopyright,
 		SiteIcp:         req.Value.SiteICP,
-		SiteIcpUrl:      req.Value.SiteICPLink,
+		SiteIcpLink:     req.Value.SiteICPLink,
 		GithubUsername:  req.Value.GithubUsername,
 	}
 }
