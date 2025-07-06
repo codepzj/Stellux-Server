@@ -1,14 +1,15 @@
 package web
 
 type SiteConfigRequest struct {
-	SiteTitle    string `json:"site_title" binding:"required"`
-	SiteSubtitle string `json:"site_subtitle" binding:"required"`
-	SiteFavicon  string `json:"site_favicon"`
-	SiteAvatar   string `json:"site_avatar"`
-	SiteKeywords string `json:"site_keywords"`
-	SiteDescription string `json:"site_description"`
-	SiteCopyright string `json:"site_copyright"`
-	SiteICP string `json:"site_icp"`
-	SiteICPLink string `json:"site_icplink"`
-	GithubUsername string `json:"github_username"`
+	SiteTitle    string `json:"siteTitle" binding:"required"`
+	SiteSubtitle string `json:"siteSubtitle" binding:"required"`
+	SiteUrl string `json:"siteUrl" binding:"required"`
+	SiteFavicon  string `json:"siteFavicon"`
+	SiteAvatar   string `json:"siteAvatar"`
+	SiteKeywords string `json:"siteKeywords"`
+	SiteDescription string `json:"siteDescription"`
+	SiteCopyright string `json:"siteCopyright"`
+	SiteIcp string `json:"siteIcp"`
+	SiteIcpLink string `json:"siteIcpLink"`
+	GithubUsername string `json:"githubUsername" binding:"required"`
 }

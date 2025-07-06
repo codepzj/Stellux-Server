@@ -14,7 +14,7 @@ import (
 
 // NewGin 初始化gin服务器
 func NewGin(userHdl *user.Handler, postHdl *post.Handler, labelHdl *label.Handler, fileHdl *file.Handler, documentHdl *document.Handler, settingHdl *setting.Handler, friendHdl *friend.Handler, middleware []gin.HandlerFunc) *gin.Engine {
-	router := gin.New()
+	router := gin.Default()
 
 	// 中间件
 	router.Use(middleware...)

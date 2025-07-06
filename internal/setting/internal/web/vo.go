@@ -1,14 +1,15 @@
 package web
 
 type SiteConfigSettingVO struct {
-	SiteTitle string `json:"site_title"`
-	SiteSubTitle  string `json:"site_subtitle"`
-	SiteFavicon string `json:"site_favicon"`
-	SiteAvatar string `json:"site_avatar"`
-	SiteDescription string `json:"site_description"`
-	SiteKeywords string `json:"site_keywords"`
-	SiteCopyright string `json:"site_copyright"`
-	SiteIcp string `json:"site_icp"`
-	SiteIcpLink string `json:"site_icplink"`
-	GithubUsername string `json:"github_username"`
+	SiteTitle string `json:"siteTitle"`
+	SiteSubtitle  string `json:"siteSubtitle"`
+	SiteUrl string `json:"siteUrl"`
+	SiteFavicon string `json:"siteFavicon"`
+	SiteAvatar string `json:"siteAvatar"`
+	SiteDescription string `json:"siteDescription"`
+	SiteKeywords string `json:"siteKeywords"`
+	SiteCopyright string `json:"siteCopyright"`
+	SiteIcp string `json:"siteIcp"`
+	SiteIcpLink string `json:"siteIcpLink"`
+	GithubUsername string `json:"githubUsername"`
 }

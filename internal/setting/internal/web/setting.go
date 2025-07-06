@@ -52,14 +52,15 @@ func (h *SettingHandler) SiteConfigRequestToDomain(req SiteConfigRequest) domain
 		Key: "site_config",
 		Value: domain.SiteConfig{
 			SiteTitle:       req.SiteTitle,
-			SiteSubTitle:    req.SiteSubtitle,
+			SiteSubtitle:    req.SiteSubtitle,
+			SiteUrl:         req.SiteUrl,
 			SiteFavicon:     req.SiteFavicon,
 			SiteAvatar:      req.SiteAvatar,
 			SiteKeywords:    req.SiteKeywords,
 			SiteDescription: req.SiteDescription,
 			SiteCopyright:   req.SiteCopyright,
-			SiteICP:         req.SiteICP,
-			SiteICPLink:     req.SiteICPLink,
+			SiteIcp:         req.SiteIcp,
+			SiteIcpLink:     req.SiteIcpLink,
 			GithubUsername:  req.GithubUsername,
 		},
 	}
@@ -69,14 +70,15 @@ func (h *SettingHandler) SiteConfigRequestToDomain(req SiteConfigRequest) domain
 func (h *SettingHandler) SiteConfigDomainToVO(req domain.SiteSetting) SiteConfigSettingVO {
 	return SiteConfigSettingVO{
 		SiteTitle:       req.Value.SiteTitle,
-		SiteSubTitle:    req.Value.SiteSubTitle,
+		SiteSubtitle:    req.Value.SiteSubtitle,
+		SiteUrl:         req.Value.SiteUrl,
 		SiteFavicon:     req.Value.SiteFavicon,
 		SiteAvatar:      req.Value.SiteAvatar,
 		SiteDescription: req.Value.SiteDescription,
 		SiteKeywords:    req.Value.SiteKeywords,
 		SiteCopyright:   req.Value.SiteCopyright,
-		SiteIcp:         req.Value.SiteICP,
-		SiteIcpLink:     req.Value.SiteICPLink,
+		SiteIcp:         req.Value.SiteIcp,
+		SiteIcpLink:     req.Value.SiteIcpLink,
 		GithubUsername:  req.Value.GithubUsername,
 	}
 }

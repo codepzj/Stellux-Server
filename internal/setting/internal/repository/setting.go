@@ -36,17 +36,18 @@ func (r *SettingRepository) GetSetting(ctx context.Context, key string) (*domain
 
 func (r *SettingRepository) DomainToDao(domain *domain.SiteSetting) *dao.Setting {
 	return &dao.Setting{
-		Key:   domain.Key,
+		Key: domain.Key,
 		Value: dao.SiteConfig{
-			SiteTitle:   domain.Value.SiteTitle,
-			SiteSubTitle: domain.Value.SiteSubTitle,
-			SiteFavicon:  domain.Value.SiteFavicon,
-			SiteAvatar:   domain.Value.SiteAvatar,
-			SiteKeywords: domain.Value.SiteKeywords,
+			SiteTitle:       domain.Value.SiteTitle,
+			SiteSubtitle:    domain.Value.SiteSubtitle,
+			SiteUrl:         domain.Value.SiteUrl,
+			SiteFavicon:     domain.Value.SiteFavicon,
+			SiteAvatar:      domain.Value.SiteAvatar,
+			SiteKeywords:    domain.Value.SiteKeywords,
 			SiteDescription: domain.Value.SiteDescription,
 			SiteCopyright:   domain.Value.SiteCopyright,
-			SiteICP:         domain.Value.SiteICP,
-			SiteICPLink:     domain.Value.SiteICPLink,
+			SiteIcp:         domain.Value.SiteIcp,
+			SiteIcpLink:     domain.Value.SiteIcpLink,
 			GithubUsername:  domain.Value.GithubUsername,
 		},
 	}
@@ -54,17 +55,18 @@ func (r *SettingRepository) DomainToDao(domain *domain.SiteSetting) *dao.Setting
 
 func (r *SettingRepository) DaoToDomain(dao *dao.Setting) *domain.SiteSetting {
 	return &domain.SiteSetting{
-		Key:   dao.Key,
+		Key: dao.Key,
 		Value: domain.SiteConfig{
-			SiteTitle:   dao.Value.SiteTitle,
-			SiteSubTitle: dao.Value.SiteSubTitle,
-			SiteFavicon:  dao.Value.SiteFavicon,
-			SiteAvatar:   dao.Value.SiteAvatar,
-			SiteKeywords: dao.Value.SiteKeywords,
+			SiteTitle:       dao.Value.SiteTitle,
+			SiteSubtitle:    dao.Value.SiteSubtitle,
+			SiteUrl:         dao.Value.SiteUrl,
+			SiteFavicon:     dao.Value.SiteFavicon,
+			SiteAvatar:      dao.Value.SiteAvatar,
+			SiteKeywords:    dao.Value.SiteKeywords,
 			SiteDescription: dao.Value.SiteDescription,
 			SiteCopyright:   dao.Value.SiteCopyright,
-			SiteICP:         dao.Value.SiteICP,
-			SiteICPLink:     dao.Value.SiteICPLink,
+			SiteIcp:         dao.Value.SiteIcp,
+			SiteIcpLink:     dao.Value.SiteIcpLink,
 			GithubUsername:  dao.Value.GithubUsername,
 		},
 	}
