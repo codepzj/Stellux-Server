@@ -20,6 +20,8 @@ type SiteConfig struct {
 	SiteSubtitle    string `bson:"site_subtitle"`   // 网站副标题
 	SiteUrl         string `bson:"site_url"`         // 网站地址
 	SiteFavicon     string `bson:"site_favicon"`     // 网站图标
+	SiteAuthor      string `bson:"site_author"`      // 网站作者
+	SiteAnimateText string `bson:"site_animate_text"` // 网站打字机文本
 	SiteAvatar      string `bson:"site_avatar"`      // 网站头像
 	SiteKeywords    string `bson:"site_keywords"`    // 网站关键词
 	SiteDescription string `bson:"site_description"` // 网站描述

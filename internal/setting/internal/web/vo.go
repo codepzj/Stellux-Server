@@ -5,7 +5,9 @@ type SiteConfigSettingVO struct {
 	SiteSubtitle  string `json:"siteSubtitle"`
 	SiteUrl string `json:"siteUrl"`
 	SiteFavicon string `json:"siteFavicon"`
+	SiteAnimateText string `json:"siteAnimateText"`
 	SiteAvatar string `json:"siteAvatar"`
+	SiteAuthor string `json:"siteAuthor"`
 	SiteDescription string `json:"siteDescription"`
 	SiteKeywords string `json:"siteKeywords"`
 	SiteCopyright string `json:"siteCopyright"`

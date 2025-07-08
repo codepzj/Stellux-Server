@@ -5,6 +5,8 @@ type SiteConfigRequest struct {
 	SiteSubtitle string `json:"siteSubtitle" binding:"required"`
 	SiteUrl string `json:"siteUrl" binding:"required"`
 	SiteFavicon  string `json:"siteFavicon"`
+	SiteAuthor   string `json:"siteAuthor"`
+	SiteAnimateText string `json:"siteAnimateText"`
 	SiteAvatar   string `json:"siteAvatar"`
 	SiteKeywords string `json:"siteKeywords"`
 	SiteDescription string `json:"siteDescription"`
