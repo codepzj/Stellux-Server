@@ -138,7 +138,7 @@ db.post.insertMany([{
     "description": "懂得都懂",
     "category_id": ObjectId("67c453eda04b00c407b43197"),
     "tags_id": [ObjectId("67c453eda04b00c407b43199"), ObjectId("67c453eda04b00c407b43201")],
-    "thumbnail": "https://image.codepzj.cn/image/20250526184556014.png",
+    "thumbnail": "https://cdn.codepzj.cn/image/20250526184556014.png",
     "is_publish": true,
     "is_top": true,
 }]);
@@ -152,7 +152,7 @@ db.document.insert( {
     content: "",
     alias: "test",
     description: "一篇测试文档~",
-    thumbnail: "https://image.codepzj.cn/image/20250529183152057.png",
+    thumbnail: "https://cdn.codepzj.cn/image/20250529183152057.png",
     document_type: "root",
     is_public: true
 } );
@@ -189,7 +189,7 @@ db.setting.insert( {
         twitter_card: "summary_large_image",
         site_description: "stellux是我的个人知识库,主要用来记录一些golang的零碎知识点以及文档,并且会记录一些生活,工作,学习中的点点滴滴,该博客会持续更新,欢迎关注,使用开源项目stellux构建",
         robots: "index,follow",
-        og_image: "https://image.codepzj.cn/image/20250526184556014.png",
+        og_image: "https://cdn.codepzj.cn/image/20250526184556014.png",
         site_author: "浩瀚星河",
         site_url: "https://gowiki.site",
         og_type: "website",
@@ -202,7 +202,7 @@ db.setting.insert( {
     value: {
         blog_title: "浩瀚星河",
         blog_subtitle: "代码,日常,人生",
-        blog_avatar: "https://image.codepzj.cn/image/20250529174726187.jpeg"
+        blog_avatar: "https://cdn.codepzj.cn/image/20250529174726187.jpeg"
     }
 } );
 
@@ -212,7 +212,7 @@ db.setting.insert({
     value: {
         github_username: "codepzj",
         author: "浩瀚星河",
-        avatar_url: "https://image.codepzj.cn/image/20250529174726187.jpeg",
+        avatar_url: "https://cdn.codepzj.cn/image/20250529174726187.jpeg",
         left_tags: [
             "🧠 技术探索者",
             "🛠️ 创意实践者",
