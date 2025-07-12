@@ -30,11 +30,12 @@ func (h *LabelHandler) RegisterGinRoutes(engine *gin.Engine) {
 		labelGroup.GET("/:id", apiwrap.Wrap(h.GetByID))
 		labelGroup.GET("/list", apiwrap.WrapWithBody(h.QueryLabelList))
 		labelGroup.GET("/all", apiwrap.Wrap(h.QueryAllByType))
+		labelGroup.GET("/allWithCount", apiwrap.Wrap(h.QueryCategoryLabelWithCount))
 	}
 }
 
 func (h *LabelHandler) AdminCreate(c *gin.Context, label *LabelRequest) *apiwrap.Response[any] {
-	err := h.serv.Create(c, &domain.Label{
+	err := h.serv.CreateLabel(c, &domain.Label{
 		LabelType: label.LabelType,
 		Name:      label.Name,
 	})
@@ -45,7 +46,7 @@ func (h *LabelHandler) AdminCreate(c *gin.Context, label *LabelRequest) *apiwrap
 }
 
 func (h *LabelHandler) AdminUpdate(c *gin.Context, label *LabelRequest) *apiwrap.Response[any] {
-	err := h.serv.Update(c, label.ID, h.LabelDTOToDomain(label))
+	err := h.serv.UpdateLabel(c, label.ID, h.LabelDTOToDomain(label))
 	if err != nil {
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
 	}
@@ -54,7 +55,7 @@ func (h *LabelHandler) AdminUpdate(c *gin.Context, label *LabelRequest) *apiwrap
 
 func (h *LabelHandler) AdminDelete(c *gin.Context) *apiwrap.Response[any] {
 	id := c.Param("id")
-	err := h.serv.Delete(c, id)
+	err := h.serv.DeleteLabel(c, id)
 	if err != nil {
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
 	}
@@ -63,7 +64,7 @@ func (h *LabelHandler) AdminDelete(c *gin.Context) *apiwrap.Response[any] {
 
 func (h *LabelHandler) GetByID(c *gin.Context) *apiwrap.Response[any] {
 	id := c.Param("id")
-	label, err := h.serv.Get(c, id)
+	label, err := h.serv.GetLabelById(c, id)
 	if err != nil {
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
 	}
@@ -85,11 +86,22 @@ func (h *LabelHandler) QueryAllByType(c *gin.Context) *apiwrap.Response[any] {
 	if labelType == "" {
 		return apiwrap.FailWithMsg(apiwrap.RuquestBadRequest, "标签类型不能为空")
 	}
-	labels, err := h.serv.QueryAllByType(c, labelType)
+	labels, err := h.serv.GetAllLabelsByType(c, labelType)
 	if err != nil {
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
 	}
 	return apiwrap.SuccessWithDetail[any](h.DomainToVOList(labels), "标签列表获取成功")
+}
+
+// QueryCategoryLabelWithCount 获取分类标签及其文章数量
+func (h *LabelHandler) QueryCategoryLabelWithCount(c *gin.Context) *apiwrap.Response[any] {
+
+	labels, err := h.serv.GetAllLabelsWithCount(c)
+	if err != nil {
+		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+	}
+	labelVOList := h.LabelWithCountDomainToVOList(labels)
+	return apiwrap.SuccessWithDetail[any](labelVOList, "标签列表获取成功")
 }
 
 func (h *LabelHandler) LabelDTOToDomain(label *LabelRequest) *domain.Label {
@@ -111,5 +123,16 @@ func (h *LabelHandler) LabelDomainToVO(label *domain.Label) *LabelVO {
 func (h *LabelHandler) DomainToVOList(labels []*domain.Label) []*LabelVO {
 	return lo.Map(labels, func(label *domain.Label, _ int) *LabelVO {
 		return h.LabelDomainToVO(label)
+	})
+}
+
+func (h *LabelHandler) LabelWithCountDomainToVOList(labels []*domain.LabelPostCount) []*LabelWithCountVO {
+	return lo.Map(labels, func(label *domain.LabelPostCount, _ int) *LabelWithCountVO {
+		return &LabelWithCountVO{
+			ID:        label.ID.Hex(),
+			LabelType: label.LabelType,
+			Name:      label.Name,
+			Count:     label.Count,
+		}
 	})
 }

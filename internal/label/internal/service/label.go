@@ -8,12 +8,13 @@ import (
 )
 
 type ILabelService interface {
-	Create(ctx context.Context, label *domain.Label) error
-	Update(ctx context.Context, id string, label *domain.Label) error
-	Delete(ctx context.Context, id string) error
-	Get(ctx context.Context, id string) (*domain.Label, error)
+	CreateLabel(ctx context.Context, label *domain.Label) error
+	UpdateLabel(ctx context.Context, id string, label *domain.Label) error
+	DeleteLabel(ctx context.Context, id string) error
+	GetLabelById(ctx context.Context, id string) (*domain.Label, error)
 	QueryLabelList(ctx context.Context, labelType string, pageNo int64, pageSize int64) ([]*domain.Label, int64, error)
-	QueryAllByType(ctx context.Context, labelType string) ([]*domain.Label, error)
+	GetAllLabelsByType(ctx context.Context, labelType string) ([]*domain.Label, error)
+	GetAllLabelsWithCount(ctx context.Context) ([]*domain.LabelPostCount, error)
 }
 
 var _ ILabelService = (*LabelService)(nil)
@@ -28,26 +29,30 @@ type LabelService struct {
 	repo repository.ILabelRepository
 }
 
-func (s *LabelService) Create(ctx context.Context, label *domain.Label) error {
-	return s.repo.Create(ctx, label)
+func (s *LabelService) CreateLabel(ctx context.Context, label *domain.Label) error {
+	return s.repo.CreateLabel(ctx, label)
 }
 
-func (s *LabelService) Update(ctx context.Context, id string, label *domain.Label) error {
-	return s.repo.Update(ctx, id, label)
+func (s *LabelService) UpdateLabel(ctx context.Context, id string, label *domain.Label) error {
+	return s.repo.UpdateLabel(ctx, id, label)
 }
 
-func (s *LabelService) Delete(ctx context.Context, id string) error {
-	return s.repo.Delete(ctx, id)
+func (s *LabelService) DeleteLabel(ctx context.Context, id string) error {
+	return s.repo.DeleteLabel(ctx, id)
 }
 
-func (s *LabelService) Get(ctx context.Context, id string) (*domain.Label, error) {
-	return s.repo.Get(ctx, id)
+func (s *LabelService) GetLabelById(ctx context.Context, id string) (*domain.Label, error) {
+	return s.repo.GetLabelById(ctx, id)
 }
 
 func (s *LabelService) QueryLabelList(ctx context.Context, labelType string, pageNo int64, pageSize int64) ([]*domain.Label, int64, error) {
-	return s.repo.GetList(ctx, labelType, pageNo, pageSize)
+	return s.repo.QueryLabelList(ctx, labelType, pageNo, pageSize)
 }
 
-func (s *LabelService) QueryAllByType(ctx context.Context, labelType string) ([]*domain.Label, error) {
-	return s.repo.GetAllByType(ctx, labelType)
+func (s *LabelService) GetAllLabelsByType(ctx context.Context, labelType string) ([]*domain.Label, error) {
+	return s.repo.GetAllLabelsByType(ctx, labelType)
+}
+
+func (s *LabelService) GetAllLabelsWithCount(ctx context.Context) ([]*domain.LabelPostCount, error) {
+	return s.repo.GetCategoryLabelWithCount(ctx)
 }

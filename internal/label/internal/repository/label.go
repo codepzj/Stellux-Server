@@ -10,12 +10,13 @@ import (
 )
 
 type ILabelRepository interface {
-	Create(ctx context.Context, label *domain.Label) error
-	Update(ctx context.Context, id string, label *domain.Label) error
-	Delete(ctx context.Context, id string) error
-	Get(ctx context.Context, id string) (*domain.Label, error)
-	GetList(ctx context.Context, labelType string, pageNo int64, pageSize int64) ([]*domain.Label, int64, error)
-	GetAllByType(ctx context.Context, labelType string) ([]*domain.Label, error)
+	CreateLabel(ctx context.Context, label *domain.Label) error
+	UpdateLabel(ctx context.Context, id string, label *domain.Label) error
+	DeleteLabel(ctx context.Context, id string) error
+	GetLabelById(ctx context.Context, id string) (*domain.Label, error)
+	QueryLabelList(ctx context.Context, labelType string, pageNo int64, pageSize int64) ([]*domain.Label, int64, error)
+	GetAllLabelsByType(ctx context.Context, labelType string) ([]*domain.Label, error)
+	GetCategoryLabelWithCount(ctx context.Context) ([]*domain.LabelPostCount, error)
 }
 
 var _ ILabelRepository = (*LabelRepository)(nil)
@@ -28,48 +29,48 @@ type LabelRepository struct {
 	dao dao.ILabelDao
 }
 
-func (r *LabelRepository) Create(ctx context.Context, label *domain.Label) error {
-	return r.dao.Create(ctx, r.LabelDomainToLabelDO(label))
+func (r *LabelRepository) CreateLabel(ctx context.Context, label *domain.Label) error {
+	return r.dao.CreateLabel(ctx, r.LabelDomainToLabelDO(label))
 }
 
-func (r *LabelRepository) Update(ctx context.Context, id string, label *domain.Label) error {
+func (r *LabelRepository) UpdateLabel(ctx context.Context, id string, label *domain.Label) error {
 	bid, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return err
 	}
-	return r.dao.Update(ctx, bid, r.LabelDomainToLabelDO(label))
+	return r.dao.UpdateLabel(ctx, bid, r.LabelDomainToLabelDO(label))
 }
 
-func (r *LabelRepository) Delete(ctx context.Context, id string) error {
+func (r *LabelRepository) DeleteLabel(ctx context.Context, id string) error {
 	bid, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return err
 	}
-	return r.dao.Delete(ctx, bid)
+	return r.dao.DeleteLabel(ctx, bid)
 }
 
-func (r *LabelRepository) Get(ctx context.Context, id string) (*domain.Label, error) {
+func (r *LabelRepository) GetLabelById(ctx context.Context, id string) (*domain.Label, error) {
 	bid, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
 	}
-	label, err := r.dao.Get(ctx, bid)
+	label, err := r.dao.GetLabelById(ctx, bid)
 	if err != nil {
 		return nil, err
 	}
 	return r.LabelDoToDomain(label), nil
 }
 
-func (r *LabelRepository) GetList(ctx context.Context, labelType string, pageNo int64, pageSize int64) ([]*domain.Label, int64, error) {
-	labels, count, err := r.dao.GetList(ctx, labelType, pageSize, (pageNo-1)*pageSize)
+func (r *LabelRepository) QueryLabelList(ctx context.Context, labelType string, pageNo int64, pageSize int64) ([]*domain.Label, int64, error) {
+	labels, count, err := r.dao.QueryLabelList(ctx, labelType, pageSize, (pageNo-1)*pageSize)
 	if err != nil {
 		return nil, 0, err
 	}
 	return r.LabelDoToDomainList(labels), count, nil
 }
 
-func (r *LabelRepository) GetAllByType(ctx context.Context, labelType string) ([]*domain.Label, error) {
-	labels, err := r.dao.GetAllByType(ctx, labelType)
+func (r *LabelRepository) GetAllLabelsByType(ctx context.Context, labelType string) ([]*domain.Label, error) {
+	labels, err := r.dao.GetAllLabelsByType(ctx, labelType)
 	if err != nil {
 		return nil, err
 	}
@@ -95,4 +96,20 @@ func (r *LabelRepository) LabelDoToDomainList(labels []*dao.Label) []*domain.Lab
 	return lo.Map(labels, func(label *dao.Label, _ int) *domain.Label {
 		return r.LabelDoToDomain(label)
 	})
+}
+
+func (r *LabelRepository) GetCategoryLabelWithCount(ctx context.Context) ([]*domain.LabelPostCount, error) {
+	labelWithCount, err := r.dao.GetCategoryLabelWithCount(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return lo.Map(labelWithCount, func(label *dao.LabelPostCount, _ int) *domain.LabelPostCount {
+		return &domain.LabelPostCount{
+			ID:        label.ID,
+			LabelType: label.LabelType,
+			Name:      label.Name,
+			Count:     label.Count,
+		}
+	}), nil
 }
