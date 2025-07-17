@@ -1,8 +1,14 @@
 package web
 
-import "time"
+import (
+	"time"
 
-type PostRequest struct {
+	"github.com/codepzj/stellux/server/internal/pkg/apiwrap"
+)
+
+type BsonId = apiwrap.BsonId
+
+type PostDto struct {
 	CreatedAt   time.Time `json:"created_at"`
 	Title       string    `json:"title" binding:"required"`
 	Content     string    `json:"content" binding:"required"`
@@ -15,8 +21,8 @@ type PostRequest struct {
 	Thumbnail   string    `json:"thumbnail"`
 }
 
-type PostUpdateRequest struct {
-	ID          string    `json:"id"`
+type PostUpdateDto struct {
+	Id          string    `json:"id"`
 	CreatedAt   time.Time `json:"created_at"`
 	Title       string    `json:"title"`
 	Content     string    `json:"content"`
@@ -29,8 +35,8 @@ type PostUpdateRequest struct {
 	Thumbnail   string    `json:"thumbnail"`
 }
 
-type PostIDRequest struct {
-	ID string `uri:"id" binding:"required"`
+type PostIdRequest struct {
+	Id string `uri:"id" binding:"required"`
 }
 
 type PostPublishStatusRequest struct {

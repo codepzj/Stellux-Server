@@ -41,15 +41,15 @@ type PostDetailVO struct {
 }
 
 type SiteMapVO struct {
-	Loc        string `json:"loc"`
-	Lastmod    string `json:"lastmod"`
-	Changefreq string `json:"changefreq"`
+	Loc        string  `json:"loc"`
+	Lastmod    string  `json:"lastmod"`
+	Changefreq string  `json:"changefreq"`
 	Priority   float64 `json:"priority"`
 }
 
 type SeoSettingVO struct {
-	SiteAuthor    string `json:"site_author"`
-	SiteUrl       string `json:"site_url"`
+	SiteAuthor      string `json:"site_author"`
+	SiteUrl         string `json:"site_url"`
 	SiteDescription string `json:"site_description"`
 	SiteKeywords    string `json:"site_keywords"`
 	Robots          string `json:"robots"`
@@ -69,31 +69,31 @@ func GetTagNamesFromLabels(labels []label.Domain) []string {
 	})
 }
 
-func (h *PostHandler) PostDTOToDomain(postReq PostRequest) *domain.Post {
+func (h *PostHandler) PostDTOToDomain(postReq PostDto) *domain.Post {
 	return &domain.Post{
 		CreatedAt:   postReq.CreatedAt,
 		Title:       postReq.Title,
 		Content:     postReq.Content,
 		Description: postReq.Description,
 		Author:      postReq.Author,
-		CategoryID:  apiwrap.ConvertBsonID(postReq.CategoryID),
-		TagsID:      apiwrap.ConvertBsonIDList(postReq.TagsID),
+		CategoryID:  apiwrap.ConvertBsonID(postReq.CategoryID).ToObjectID(),
+		TagsID:      apiwrap.ToObjectIDList(apiwrap.ConvertBsonIDList(postReq.TagsID)),
 		IsPublish:   postReq.IsPublish,
 		IsTop:       postReq.IsTop,
 		Thumbnail:   postReq.Thumbnail,
 	}
 }
 
-func (h *PostHandler) PostUpdateDTOToDomain(postUpdateReq PostUpdateRequest) *domain.Post {
+func (h *PostHandler) PostUpdateDTOToDomain(postUpdateReq PostUpdateDto) *domain.Post {
 	return &domain.Post{
-		ID:          apiwrap.ConvertBsonID(postUpdateReq.ID),
+		ID:          apiwrap.ConvertBsonID(postUpdateReq.Id).ToObjectID(),
 		CreatedAt:   postUpdateReq.CreatedAt,
 		Title:       postUpdateReq.Title,
 		Content:     postUpdateReq.Content,
 		Description: postUpdateReq.Description,
 		Author:      postUpdateReq.Author,
-		CategoryID:  apiwrap.ConvertBsonID(postUpdateReq.CategoryID),
-		TagsID:      apiwrap.ConvertBsonIDList(postUpdateReq.TagsID),
+		CategoryID:  apiwrap.ConvertBsonID(postUpdateReq.CategoryID).ToObjectID(),
+		TagsID:      apiwrap.ToObjectIDList(apiwrap.ConvertBsonIDList(postUpdateReq.TagsID)),
 		IsPublish:   postUpdateReq.IsPublish,
 		IsTop:       postUpdateReq.IsTop,
 		Thumbnail:   postUpdateReq.Thumbnail,

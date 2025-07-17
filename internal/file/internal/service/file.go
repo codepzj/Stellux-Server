@@ -79,7 +79,7 @@ func (s *FileService) QueryFileList(ctx *gin.Context, page *apiwrap.Page) ([]*do
 }
 
 func (s *FileService) DeleteFiles(ctx *gin.Context, idList []string) error {
-	files, err := s.repo.GetListByIDList(ctx, apiwrap.ConvertBsonIDList(idList))
+	files, err := s.repo.GetListByIDList(ctx, apiwrap.ToObjectIDList(apiwrap.ConvertBsonIDList(idList)))
 	if err != nil {
 		return err
 	}
@@ -87,5 +87,5 @@ func (s *FileService) DeleteFiles(ctx *gin.Context, idList []string) error {
 		_ = os.Remove(file.Dst)
 	}
 
-	return s.repo.DeleteMany(ctx, apiwrap.ConvertBsonIDList(idList))
+	return s.repo.DeleteMany(ctx, apiwrap.ToObjectIDList(apiwrap.ConvertBsonIDList(idList)))
 }

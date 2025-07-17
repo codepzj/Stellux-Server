@@ -24,15 +24,15 @@ func (h *UserHandler) RegisterGinRoutes(engine *gin.Engine) {
 	userGroup := engine.Group("/user")
 	{
 		userGroup.GET("/refresh", apiwrap.Wrap(h.RefreshToken))
-		userGroup.POST("/login", apiwrap.WrapWithBody(h.Login))
+		userGroup.POST("/login", apiwrap.WrapWithJson(h.Login))
 	}
 	adminGroup := engine.Group("/admin-api/user")
 	{
-		adminGroup.POST("/create", apiwrap.WrapWithBody(h.AdminCreateUser))
-		adminGroup.PUT("/update", apiwrap.WrapWithBody(h.AdminUpdateUser))
-		adminGroup.PUT("/update-password", apiwrap.WrapWithBody(h.AdminUpdatePassword))
+		adminGroup.POST("/create", apiwrap.WrapWithJson(h.AdminCreateUser))
+		adminGroup.PUT("/update", apiwrap.WrapWithJson(h.AdminUpdateUser))
+		adminGroup.PUT("/update-password", apiwrap.WrapWithJson(h.AdminUpdatePassword))
 		adminGroup.DELETE("/delete/:id", apiwrap.Wrap(h.AdminDeleteUser))
-		adminGroup.GET("/list", apiwrap.WrapWithBody(h.AdminGetUserList))
+		adminGroup.GET("/list", apiwrap.WrapWithJson(h.AdminGetUserList))
 		adminGroup.GET("/info", apiwrap.Wrap(h.AdminGetUserInfo))
 	}
 }
@@ -107,7 +107,7 @@ func (h *UserHandler) AdminCreateUser(c *gin.Context, createUserRequest CreateUs
 
 func (h *UserHandler) AdminUpdateUser(c *gin.Context, updateUserRequest UpdateUserRequest) *apiwrap.Response[any] {
 	user := domain.User{
-		ID:       apiwrap.ConvertBsonID(updateUserRequest.ID),
+		ID:       apiwrap.ConvertBsonID(updateUserRequest.ID).ToObjectID(),
 		Nickname: updateUserRequest.Nickname,
 		Avatar:   updateUserRequest.Avatar,
 		Email:    updateUserRequest.Email,

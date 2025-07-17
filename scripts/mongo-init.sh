@@ -12,20 +12,6 @@ db.createUser({
 
 db.auth('$MONGO_USERNAME', '$MONGO_PASSWORD');
 
-// 文章表创建文本索引
-db.post.createIndex({
-    "title": "text",
-    "description": "text",
-    "content": "text",
-});
-
-// 文档表创建文本索引
-db.document.createIndex({
-    "title": "text",
-    "description": "text",
-    "content": "text",
-});
-
 let AdminId = ObjectId("67c453eda04b00c407b431fd");
 let UserId = ObjectId("67c453eda04b00c407b431fe");
 let TestId = ObjectId("67c453eda04b00c407b431ff");
@@ -115,38 +101,164 @@ db.user.insertMany([{
 }]);
 
 // 初始化分类
-db.label.insertMany([{
-    "_id": ObjectId("67c453eda04b00c407b43197"),
-    "label_type": "category",
-    "name": "默认分类",
-}]);
+db.label.insertMany([
+  { _id: ObjectId("67c453eda04b00c407b43197"), type: "category", name: "默认分类" },
+  { _id: ObjectId("67c453eda04b00c407b43198"), type: "category", name: "前端开发" },
+  { _id: ObjectId("67c453eda04b00c407b43199"), type: "category", name: "后端开发" }
+]);
 
 // 初始化标签
-db.label.insertMany([{
-    "_id": ObjectId("67c453eda04b00c407b43199"),
-    "label_type": "tag",
-    "name": "默认标签1",
-}, {
-    "_id": ObjectId("67c453eda04b00c407b43200"),
-    "label_type": "tag",
-    "name": "默认标签2",
-}]);
+db.label.insertMany([
+  { _id: ObjectId("67c453eda04b00c407b43200"), type: "tag", name: "JavaScript" },
+  { _id: ObjectId("67c453eda04b00c407b43201"), type: "tag", name: "Node.js" },
+  { _id: ObjectId("67c453eda04b00c407b43202"), type: "tag", name: "MongoDB" },
+  { _id: ObjectId("67c453eda04b00c407b43203"), type: "tag", name: "Go" },
+  { _id: ObjectId("67c453eda04b00c407b43204"), type: "tag", name: "部署运维" }
+]);
 
 // 初始化文章
-db.post.insertMany([{
-    "_id": ObjectId("67c453eda04b00c407b43202"),
-    "created_at": new Date(),
-    "updated_at": new Date(),
-    "author": "codepzj",
-    "title": "stellux知识库系统",
-    "content": "如果你看到这篇文章,说明你已经成功安装了stellux,接下来你可以开始你的知识库之旅了😀",
-    "description": "懂得都懂",
-    "category_id": ObjectId("67c453eda04b00c407b43197"),
-    "tags_id": [ObjectId("67c453eda04b00c407b43199"), ObjectId("67c453eda04b00c407b43201")],
-    "thumbnail": "https://cdn.codepzj.cn/image/20250526184556014.png",
-    "is_publish": true,
-    "is_top": true,
-}]);
+db.post.insertMany([
+  {
+    _id: ObjectId(),
+    created_at: new Date(),
+    updated_at: new Date(),
+    author: "codepzj",
+    title: "Stellux知识库系统简介",
+    content: "欢迎使用Stellux知识库系统，这是一款支持标签分类、全文搜索和可视化编辑的轻量级系统。",
+    description: "系统简介",
+    category_id: ObjectId("67c453eda04b00c407b43197"),
+    tags_id: [ObjectId("67c453eda04b00c407b43200"), ObjectId("67c453eda04b00c407b43201")],
+    thumbnail: "https://cdn.codepzj.cn/image/202503041841864.png",
+    is_publish: true,
+    is_top: true
+  },
+  {
+    _id: ObjectId(),
+    created_at: new Date(),
+    updated_at: new Date(),
+    author: "codepzj",
+    title: "前端开发规范汇总",
+    content: "本文介绍了一套适用于团队协作的前端编码规范，包括命名规范、注释规范等。",
+    description: "团队前端规范文档",
+    category_id: ObjectId("67c453eda04b00c407b43198"),
+    tags_id: [ObjectId("67c453eda04b00c407b43200")],
+    thumbnail: "https://cdn.codepzj.cn/image/202503041841864.png",
+    is_publish: true,
+    is_top: false
+  },
+  {
+    _id: ObjectId(),
+    created_at: new Date(),
+    updated_at: new Date(),
+    author: "codepzj",
+    title: "Node.js 入门教程",
+    content: "从零开始学习 Node.js，包括模块系统、异步 IO、Express 框架等。",
+    description: "Node.js 学习笔记",
+    category_id: ObjectId("67c453eda04b00c407b43199"),
+    tags_id: [ObjectId("67c453eda04b00c407b43201")],
+    thumbnail: "https://cdn.codepzj.cn/image/202503041841864.png",
+    is_publish: true,
+    is_top: false
+  },
+  {
+    _id: ObjectId(),
+    created_at: new Date(),
+    updated_at: new Date(),
+    author: "codepzj",
+    title: "MongoDB 常用操作指令",
+    content: "总结了 MongoDB 的基础操作，如增删改查、索引、聚合等。",
+    description: "MongoDB 使用手册",
+    category_id: ObjectId("67c453eda04b00c407b43199"),
+    tags_id: [ObjectId("67c453eda04b00c407b43202")],
+    thumbnail: "https://cdn.codepzj.cn/image/202503041841864.png",
+    is_publish: true,
+    is_top: false
+  },
+  {
+    _id: ObjectId(),
+    created_at: new Date(),
+    updated_at: new Date(),
+    author: "codepzj",
+    title: "Go 后端服务架构设计",
+    content: "介绍如何使用 Go 编写一个可扩展的微服务，包括 RESTful API、路由中间件、日志追踪等内容。",
+    description: "Go 微服务架构方案",
+    category_id: ObjectId("67c453eda04b00c407b43199"),
+    tags_id: [ObjectId("67c453eda04b00c407b43203")],
+    thumbnail: "https://cdn.codepzj.cn/image/202503041841864.png",
+    is_publish: true,
+    is_top: false
+  },
+  {
+    _id: ObjectId(),
+    created_at: new Date(),
+    updated_at: new Date(),
+    author: "codepzj",
+    title: "使用 PM2 管理 Node 应用",
+    content: "介绍如何使用 PM2 工具部署并守护 Node.js 应用。",
+    description: "Node 应用部署方案",
+    category_id: ObjectId("67c453eda04b00c407b43199"),
+    tags_id: [ObjectId("67c453eda04b00c407b43204"), ObjectId("67c453eda04b00c407b43201")],
+    thumbnail: "https://cdn.codepzj.cn/image/202503041841864.png",
+    is_publish: true,
+    is_top: false
+  },
+  {
+    _id: ObjectId(),
+    created_at: new Date(),
+    updated_at: new Date(),
+    author: "codepzj",
+    title: "Git 工作流与分支策略",
+    content: "讲解 Git Flow、GitHub Flow 等主流工作流的使用方式及其适用场景。",
+    description: "Git 多人协作最佳实践",
+    category_id: ObjectId("67c453eda04b00c407b43197"),
+    tags_id: [ObjectId("67c453eda04b00c407b43204")],
+    thumbnail: "https://cdn.codepzj.cn/image/202503041841864.png",
+    is_publish: true,
+    is_top: false
+  },
+  {
+    _id: ObjectId(),
+    created_at: new Date(),
+    updated_at: new Date(),
+    author: "codepzj",
+    title: "前端部署流程总结",
+    content: "介绍了前端从打包构建到 Nginx 部署上线的整个流程。",
+    description: "完整部署流程",
+    category_id: ObjectId("67c453eda04b00c407b43198"),
+    tags_id: [ObjectId("67c453eda04b00c407b43200"), ObjectId("67c453eda04b00c407b43204")],
+    thumbnail: "https://cdn.codepzj.cn/image/202503041841864.png",
+    is_publish: true,
+    is_top: false
+  },
+  {
+    _id: ObjectId(),
+    created_at: new Date(),
+    updated_at: new Date(),
+    author: "codepzj",
+    title: "Go 单元测试与覆盖率",
+    content: "如何编写 Go 的测试代码，使用 `go test` 和 `-cover` 进行覆盖率分析。",
+    description: "Go 测试实践",
+    category_id: ObjectId("67c453eda04b00c407b43199"),
+    tags_id: [ObjectId("67c453eda04b00c407b43203")],
+    thumbnail: "https://cdn.codepzj.cn/image/202503041841864.png",
+    is_publish: true,
+    is_top: false
+  },
+  {
+    _id: ObjectId(),
+    created_at: new Date(),
+    updated_at: new Date(),
+    author: "codepzj",
+    title: "MongoDB 聚合管道实战",
+    content: "使用 MongoDB 聚合管道处理复杂数据查询，实战案例包含 `$lookup`、`$group` 等。",
+    description: "复杂数据聚合处理",
+    category_id: ObjectId("67c453eda04b00c407b43199"),
+    tags_id: [ObjectId("67c453eda04b00c407b43202")],
+    thumbnail: "https://cdn.codepzj.cn/image/202503041841864.png",
+    is_publish: true,
+    is_top: false
+  }
+]);
 
 // 初始化文档
 db.document.insert( {
@@ -157,10 +269,11 @@ db.document.insert( {
     content: "",
     alias: "test",
     description: "一篇测试文档~",
-    thumbnail: "https://cdn.codepzj.cn/image/20250529183152057.png",
+    thumbnail: "https://cdn.codepzj.cn/image/202503041841864.png",
     document_type: "root",
     is_public: true
 } );
+
 db.document.insert( {
     _id: ObjectId("68382e1a6d357d131691114d"),
     created_at: ISODate("2025-05-29T09:51:22.679Z"),
@@ -169,7 +282,7 @@ db.document.insert( {
     content: "这是我的第一篇文档😀",
     alias: "",
     description: "",
-    thumbnail: "",
+    thumbnail: "https://cdn.codepzj.cn/image/202503041841864.png",
     document_type: "leaf",
     is_public: false,
     parent_id: ObjectId("68382e116d357d131691114c"),
@@ -178,57 +291,22 @@ db.document.insert( {
 
 // 初始化设置
 db.setting.insert( {
-    _id: ObjectId("6838191c8bc94e687f0a156d"),
-    key: "basic_setting",
+    _id: ObjectId("687312fa9484dab0aed07741"),
+    key: "site_config",
     value: {
-        site_title: "stellux知识库",
-        site_subtitle: "记录成长,点亮星途",
-        site_favicon: "/favicon.ico"
-    }
-} );
-db.setting.insert( {
-    _id: ObjectId("68381dac8bc94e687f0a156e"),
-    key: "seo_setting",
-    value: {
-        site_keywords: "知识库,golang,vue,nextjs,stellux,mongodb",
-        twitter_card: "summary_large_image",
-        site_description: "stellux是我的个人知识库,主要用来记录一些golang的零碎知识点以及文档,并且会记录一些生活,工作,学习中的点点滴滴,该博客会持续更新,欢迎关注,使用开源项目stellux构建",
-        robots: "index,follow",
-        og_image: "https://cdn.codepzj.cn/image/20250526184556014.png",
-        site_author: "浩瀚星河",
-        site_url: "https://gowiki.site",
-        og_type: "website",
-        twitter_site: "codepzj"
-    }
-} );
-db.setting.insert( {
-    _id: ObjectId("683822058bc94e687f0a156f"),
-    key: "blog_setting",
-    value: {
-        blog_title: "浩瀚星河",
-        blog_subtitle: "代码,日常,人生",
-        blog_avatar: "https://cdn.codepzj.cn/image/20250529174726187.jpeg"
-    }
-} );
-
-db.setting.insert({
-    _id: ObjectId("683b4faac5451e983d5649d0"),
-    key: "about_setting",
-    value: {
-        github_username: "codepzj",
-        author: "浩瀚星河",
-        avatar_url: "https://cdn.codepzj.cn/image/20250529174726187.jpeg",
-        left_tags: [
-            "🧠 技术探索者",
-            "🛠️ 创意实践者",
-            "🌐 架构与开发者"
-        ],
-        right_tags: [
-            "兴趣点燃灵感火花 ✨",
-            "开源协作推动者 🧐",
-            "热情永不熄灭 🔥"
-        ],
-        know_me: "https://github.com/codepzj"
+        site_title: "codepzj",
+        site_subtitle: "codepzj",
+        site_favicon: "/favicon.ico",
+        site_author: "codepzj",
+        site_animate_text: "浩瀚星河",
+        site_avatar: "https://cdn.codepzj.cn/image/20250529174726187.jpeg",
+        site_description: "88",
+        site_copyright: "345",
+        site_url: "http://localhost:9003",
+        site_keywords: "6666",
+        site_icp: "43543",
+        site_icplink: "https://baicu.com",
+        github_username: "codepzj"
     }
 } );
 

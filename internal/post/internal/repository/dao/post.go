@@ -82,7 +82,7 @@ type IPostDao interface {
 	GetByID(ctx context.Context, id bson.ObjectID) (*Post, error)
 	GetByKeyWord(ctx context.Context, keyWord string) ([]*Post, error)
 	GetDetailByID(ctx context.Context, id bson.ObjectID) (*PostCategoryTags, error)
-	GetDetailList(ctx context.Context, pagePipeline mongo.Pipeline, cond bson.D) ([]*PostCategoryTags, int64, error)
+	GetList(ctx context.Context, pagePipeline mongo.Pipeline, cond bson.D) ([]*PostCategoryTags, int64, error)
 	GetAllPublishPost(ctx context.Context) ([]*Post, error)
 }
 
@@ -165,7 +165,7 @@ func (d *PostDao) GetDetailByID(ctx context.Context, id bson.ObjectID) (*PostCat
 		return nil, err
 	}
 	if len(postResult) == 0 {
-		return nil, errors.New("文章不存在")
+		return nil, errors.New("文章不存在")	
 	}
 	return &postResult[0], err
 }
@@ -181,8 +181,8 @@ func (d *PostDao) GetByKeyWord(ctx context.Context, keyWord string) ([]*Post, er
 	return d.coll.Finder().Filter(cond).Find(ctx)
 }
 
-// GetDetailList 获取文章列表
-func (d *PostDao) GetDetailList(ctx context.Context, pagePipeline mongo.Pipeline, cond bson.D) ([]*PostCategoryTags, int64, error) {
+// GetList 获取文章列表
+func (d *PostDao) GetList(ctx context.Context, pagePipeline mongo.Pipeline, cond bson.D) ([]*PostCategoryTags, int64, error) {
 	var postResult []PostCategoryTags
 	err := d.coll.Aggregator().Pipeline(pagePipeline).AggregateWithParse(ctx, &postResult)
 	if err != nil {

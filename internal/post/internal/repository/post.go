@@ -27,7 +27,7 @@ type IPostRepository interface {
 	GetByID(ctx context.Context, id bson.ObjectID) (*domain.Post, error)
 	GetByKeyWord(ctx context.Context, keyWord string) ([]*domain.Post, error)
 	GetDetailByID(ctx context.Context, id bson.ObjectID) (*domain.PostDetail, error)
-	GetDetailList(ctx context.Context, page *apiwrap.Page, postType string) ([]*domain.PostDetail, int64, error)
+	GetList(ctx context.Context, page *apiwrap.Page, postType string) ([]*domain.PostDetail, int64, error)
 	GetAllPublishPost(ctx context.Context) ([]*domain.Post, error)
 }
 
@@ -112,8 +112,8 @@ func (r *PostRepository) GetByKeyWord(ctx context.Context, keyWord string) ([]*d
 	}), nil
 }
 
-// GetDetailList 获取文章列表
-func (r *PostRepository) GetDetailList(ctx context.Context, page *apiwrap.Page, postType string) ([]*domain.PostDetail, int64, error) {
+// GetList 获取文章列表
+func (r *PostRepository) GetList(ctx context.Context, page *apiwrap.Page, postType string) ([]*domain.PostDetail, int64, error) {
 	var cond bson.D
 	switch postType {
 	case "publish":
@@ -137,7 +137,7 @@ func (r *PostRepository) GetDetailList(ctx context.Context, page *apiwrap.Page, 
 		ForeignField: "_id",
 	}).Skip(skip).Limit(limit).Sort(sortBuilder.Build()).Build()
 
-	posts, count, err := r.dao.GetDetailList(ctx, pagePipeline, cond)
+	posts, count, err := r.dao.GetList(ctx, pagePipeline, cond)
 	if err != nil {
 		return nil, 0, err
 	}

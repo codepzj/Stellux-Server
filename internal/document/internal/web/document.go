@@ -42,20 +42,20 @@ func (h *DocumentHandler) RegisterGinRoutes(engine *gin.Engine) {
 		adminGroup.GET("/:id", apiwrap.Wrap(h.AdminGetDocumentByID))
 		adminGroup.GET("/list", apiwrap.Wrap(h.AdminGetAllRootDoc))
 		adminGroup.GET("/parent-list", apiwrap.Wrap(h.AdminGetAllParentDoc))
-		adminGroup.POST("/create-root", apiwrap.WrapWithBody(h.AdminCreateRootDocument))
-		adminGroup.POST("/create", apiwrap.WrapWithBody(h.AdminCreateDocument))
-		adminGroup.PUT("/edit-root", apiwrap.WrapWithBody(h.AdminEditRootDocument))
-		adminGroup.PUT("/save", apiwrap.WrapWithBody(h.AdminSaveDocument))
-		adminGroup.PUT("/rename", apiwrap.WrapWithBody(h.AdminRenameDocument))
-		adminGroup.DELETE("/delete", apiwrap.WrapWithBody(h.AdminDeleteDocument))
-		adminGroup.DELETE("/delete-list", apiwrap.WrapWithBody(h.AdminDeleteDocumentList))
+		adminGroup.POST("/create-root", apiwrap.WrapWithJson(h.AdminCreateRootDocument))
+		adminGroup.POST("/create", apiwrap.WrapWithJson(h.AdminCreateDocument))
+		adminGroup.PUT("/edit-root", apiwrap.WrapWithJson(h.AdminEditRootDocument))
+		adminGroup.PUT("/save", apiwrap.WrapWithJson(h.AdminSaveDocument))
+		adminGroup.PUT("/rename", apiwrap.WrapWithJson(h.AdminRenameDocument))
+		adminGroup.DELETE("/delete", apiwrap.WrapWithJson(h.AdminDeleteDocument))
+		adminGroup.DELETE("/delete-list", apiwrap.WrapWithJson(h.AdminDeleteDocumentList))
 		adminGroup.DELETE("/delete-root/:id", apiwrap.Wrap(h.AdminDeleteRootDocument))
 	}
 }
 
 func (h *DocumentHandler) GetDocumentTreeByID(ctx *gin.Context) *apiwrap.Response[any] {
 	documentID := ctx.Query("document_id")
-	documentList, err := h.serv.FindAllPublicByDocumentID(ctx, apiwrap.ConvertBsonID(documentID))
+	documentList, err := h.serv.FindAllPublicByDocumentID(ctx, apiwrap.ConvertBsonID(documentID).ToObjectID())
 	if err != nil {
 		if errors.Is(err, global.ErrDocumentNotPublic) {
 			return apiwrap.FailWithMsg(apiwrap.RequestDocumentNotPublic, err.Error())
@@ -77,7 +77,7 @@ func (h *DocumentHandler) GetAllPublicDoc(ctx *gin.Context) *apiwrap.Response[an
 func (h *DocumentHandler) GetRootDocumentByID(ctx *gin.Context) *apiwrap.Response[any] {
 
 	documentID := ctx.Param("id")
-	document, err := h.serv.GetRootDocumentByID(ctx, apiwrap.ConvertBsonID(documentID))
+	document, err := h.serv.GetRootDocumentByID(ctx, apiwrap.ConvertBsonID(documentID).ToObjectID())
 	if err != nil {
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
 	}
@@ -86,7 +86,7 @@ func (h *DocumentHandler) GetRootDocumentByID(ctx *gin.Context) *apiwrap.Respons
 
 func (h *DocumentHandler) GetDocumentByID(ctx *gin.Context) *apiwrap.Response[any] {
 	documentID := ctx.Param("id")
-	document, err := h.serv.GetDocumentByID(ctx, apiwrap.ConvertBsonID(documentID))
+	document, err := h.serv.GetDocumentByID(ctx, apiwrap.ConvertBsonID(documentID).ToObjectID())
 	if err != nil {
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
 	}
@@ -97,7 +97,7 @@ func (h *DocumentHandler) GetDocumentByID(ctx *gin.Context) *apiwrap.Response[an
 func (h *DocumentHandler) GetDocumentByKeyword(ctx *gin.Context) *apiwrap.Response[any] {
 	keyword := ctx.Query("keyword")
 	documentID := ctx.Query("document_id")
-	documentList, err := h.serv.FindByKeyword(ctx, keyword, apiwrap.ConvertBsonID(documentID))
+	documentList, err := h.serv.FindByKeyword(ctx, keyword, apiwrap.ConvertBsonID(documentID).ToObjectID())
 	if err != nil {
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
 	}
@@ -140,7 +140,7 @@ func (h *DocumentHandler) AdminCreateRootDocument(ctx *gin.Context, documentRoot
 
 // 编辑根文档
 func (h *DocumentHandler) AdminEditRootDocument(ctx *gin.Context, documentRootReq DocumentRootEditRequest) *apiwrap.Response[any] {
-	err := h.serv.AdminEditRootDocumentByID(ctx, apiwrap.ConvertBsonID(documentRootReq.ID), &domain.DocumentRoot{
+	err := h.serv.AdminEditRootDocumentByID(ctx, apiwrap.ConvertBsonID(documentRootReq.ID).ToObjectID(), &domain.DocumentRoot{
 		Title:        documentRootReq.Title,
 		Alias:        documentRootReq.Alias,
 		Description:  documentRootReq.Description,
@@ -157,7 +157,7 @@ func (h *DocumentHandler) AdminEditRootDocument(ctx *gin.Context, documentRootRe
 // 删除根文档
 func (h *DocumentHandler) AdminDeleteRootDocument(ctx *gin.Context) *apiwrap.Response[any] {
 	documentID := ctx.Param("id")
-	err := h.serv.AdminDeleteRootDocumentByID(ctx, apiwrap.ConvertBsonID(documentID))
+	err := h.serv.AdminDeleteRootDocumentByID(ctx, apiwrap.ConvertBsonID(documentID).ToObjectID())
 	if err != nil {
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
 	}
@@ -166,7 +166,7 @@ func (h *DocumentHandler) AdminDeleteRootDocument(ctx *gin.Context) *apiwrap.Res
 
 // 保存文档
 func (h *DocumentHandler) AdminSaveDocument(ctx *gin.Context, req UpdateDocumentRequest) *apiwrap.Response[any] {
-	err := h.serv.AdminUpdateDocumentByID(ctx, apiwrap.ConvertBsonID(req.ID), req.Title, req.Content)
+	err := h.serv.AdminUpdateDocumentByID(ctx, apiwrap.ConvertBsonID(req.ID).ToObjectID(), req.Title, req.Content)
 	if err != nil {
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
 	}
@@ -175,7 +175,7 @@ func (h *DocumentHandler) AdminSaveDocument(ctx *gin.Context, req UpdateDocument
 
 // 重命名文档
 func (h *DocumentHandler) AdminRenameDocument(ctx *gin.Context, req RenameDocumentRequest) *apiwrap.Response[any] {
-	err := h.serv.AdminRenameDocumentByID(ctx, apiwrap.ConvertBsonID(req.ID), req.Title)
+	err := h.serv.AdminRenameDocumentByID(ctx, apiwrap.ConvertBsonID(req.ID).ToObjectID(), req.Title)
 	if err != nil {
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
 	}
@@ -184,7 +184,7 @@ func (h *DocumentHandler) AdminRenameDocument(ctx *gin.Context, req RenameDocume
 
 // 删除文档
 func (h *DocumentHandler) AdminDeleteDocument(ctx *gin.Context, req DeleteDocumentRequest) *apiwrap.Response[any] {
-	err := h.serv.AdminDeleteByID(ctx, apiwrap.ConvertBsonID(req.DocumentID))
+	err := h.serv.AdminDeleteByID(ctx, apiwrap.ConvertBsonID(req.DocumentID).ToObjectID())
 	if err != nil {
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
 	}
@@ -193,7 +193,7 @@ func (h *DocumentHandler) AdminDeleteDocument(ctx *gin.Context, req DeleteDocume
 
 // 删除多个文档
 func (h *DocumentHandler) AdminDeleteDocumentList(ctx *gin.Context, req DeleteDocumentListRequest) *apiwrap.Response[any] {
-	err := h.serv.AdminDeleteByIDList(ctx, apiwrap.ConvertBsonIDList(req.DocumentIDList))
+	err := h.serv.AdminDeleteByIDList(ctx, apiwrap.ToObjectIDList(apiwrap.ConvertBsonIDList(req.DocumentIDList)))
 	if err != nil {
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
 	}
@@ -203,7 +203,7 @@ func (h *DocumentHandler) AdminDeleteDocumentList(ctx *gin.Context, req DeleteDo
 // 获取文档目录树
 func (h *DocumentHandler) AdminGetDocumentTreeByID(ctx *gin.Context) *apiwrap.Response[any] {
 	documentID := ctx.Query("document_id")
-	documentList, err := h.serv.AdminFindAllByDocumentID(ctx, apiwrap.ConvertBsonID(documentID))
+	documentList, err := h.serv.AdminFindAllByDocumentID(ctx, apiwrap.ConvertBsonID(documentID).ToObjectID())
 	if err != nil {
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
 	}
@@ -213,7 +213,7 @@ func (h *DocumentHandler) AdminGetDocumentTreeByID(ctx *gin.Context) *apiwrap.Re
 // 获取根文档
 func (h *DocumentHandler) AdminGetRootDocumentByID(ctx *gin.Context) *apiwrap.Response[any] {
 	documentID := ctx.Param("id")
-	document, err := h.serv.AdminGetRootDocumentByID(ctx, apiwrap.ConvertBsonID(documentID))
+	document, err := h.serv.AdminGetRootDocumentByID(ctx, apiwrap.ConvertBsonID(documentID).ToObjectID())
 	if err != nil {
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
 	}
@@ -223,7 +223,7 @@ func (h *DocumentHandler) AdminGetRootDocumentByID(ctx *gin.Context) *apiwrap.Re
 // 获取文档
 func (h *DocumentHandler) AdminGetDocumentByID(ctx *gin.Context) *apiwrap.Response[any] {
 	documentID := ctx.Param("id")
-	document, err := h.serv.AdminGetDocumentByID(ctx, apiwrap.ConvertBsonID(documentID))
+	document, err := h.serv.AdminGetDocumentByID(ctx, apiwrap.ConvertBsonID(documentID).ToObjectID())
 	if err != nil {
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
 	}
@@ -242,7 +242,7 @@ func (h *DocumentHandler) AdminGetAllRootDoc(ctx *gin.Context) *apiwrap.Response
 // 获取一个文档的所有子文档(包含非直接子文档)
 func (h *DocumentHandler) AdminGetAllParentDoc(ctx *gin.Context) *apiwrap.Response[any] {
 	documentID := ctx.Query("document_id")
-	documentList, err := h.serv.AdminFindAllParent(ctx, apiwrap.ConvertBsonID(documentID))
+	documentList, err := h.serv.AdminFindAllParent(ctx, apiwrap.ConvertBsonID(documentID).ToObjectID())
 	if err != nil {
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
 	}
@@ -255,8 +255,8 @@ func (h *DocumentHandler) DocumentRequestToDomain(req DocumentRequest) *domain.D
 		Title:        req.Title,
 		Content:      req.Content,
 		DocumentType: req.DocumentType,
-		ParentID:     apiwrap.ConvertBsonID(req.ParentID),
-		DocumentID:   apiwrap.ConvertBsonID(req.DocumentID),
+		ParentID:     apiwrap.ConvertBsonID(req.ParentID).ToObjectID(),
+		DocumentID:   apiwrap.ConvertBsonID(req.DocumentID).ToObjectID(),
 	}
 }
 
@@ -280,8 +280,8 @@ func (h *DocumentHandler) DocumentDomainToTreeVO(doc *domain.Document) *Document
 		UpdatedAt:    doc.UpdatedAt.String(),
 		Title:        doc.Title,
 		DocumentType: doc.DocumentType,
-		ParentID:     apiwrap.BsonID(doc.ParentID.Hex()),
-		DocumentID:   apiwrap.BsonID(doc.DocumentID.Hex()),
+		ParentID:     apiwrap.ConvertBsonID(doc.ParentID.Hex()),
+		DocumentID:   apiwrap.ConvertBsonID(doc.DocumentID.Hex()),
 	}
 }
 
@@ -323,8 +323,8 @@ func (h *DocumentHandler) DocumentDomainToVO(doc *domain.Document) *DocumentVO {
 		Title:        doc.Title,
 		Content:      doc.Content,
 		DocumentType: doc.DocumentType,
-		ParentID:     apiwrap.BsonID(doc.ParentID.Hex()),
-		DocumentID:   apiwrap.BsonID(doc.DocumentID.Hex()),
+		ParentID:     apiwrap.ConvertBsonID(doc.ParentID.Hex()),
+		DocumentID:   apiwrap.ConvertBsonID(doc.DocumentID.Hex()),
 	}
 }
 

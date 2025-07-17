@@ -1,6 +1,8 @@
 package apiwrap
 
 import (
+	"bytes"
+	"io"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -12,20 +14,20 @@ type Response[T any] struct {
 	Msg  string `json:"msg,omitempty"`
 }
 
-var (
-	RuquestSuccess              = 0  // 请求成功
-	RuquestBadRequest           = 1  // 请求参数错误
-	RuquestUnauthorized         = 2  // 未授权
-	RuquestForbidden            = 3  // 禁止访问
-	RuquestNotFound             = 4  // 未找到
-	RuquestInternalServerError  = 5  // 服务器错误
-	RequestAccessTokenExpired   = 6  // access_token已过期
-	RequestAccessTokenNotFound  = 7  // access_token未找到
-	RequestRefreshTokenExpired  = 8  // refresh_token已过期
-	RequestRefreshTokenNotFound = 9  // refresh_token未找到
-	RequestPermissionDenied     = 10 // 权限不足
-	RequestLoadPermissionFailed = 11 // 权限加载失败
-	RequestDocumentNotPublic    = 12 // 文档不是公共文档
+const (
+	RuquestSuccess              = iota // 请求成功
+	RuquestBadRequest                  // 请求参数错误
+	RuquestUnauthorized                // 未授权
+	RuquestForbidden                   // 禁止访问
+	RuquestNotFound                    // 未找到
+	RuquestInternalServerError         // 服务器错误
+	RequestAccessTokenExpired          // access_token已过期
+	RequestAccessTokenNotFound         // access_token未找到
+	RequestRefreshTokenExpired         // refresh_token已过期
+	RequestRefreshTokenNotFound        // refresh_token未找到
+	RequestPermissionDenied            // 权限不足
+	RequestLoadPermissionFailed        // 权限加载失败
+	RequestDocumentNotPublic           // 文档不是公共文档
 )
 
 func respond[T any](code int, data T, msg string) *Response[T] {
@@ -53,6 +55,7 @@ func FailWithMsg(code int, msg string) *Response[any] {
 	return respond[any](code, nil, msg)
 }
 
+// 通用包装器
 func Wrap[T any](fn func(ctx *gin.Context) T) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// 无论是否成功，都返回响应状态码200
@@ -60,6 +63,7 @@ func Wrap[T any](fn func(ctx *gin.Context) T) gin.HandlerFunc {
 	}
 }
 
+// 绑定uri请求体[PATCH, PUT, DELETE]
 func WrapWithUri[R any, T any](fn func(ctx *gin.Context, req R) T) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var req R
@@ -72,10 +76,39 @@ func WrapWithUri[R any, T any](fn func(ctx *gin.Context, req R) T) gin.HandlerFu
 	}
 }
 
-func WrapWithBody[R any, T any](fn func(ctx *gin.Context, req R) T) gin.HandlerFunc {
+// 绑定query请求体[GET]
+func WrapWithQuery[R any, T any](fn func(ctx *gin.Context, req R) T) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var req R
-		if err := ctx.ShouldBind(&req); err != nil {
+		if err := ctx.ShouldBindQuery(&req); err != nil {
+			ctx.JSON(http.StatusBadRequest, FailWithMsg(RuquestBadRequest, err.Error()))
+			return
+		}
+		// 无论是否成功，都返回响应状态码200
+		ctx.JSON(http.StatusOK, fn(ctx, req))
+	}
+}
+
+// 绑定json请求体[POST]
+func WrapWithJson[R any, T any](fn func(ctx *gin.Context, req R) T) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var req R
+
+		bodyBytes, err := io.ReadAll(ctx.Request.Body)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, FailWithMsg(RuquestBadRequest, err.Error()))
+			return
+		}
+
+		if len(bodyBytes) == 0 {
+			ctx.JSON(http.StatusBadRequest, FailWithMsg(RuquestBadRequest, "请求体为空"))
+			return
+		}
+
+		// 恢复body内容, 供后续绑定
+		ctx.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
+		if err := ctx.ShouldBindJSON(&req); err != nil {
 			ctx.JSON(http.StatusBadRequest, FailWithMsg(RuquestBadRequest, err.Error()))
 			return
 		}

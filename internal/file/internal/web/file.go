@@ -20,12 +20,12 @@ func (h *FileHandler) RegisterGinRoutes(engine *gin.Engine) {
 	engine.Static("/images", "./static/images")
 	fileGroup := engine.Group("/file")
 	{
-		fileGroup.GET("/list", apiwrap.WrapWithBody(h.QueryFileList))
+		fileGroup.GET("/list", apiwrap.WrapWithJson(h.QueryFileList))
 	}
 	fileAdminGroup := engine.Group("/admin-api/file")
 	{
-		fileAdminGroup.POST("/upload", apiwrap.WrapWithBody(h.UploadFiles))
-		fileAdminGroup.DELETE("/delete", apiwrap.WrapWithBody(h.DeleteFiles))
+		fileAdminGroup.POST("/upload", apiwrap.WrapWithJson(h.UploadFiles))
+		fileAdminGroup.DELETE("/delete", apiwrap.WrapWithJson(h.DeleteFiles))
 	}
 }
 

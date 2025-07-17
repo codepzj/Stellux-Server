@@ -17,6 +17,7 @@ type ILabelRepository interface {
 	QueryLabelList(ctx context.Context, labelType string, pageNo int64, pageSize int64) ([]*domain.Label, int64, error)
 	GetAllLabelsByType(ctx context.Context, labelType string) ([]*domain.Label, error)
 	GetCategoryLabelWithCount(ctx context.Context) ([]*domain.LabelPostCount, error)
+	GetTagsLabelWithCount(ctx context.Context) ([]*domain.LabelPostCount, error)
 }
 
 var _ ILabelRepository = (*LabelRepository)(nil)
@@ -77,6 +78,23 @@ func (r *LabelRepository) GetAllLabelsByType(ctx context.Context, labelType stri
 	return r.LabelDoToDomainList(labels), nil
 }
 
+func (r *LabelRepository) GetCategoryLabelWithCount(ctx context.Context) ([]*domain.LabelPostCount, error) {
+	labelWithCount, err := r.dao.GetCategoryLabelWithCount(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.LabelPostCountDoToDomainList(labelWithCount), nil
+}
+
+func (r *LabelRepository) GetTagsLabelWithCount(ctx context.Context) ([]*domain.LabelPostCount, error) {
+	labelWithCount, err := r.dao.GetTagsLabelWithCount(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return r.LabelPostCountDoToDomainList(labelWithCount), nil
+}
+
 func (r *LabelRepository) LabelDomainToLabelDO(label *domain.Label) *dao.Label {
 	return &dao.Label{
 		LabelType: label.LabelType,
@@ -98,18 +116,13 @@ func (r *LabelRepository) LabelDoToDomainList(labels []*dao.Label) []*domain.Lab
 	})
 }
 
-func (r *LabelRepository) GetCategoryLabelWithCount(ctx context.Context) ([]*domain.LabelPostCount, error) {
-	labelWithCount, err := r.dao.GetCategoryLabelWithCount(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return lo.Map(labelWithCount, func(label *dao.LabelPostCount, _ int) *domain.LabelPostCount {
+func (r *LabelRepository) LabelPostCountDoToDomainList(labelPostCounts []*dao.LabelPostCount) []*domain.LabelPostCount {
+	return lo.Map(labelPostCounts, func(labelPostCount *dao.LabelPostCount, _ int) *domain.LabelPostCount {
 		return &domain.LabelPostCount{
-			ID:        label.ID,
-			LabelType: label.LabelType,
-			Name:      label.Name,
-			Count:     label.Count,
+			ID:        labelPostCount.ID,
+			LabelType: labelPostCount.LabelType,
+			Name:      labelPostCount.Name,
+			Count:     labelPostCount.Count,
 		}
-	}), nil
+	})
 }

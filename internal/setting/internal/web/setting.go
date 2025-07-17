@@ -24,7 +24,7 @@ func (h *SettingHandler) RegisterGinRoutes(engine *gin.Engine) {
 	}
 	adminSettingGroup := engine.Group("/admin-api/setting")
 	{
-		adminSettingGroup.POST("/upsert/site_config", apiwrap.WrapWithBody(h.AdminUpsertSiteConfigSetting))
+		adminSettingGroup.POST("/upsert/site_config", apiwrap.WrapWithJson(h.AdminUpsertSiteConfigSetting))
 	}
 }
 

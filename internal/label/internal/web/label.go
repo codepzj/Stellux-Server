@@ -19,21 +19,23 @@ type LabelHandler struct {
 }
 
 func (h *LabelHandler) RegisterGinRoutes(engine *gin.Engine) {
-	adminGroup := engine.Group("/admin-api/label")
-	{
-		adminGroup.POST("/create", apiwrap.WrapWithBody(h.AdminCreate))
-		adminGroup.PUT("/edit", apiwrap.WrapWithBody(h.AdminUpdate))
-		adminGroup.DELETE("/delete/:id", apiwrap.Wrap(h.AdminDelete))
-	}
 	labelGroup := engine.Group("/label")
 	{
-		labelGroup.GET("/:id", apiwrap.Wrap(h.GetByID))
-		labelGroup.GET("/list", apiwrap.WrapWithBody(h.QueryLabelList))
-		labelGroup.GET("/all", apiwrap.Wrap(h.QueryAllByType))
-		labelGroup.GET("/allWithCount", apiwrap.Wrap(h.QueryCategoryLabelWithCount))
+		labelGroup.GET("/:id", apiwrap.Wrap(h.GetByID))                                  // 根据id获取标签
+		labelGroup.GET("/list", apiwrap.WrapWithJson(h.QueryLabelList))                  // 分页查询标签
+		labelGroup.GET("/all", apiwrap.Wrap(h.QueryAllByType))                           // 获取所有标签
+		labelGroup.GET("/categories/count", apiwrap.Wrap(h.QueryCategoryLabelWithCount)) // 获取分类标签及其文章数量
+		labelGroup.GET("/tags/count", apiwrap.Wrap(h.QueryTagsLabelWithCount))           // 获取标签及其文章数量
+	}
+	adminGroup := engine.Group("/admin-api/label")
+	{
+		adminGroup.POST("/create", apiwrap.WrapWithJson(h.AdminCreate)) // 创建标签
+		adminGroup.PUT("/edit", apiwrap.WrapWithJson(h.AdminUpdate))    // 更新标签
+		adminGroup.DELETE("/delete/:id", apiwrap.Wrap(h.AdminDelete))   // 删除标签
 	}
 }
 
+// AdminCreate 创建标签
 func (h *LabelHandler) AdminCreate(c *gin.Context, label *LabelRequest) *apiwrap.Response[any] {
 	err := h.serv.CreateLabel(c, &domain.Label{
 		LabelType: label.LabelType,
@@ -45,14 +47,20 @@ func (h *LabelHandler) AdminCreate(c *gin.Context, label *LabelRequest) *apiwrap
 	return apiwrap.SuccessWithMsg("标签创建成功")
 }
 
+// AdminUpdate 更新标签
 func (h *LabelHandler) AdminUpdate(c *gin.Context, label *LabelRequest) *apiwrap.Response[any] {
-	err := h.serv.UpdateLabel(c, label.ID, h.LabelDTOToDomain(label))
+	err := h.serv.UpdateLabel(c, label.ID, &domain.Label{
+		ID:        apiwrap.ConvertBsonID(label.ID).ToObjectID(),
+		LabelType: label.LabelType,
+		Name:      label.Name,
+	})
 	if err != nil {
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
 	}
 	return apiwrap.SuccessWithMsg("标签更新成功")
 }
 
+// AdminDelete 删除标签
 func (h *LabelHandler) AdminDelete(c *gin.Context) *apiwrap.Response[any] {
 	id := c.Param("id")
 	err := h.serv.DeleteLabel(c, id)
@@ -62,6 +70,7 @@ func (h *LabelHandler) AdminDelete(c *gin.Context) *apiwrap.Response[any] {
 	return apiwrap.SuccessWithMsg("标签删除成功")
 }
 
+// GetByID 根据id获取标签
 func (h *LabelHandler) GetByID(c *gin.Context) *apiwrap.Response[any] {
 	id := c.Param("id")
 	label, err := h.serv.GetLabelById(c, id)
@@ -71,6 +80,7 @@ func (h *LabelHandler) GetByID(c *gin.Context) *apiwrap.Response[any] {
 	return apiwrap.SuccessWithDetail[any](h.LabelDomainToVO(label), "标签获取成功")
 }
 
+// QueryLabelList 分页查询标签
 func (h *LabelHandler) QueryLabelList(c *gin.Context, page *Page) *apiwrap.Response[any] {
 	labels, count, err := h.serv.QueryLabelList(c, page.LabelType, page.PageNo, page.PageSize)
 	if err != nil {
@@ -81,6 +91,7 @@ func (h *LabelHandler) QueryLabelList(c *gin.Context, page *Page) *apiwrap.Respo
 	return apiwrap.SuccessWithDetail[any](pageVO, "标签列表获取成功")
 }
 
+// QueryAllByType 获取所有标签
 func (h *LabelHandler) QueryAllByType(c *gin.Context) *apiwrap.Response[any] {
 	labelType := c.Query("label_type")
 	if labelType == "" {
@@ -101,12 +112,22 @@ func (h *LabelHandler) QueryCategoryLabelWithCount(c *gin.Context) *apiwrap.Resp
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
 	}
 	labelVOList := h.LabelWithCountDomainToVOList(labels)
+	return apiwrap.SuccessWithDetail[any](labelVOList, "分类标签列表获取成功")
+}
+
+// QueryTagsLabelWithCount 获取标签及其文章数量
+func (h *LabelHandler) QueryTagsLabelWithCount(c *gin.Context) *apiwrap.Response[any] {
+	labels, err := h.serv.GetAllTagsLabelWithCount(c)
+	if err != nil {
+		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+	}
+	labelVOList := h.LabelWithCountDomainToVOList(labels)
 	return apiwrap.SuccessWithDetail[any](labelVOList, "标签列表获取成功")
 }
 
 func (h *LabelHandler) LabelDTOToDomain(label *LabelRequest) *domain.Label {
 	return &domain.Label{
-		ID:        apiwrap.ConvertBsonID(label.ID),
+		ID:        apiwrap.ConvertBsonID(label.ID).ToObjectID(),
 		LabelType: label.LabelType,
 		Name:      label.Name,
 	}

@@ -23,7 +23,7 @@ type IPostService interface {
 	GetPostById(ctx context.Context, id bson.ObjectID) (*domain.Post, error)
 	GetPostByKeyWord(ctx context.Context, keyWord string) ([]*domain.Post, error)
 	GetPostDetailById(ctx context.Context, id bson.ObjectID) (*domain.PostDetail, error)
-	GetPostDetailList(ctx context.Context, page *apiwrap.Page, postType string) ([]*domain.PostDetail, int64, error)
+	GetPostList(ctx context.Context, page *apiwrap.Page, postType string) ([]*domain.PostDetail, int64, error)
 	GetAllPublishPost(ctx context.Context) ([]*domain.Post, error)
 }
 
@@ -87,14 +87,14 @@ func (s *PostService) GetPostDetailById(ctx context.Context, id bson.ObjectID) (
 	return s.repo.GetDetailByID(ctx, id)
 }
 
-func (s *PostService) GetPostDetailList(ctx context.Context, page *apiwrap.Page, postType string) ([]*domain.PostDetail, int64, error) {
+func (s *PostService) GetPostList(ctx context.Context, page *apiwrap.Page, postType string) ([]*domain.PostDetail, int64, error) {
 	switch postType {
 	case "publish":
-		return s.repo.GetDetailList(ctx, page, "publish")
+		return s.repo.GetList(ctx, page, "publish")
 	case "draft":
-		return s.repo.GetDetailList(ctx, page, "draft")
+		return s.repo.GetList(ctx, page, "draft")
 	case "bin":
-		return s.repo.GetDetailList(ctx, page, "bin")
+		return s.repo.GetList(ctx, page, "bin")
 	default:
 		return nil, 0, errors.New("invalid post type")
 	}

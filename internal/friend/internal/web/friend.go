@@ -26,9 +26,9 @@ func (h *FriendHandler) RegisterGinRoutes(engine *gin.Engine) {
 	}
 	adminGroup := engine.Group("/admin-api")
 	{
-		adminGroup.POST("/friend/create", apiwrap.WrapWithBody(h.CreateFriend))
+		adminGroup.POST("/friend/create", apiwrap.WrapWithJson(h.CreateFriend))
 		adminGroup.GET("/friend/all", apiwrap.Wrap(h.FindAllFriends))
-		adminGroup.PUT("/friend/update", apiwrap.WrapWithBody(h.UpdateFriend))
+		adminGroup.PUT("/friend/update", apiwrap.WrapWithJson(h.UpdateFriend))
 		adminGroup.DELETE("/friend/delete/:id", apiwrap.Wrap(h.DeleteFriend))
 	}
 
@@ -69,7 +69,7 @@ func (h *FriendHandler) FindAllFriends(c *gin.Context) *apiwrap.Response[any] {
 
 // UpdateFriend 更新友链
 func (h *FriendHandler) UpdateFriend(c *gin.Context, friend *FriendUpdateRequest) *apiwrap.Response[any] {
-	err := h.serv.UpdateFriend(c, apiwrap.ConvertBsonID(friend.ID), &domain.Friend{
+	err := h.serv.UpdateFriend(c, apiwrap.ConvertBsonID(friend.ID).ToObjectID(), &domain.Friend{
 		Name:        friend.Name,
 		Description: friend.Description,
 		SiteUrl:     friend.SiteUrl,
@@ -85,7 +85,7 @@ func (h *FriendHandler) UpdateFriend(c *gin.Context, friend *FriendUpdateRequest
 
 // DeleteFriend 删除友链
 func (h *FriendHandler) DeleteFriend(c *gin.Context) *apiwrap.Response[any] {
-	err := h.serv.DeleteFriend(c, apiwrap.ConvertBsonID(c.Param("id")))
+	err := h.serv.DeleteFriend(c, apiwrap.ConvertBsonID(c.Param("id")).ToObjectID())
 	if err != nil {
 		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
 	}
