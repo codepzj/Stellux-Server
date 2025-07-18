@@ -4,14 +4,8 @@ import (
 	"errors"
 	"flag"
 
-	"github.com/casbin/casbin/v2"
 	"github.com/codepzj/stellux/server/internal/pkg/apiwrap"
 	"github.com/gin-gonic/gin"
-)
-
-// 全局变量
-var (
-	Enforcer *casbin.Enforcer
 )
 
 // 命令行参数
@@ -33,7 +27,6 @@ var (
 	LoadPermissionFailed = gin.H{"code": apiwrap.RequestLoadPermissionFailed, "msg": "权限加载失败"}
 	PermissionDenied     = gin.H{"code": apiwrap.RequestPermissionDenied, "msg": "权限不足,禁止访问"}
 )
-
 
 var RoleNames = map[int]string{
 	0: "admin",

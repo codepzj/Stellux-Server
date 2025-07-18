@@ -10,8 +10,6 @@ func InitMiddleWare() []gin.HandlerFunc {
 	return []gin.HandlerFunc{
 		gin.Recovery(),
 		middleware.Cors(),
-		middleware.JWT(),
-		middleware.Auth(),
 		middleware.CacheControlMiddleware(),
 	}
 }

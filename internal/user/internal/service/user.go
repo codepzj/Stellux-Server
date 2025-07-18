@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/codepzj/stellux/server/global"
 	"github.com/codepzj/stellux/server/internal/pkg/utils"
 	"github.com/codepzj/stellux/server/internal/user/internal/domain"
 	"github.com/codepzj/stellux/server/internal/user/internal/repository"
@@ -58,19 +57,11 @@ func (s *UserService) AdminCreate(ctx context.Context, user *domain.User) error 
 	if err != nil {
 		return err
 	}
-	id, err := s.repo.Create(ctx, user)
+	_, err = s.repo.Create(ctx, user)
 	if err != nil {
 		return err
 	}
 
-	roleName := global.RoleNames[user.RoleId]
-	ok, err := global.Enforcer.AddRoleForUser(id.Hex(), roleName)
-	if err != nil {
-		return err
-	}
-	if !ok {
-		return errors.New("添加用户角色失败")
-	}
 	return nil
 }
 
@@ -97,13 +88,6 @@ func (s *UserService) AdminUpdate(ctx context.Context, user *domain.User) error 
 
 // 管理员删除用户
 func (s *UserService) AdminDelete(ctx context.Context, id string) error {
-	ok, err := global.Enforcer.DeleteUser(id)
-	if err != nil {
-		return err
-	}
-	if !ok {
-		return errors.New("删除用户角色失败")
-	}
 	return s.repo.Delete(ctx, id)
 }
 

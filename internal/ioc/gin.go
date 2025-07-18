@@ -6,17 +6,26 @@ import (
 	"github.com/codepzj/stellux/server/internal/file"
 	"github.com/codepzj/stellux/server/internal/friend"
 	"github.com/codepzj/stellux/server/internal/label"
+	"github.com/codepzj/stellux/server/internal/pkg/apiwrap"
 	"github.com/codepzj/stellux/server/internal/post"
 	"github.com/codepzj/stellux/server/internal/setting"
 	"github.com/codepzj/stellux/server/internal/user"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 )
 
 // NewGin 初始化gin服务器
 func NewGin(userHdl *user.Handler, postHdl *post.Handler, labelHdl *label.Handler, fileHdl *file.Handler, documentHdl *document.Handler, settingHdl *setting.Handler, friendHdl *friend.Handler, documentContentHdl *document_content.Handler, middleware []gin.HandlerFunc) *gin.Engine {
 	router := gin.Default()
 
+	// 验证器
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterValidation("version", apiwrap.ValidateVersion)
+		v.RegisterValidation("bsonId", apiwrap.ValidateBsonId)
+	}
+	
 	// 中间件
 	router.Use(middleware...)
 

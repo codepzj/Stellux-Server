@@ -13,12 +13,6 @@ import (
 
 func JWT() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		// 过滤非管理员接口
-		if !strings.HasPrefix(ctx.Request.RequestURI, "/admin-api") {
-			ctx.Next()
-			return
-		}
-
 		access_token := ctx.Request.Header.Get("Authorization")
 		slog.Debug("用户携带的token", "access_token", access_token)
 		// 若非GET请求的token为空
@@ -31,7 +25,6 @@ func JWT() gin.HandlerFunc {
 			ctx.AbortWithStatusJSON(http.StatusOK, global.AccessTokenExpired)
 			return
 		}
-		slog.Debug("解析后的用户ID", "userId", claims.ID)
 		ctx.Set("userId", claims.ID)
 		ctx.Next()
 	}
