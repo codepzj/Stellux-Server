@@ -15,7 +15,6 @@ type DocumentContent struct {
 	Title        string        // 文档标题
 	Content      string        // 文档内容
 	Description  string        // 文档描述
-	Version      string        // 文档版本
 	Alias        string        // 文档别名
 	ParentId     bson.ObjectID // 父级ID
 	IsDir        bool          // 是否是目录
@@ -23,4 +22,11 @@ type DocumentContent struct {
 	LikeCount    int           // 点赞数
 	DislikeCount int           // 反对数
 	CommentCount int           // 评论数
+	IsDeleted    bool          // 是否删除
+}
+
+// Page 分页查询参数
+type Page struct {
+	PageNo   int64 `json:"page_no"`   // 页码
+	PageSize int64 `json:"page_size"` // 每页大小
 }

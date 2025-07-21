@@ -12,18 +12,16 @@ import (
 	"github.com/codepzj/stellux/server/internal/document/internal/repository/dao"
 	"github.com/codepzj/stellux/server/internal/document/internal/service"
 	"github.com/codepzj/stellux/server/internal/document/internal/web"
-	"github.com/codepzj/stellux/server/internal/setting"
 	"github.com/google/wire"
 )
 
 // Injectors from wire.go:
 
-func InitDocumentModule(mongoDB *mongox.Database, settingModule *setting.Module) *Module {
+func InitDocumentModule(mongoDB *mongox.Database) *Module {
 	documentDao := dao.NewDocumentDao(mongoDB)
 	documentRepository := repository.NewDocumentRepository(documentDao)
 	documentService := service.NewDocumentService(documentRepository)
-	iSettingService := settingModule.Svc
-	documentHandler := web.NewDocumentHandler(documentService, iSettingService)
+	documentHandler := web.NewDocumentHandler(documentService)
 	module := &Module{
 		Svc: documentService,
 		Hdl: documentHandler,

@@ -135,7 +135,7 @@ func (r *PostRepository) GetList(ctx context.Context, page *apiwrap.Page, postTy
 	}).Unwind("$category", nil).Lookup("label", "tags", &aggregation.LookUpOptions{
 		LocalField:   "tags_id",
 		ForeignField: "_id",
-	}).Skip(skip).Limit(limit).Sort(sortBuilder.Build()).Build()
+	}).Sort(sortBuilder.Build()).Skip(skip).Limit(limit).Build()
 
 	posts, count, err := r.dao.GetList(ctx, pagePipeline, cond)
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/codepzj/stellux/server/internal/pkg/apiwrap"
+	"github.com/codepzj/stellux/server/internal/pkg/middleware"
 	"github.com/codepzj/stellux/server/internal/pkg/utils"
 	"github.com/codepzj/stellux/server/internal/user/internal/domain"
 	"github.com/codepzj/stellux/server/internal/user/internal/service"
@@ -28,11 +29,12 @@ func (h *UserHandler) RegisterGinRoutes(engine *gin.Engine) {
 	}
 	adminGroup := engine.Group("/admin-api/user")
 	{
+		adminGroup.Use(middleware.JWT())
 		adminGroup.POST("/create", apiwrap.WrapWithJson(h.AdminCreateUser))
 		adminGroup.PUT("/update", apiwrap.WrapWithJson(h.AdminUpdateUser))
 		adminGroup.PUT("/update-password", apiwrap.WrapWithJson(h.AdminUpdatePassword))
 		adminGroup.DELETE("/delete/:id", apiwrap.Wrap(h.AdminDeleteUser))
-		adminGroup.GET("/list", apiwrap.WrapWithJson(h.AdminGetUserList))
+		adminGroup.GET("/list", apiwrap.WrapWithQuery(h.AdminGetUserList))
 		adminGroup.GET("/info", apiwrap.Wrap(h.AdminGetUserInfo))
 	}
 }

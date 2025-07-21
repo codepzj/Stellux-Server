@@ -24,8 +24,8 @@ type PostHandler struct {
 func (h *PostHandler) RegisterGinRoutes(engine *gin.Engine) {
 	adminGroup := engine.Group("/admin-api/post")
 	{
-		adminGroup.GET("draft/list", apiwrap.WrapWithJson(h.AdminGetDraftDetailPostList))
-		adminGroup.GET("bin/list", apiwrap.WrapWithJson(h.AdminGetBinDetailPostList))
+		adminGroup.GET("draft/list", apiwrap.WrapWithQuery(h.AdminGetDraftDetailPostList))
+		adminGroup.GET("bin/list", apiwrap.WrapWithQuery(h.AdminGetBinDetailPostList))
 		adminGroup.POST("create", apiwrap.WrapWithJson(h.AdminCreatePost))
 		adminGroup.PUT("update", apiwrap.WrapWithJson(h.AdminUpdatePost))
 		adminGroup.PUT("update/publish-status", apiwrap.WrapWithJson(h.AdminUpdatePostPublishStatus))

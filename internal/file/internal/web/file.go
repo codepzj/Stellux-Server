@@ -20,21 +20,26 @@ func (h *FileHandler) RegisterGinRoutes(engine *gin.Engine) {
 	engine.Static("/images", "./static/images")
 	fileGroup := engine.Group("/file")
 	{
-		fileGroup.GET("/list", apiwrap.WrapWithJson(h.QueryFileList))
+		fileGroup.GET("/list", apiwrap.WrapWithQuery(h.QueryFileList))
 	}
 	fileAdminGroup := engine.Group("/admin-api/file")
 	{
-		fileAdminGroup.POST("/upload", apiwrap.WrapWithJson(h.UploadFiles))
+		fileAdminGroup.POST("/upload",  apiwrap.Wrap(h.UploadFiles))
 		fileAdminGroup.DELETE("/delete", apiwrap.WrapWithJson(h.DeleteFiles))
 	}
 }
 
-func (h *FileHandler) UploadFiles(c *gin.Context, uploadFilesRequest *UploadFilesRequest) *apiwrap.Response[any] {
-	files := uploadFilesRequest.Files
+func (h *FileHandler) UploadFiles(c *gin.Context) *apiwrap.Response[any] {
+	form, err := c.MultipartForm()
+	if err != nil {
+		return apiwrap.FailWithMsg(apiwrap.RuquestBadRequest, err.Error())
+	}
+
+    files := form.File["files"] 
 	if len(files) == 0 {
 		return apiwrap.FailWithMsg(apiwrap.RuquestBadRequest, "未找到上传的文件")
 	}
-	err := h.serv.UploadFiles(c, files)
+	err = h.serv.UploadFiles(c, files)
 	if err != nil {
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
 	}

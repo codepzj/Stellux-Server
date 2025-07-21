@@ -7,34 +7,19 @@ import (
 )
 
 type Document struct {
-	ID           bson.ObjectID
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-	Title        string        // 文档标题
-	Content      string        // 文档内容
-	DocumentType string        // 文档类型
-	ParentID     bson.ObjectID // 父文档id
-	DocumentID   bson.ObjectID // 文档id
+	Id          bson.ObjectID // 文档id
+	CreatedAt   time.Time     // 创建时间
+	UpdatedAt   time.Time     // 更新时间
+	Title       string        // 文档标题
+	Description string        // 文档描述
+	Alias       string        // 文档别名
+	Sort        int           // 文档排序
+	IsPublic    bool          // 是否公开
+	IsDeleted   bool          // 是否删除
 }
 
-type DocumentRoot struct {
-	ID           bson.ObjectID
-	CreatedAt    time.Time // 创建时间
-	UpdatedAt    time.Time // 更新时间
-	Title        string    // 文档标题
-	Alias        string    // 文档别名
-	Description  string    // 文档描述
-	DocumentType string    // 文档类型
-	Thumbnail    string    // 文档缩略图
-	IsPublic     bool      // 是否公开
-}
-
-// 站点地图
-type DocumentSitemap struct {
-	ID           bson.ObjectID
-	UpdatedAt    time.Time
-	Alias        string
-	DocumentType string
-	ParentID     bson.ObjectID
-	DocumentID   bson.ObjectID
+// Page 分页查询参数
+type Page struct {
+	PageNo   int64 `json:"pageNo"`   // 页码
+	PageSize int64 `json:"pageSize"` // 每页大小
 }

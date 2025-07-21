@@ -22,7 +22,7 @@ func (h *LabelHandler) RegisterGinRoutes(engine *gin.Engine) {
 	labelGroup := engine.Group("/label")
 	{
 		labelGroup.GET("/:id", apiwrap.Wrap(h.GetByID))                                  // 根据id获取标签
-		labelGroup.GET("/list", apiwrap.WrapWithJson(h.QueryLabelList))                  // 分页查询标签
+		labelGroup.GET("/list", apiwrap.WrapWithQuery(h.QueryLabelList))                 // 分页查询标签
 		labelGroup.GET("/all", apiwrap.Wrap(h.QueryAllByType))                           // 获取所有标签
 		labelGroup.GET("/categories/count", apiwrap.Wrap(h.QueryCategoryLabelWithCount)) // 获取分类标签及其文章数量
 		labelGroup.GET("/tags/count", apiwrap.Wrap(h.QueryTagsLabelWithCount))           // 获取标签及其文章数量

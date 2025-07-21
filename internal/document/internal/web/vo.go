@@ -1,40 +1,41 @@
 package web
 
-import "github.com/codepzj/stellux/server/internal/pkg/apiwrap"
+import "time"
 
 type DocumentVO struct {
-	ID           string         `json:"id"`
-	CreatedAt    string         `json:"created_at"`
-	UpdatedAt    string         `json:"updated_at"`
-	Title        string         `json:"title"`
-	Content      string         `json:"content"`
-	DocumentType string         `json:"document_type"`
-	IsPublic     bool           `json:"is_public"`
-	ParentID     apiwrap.BsonId `json:"parent_id,omitzero"`
-	DocumentID   apiwrap.BsonId `json:"document_id,omitzero"`
+	Id          string    `json:"id"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Content     string    `json:"content"`
+	Alias       string    `json:"alias"`
+	Sort        int       `json:"sort"`
+	IsPublic    bool      `json:"is_public"`
+	IsDeleted   bool      `json:"is_deleted"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 type DocumentRootVO struct {
-	ID           string `json:"id"`
-	CreatedAt    string `json:"created_at"`
-	UpdatedAt    string `json:"updated_at"`
-	Title        string `json:"title"`
-	Alias        string `json:"alias"`
-	DocumentType string `json:"document_type"`
-	Description  string `json:"description"`
-	Thumbnail    string `json:"thumbnail"`
-	IsPublic     bool   `json:"is_public"`
+	Id          string    `json:"id"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Alias       string    `json:"alias"`
+	Thumbnail   string    `json:"thumbnail"`
+	IsPublic    bool      `json:"is_public"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 type DocumentTreeVO struct {
-	ID           string         `json:"id"`
-	CreatedAt    string         `json:"created_at"`
-	UpdatedAt    string         `json:"updated_at"`
-	Title        string         `json:"title"`
-	DocumentType string         `json:"document_type"`
-	IsPublic     bool           `json:"is_public"`
-	ParentID     apiwrap.BsonId `json:"parent_id,omitzero"`
-	DocumentID   apiwrap.BsonId `json:"document_id,omitzero"`
+	Id           string    `json:"id"`
+	Title        string    `json:"title"`
+	DocumentType string    `json:"document_type"`
+	IsDir        bool      `json:"is_dir"`
+	IsPublic     bool      `json:"is_public"`
+	ParentId     string    `json:"parent_id"`
+	DocumentId   string    `json:"document_id"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
 }
 
 type DocumentSitemapVO struct {
@@ -42,16 +43,4 @@ type DocumentSitemapVO struct {
 	Lastmod    string  `json:"lastmod"`
 	Changefreq string  `json:"changefreq"`
 	Priority   float64 `json:"priority"`
-}
-
-type SeoSettingVO struct {
-	SiteAuthor      string `json:"site_author"`
-	SiteUrl         string `json:"site_url"`
-	SiteDescription string `json:"site_description"`
-	SiteKeywords    string `json:"site_keywords"`
-	Robots          string `json:"robots"`
-	OgImage         string `json:"og_image"`
-	OgType          string `json:"og_type"`
-	TwitterCard     string `json:"twitter_card"`
-	TwitterSite     string `json:"twitter_site"`
 }

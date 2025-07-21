@@ -31,7 +31,7 @@ func InitApp() *HttpServer {
 	labelHandler := labelModule.Hdl
 	fileModule := file.InitFileModule(database)
 	fileHandler := fileModule.Hdl
-	documentModule := document.InitDocumentModule(database, settingModule)
+	documentModule := document.InitDocumentModule(database)
 	documentHandler := documentModule.Hdl
 	settingHandler := settingModule.Hdl
 	friendModule := friend.InitFriendModule(database)
