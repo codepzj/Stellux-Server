@@ -15,6 +15,7 @@ type Document struct {
 	mongox.Model `bson:",inline"`
 	Title        string `bson:"title"`
 	Description  string `bson:"description"`
+	Thumbnail    string `bson:"thumbnail"`
 	Alias        string `bson:"alias"`
 	Sort         int    `bson:"sort"`
 	IsPublic     bool   `bson:"isPublic"`
@@ -70,6 +71,7 @@ func (d *DocumentDao) UpdateDocumentById(ctx context.Context, id bson.ObjectID, 
 	result, err := d.coll.Updater().Filter(query.Id(id)).Updates(update.SetFields(bson.D{
 		{Key: "title", Value: doc.Title},
 		{Key: "description", Value: doc.Description},
+		{Key: "thumbnail", Value: doc.Thumbnail},
 		{Key: "alias", Value: doc.Alias},
 		{Key: "sort", Value: doc.Sort},
 		{Key: "isPublic", Value: doc.IsPublic},

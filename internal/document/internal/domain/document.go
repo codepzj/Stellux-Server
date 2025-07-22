@@ -12,6 +12,7 @@ type Document struct {
 	UpdatedAt   time.Time     // 更新时间
 	Title       string        // 文档标题
 	Description string        // 文档描述
+	Thumbnail   string        // 文档缩略图
 	Alias       string        // 文档别名
 	Sort        int           // 文档排序
 	IsPublic    bool          // 是否公开

@@ -249,7 +249,6 @@ func (d *DocumentContentDao) SearchDocumentContent(ctx context.Context, keyword 
 			query.Eq("is_deleted", false),
 			query.Or(
 				query.Regex("title", keyword),
-				query.Regex("content", keyword),
 				query.Regex("description", keyword),
 			),
 		)).
@@ -273,7 +272,6 @@ func (d *DocumentContentDao) SearchPublicDocumentContent(ctx context.Context, ke
 			query.Eq("is_deleted", false),
 			query.Or(
 				query.Regex("title", keyword),
-				query.Regex("content", keyword),
 				query.Regex("description", keyword),
 			),
 		)).

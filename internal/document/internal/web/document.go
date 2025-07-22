@@ -49,13 +49,14 @@ func (h *DocumentHandler) RegisterGinRoutes(engine *gin.Engine) {
 }
 
 // AdminCreateDocument 管理员创建文档
-func (h *DocumentHandler) AdminCreateDocument(c *gin.Context, dto DocumentCreateDto) *apiwrap.Response[any] {
+func (h *DocumentHandler) AdminCreateDocument(c *gin.Context, req DocumentCreateRequest) *apiwrap.Response[any] {
 	id, err := h.serv.CreateDocument(c, domain.Document{
-		Title:       dto.Title,
-		Description: dto.Description,
-		Alias:       dto.Alias,
-		Sort:        dto.Sort,
-		IsPublic:    dto.IsPublic,
+		Title:       req.Title,
+		Description: req.Description,
+		Thumbnail:   req.Thumbnail,
+		Alias:       req.Alias,
+		Sort:        req.Sort,
+		IsPublic:    req.IsPublic,
 	})
 	if err != nil {
 		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
@@ -80,6 +81,7 @@ func (h *DocumentHandler) AdminFindDocument(c *gin.Context) *apiwrap.Response[an
 		Id:          doc.Id.Hex(),
 		Title:       doc.Title,
 		Description: doc.Description,
+		Thumbnail:   doc.Thumbnail,
 		Alias:       doc.Alias,
 		Sort:        doc.Sort,
 		IsPublic:    doc.IsPublic,
@@ -91,18 +93,19 @@ func (h *DocumentHandler) AdminFindDocument(c *gin.Context) *apiwrap.Response[an
 }
 
 // AdminUpdateDocument 管理员更新文档
-func (h *DocumentHandler) AdminUpdateDocument(c *gin.Context, dto DocumentUpdateDto) *apiwrap.Response[any] {
-	objId, err := bson.ObjectIDFromHex(dto.Id)
+func (h *DocumentHandler) AdminUpdateDocument(c *gin.Context, req DocumentUpdateRequest) *apiwrap.Response[any] {
+	objId, err := bson.ObjectIDFromHex(req.Id)
 	if err != nil {
 		return apiwrap.FailWithMsg(http.StatusBadRequest, "id格式错误")
 	}
 
 	err = h.serv.UpdateDocumentById(c, objId, domain.Document{
-		Title:       dto.Title,
-		Description: dto.Description,
-		Alias:       dto.Alias,
-		Sort:        dto.Sort,
-		IsPublic:    dto.IsPublic,
+		Title:       req.Title,
+		Description: req.Description,
+		Thumbnail:   req.Thumbnail,
+		Alias:       req.Alias,
+		Sort:        req.Sort,
+		IsPublic:    req.IsPublic,
 	})
 	if err != nil {
 		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
@@ -170,6 +173,7 @@ func (h *DocumentHandler) AdminFindDocumentByAlias(c *gin.Context) *apiwrap.Resp
 		Id:          doc.Id.Hex(),
 		Title:       doc.Title,
 		Description: doc.Description,
+		Thumbnail:   doc.Thumbnail,
 		Alias:       doc.Alias,
 		Sort:        doc.Sort,
 		IsPublic:    doc.IsPublic,
@@ -248,6 +252,7 @@ func (h *DocumentHandler) FindDocumentByAlias(c *gin.Context) *apiwrap.Response[
 		Id:          doc.Id.Hex(),
 		Title:       doc.Title,
 		Description: doc.Description,
+		Thumbnail:   doc.Thumbnail,
 		Alias:       doc.Alias,
 		Sort:        doc.Sort,
 		IsPublic:    doc.IsPublic,
@@ -286,15 +291,15 @@ func (h *DocumentHandler) GetAllPublicDocument(c *gin.Context) *apiwrap.Response
 		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
 	}
 
-	// 转换为DocumentRootVO数组
-	docsVO := make([]DocumentRootVO, len(docs))
+	// 转换为DocumentVO数组
+	docsVO := make([]DocumentVO, len(docs))
 	for i, doc := range docs {
-		docsVO[i] = DocumentRootVO{
+		docsVO[i] = DocumentVO{
 			Id:          doc.Id.Hex(),
 			Title:       doc.Title,
 			Description: doc.Description,
+			Thumbnail:   doc.Thumbnail,
 			Alias:       doc.Alias,
-			Thumbnail:   "", // 暂时为空，后续可以添加缩略图字段
 			IsPublic:    doc.IsPublic,
 			CreatedAt:   doc.CreatedAt,
 			UpdatedAt:   doc.UpdatedAt,
@@ -327,12 +332,12 @@ func (h *DocumentHandler) GetRootDocument(c *gin.Context) *apiwrap.Response[any]
 		return apiwrap.FailWithMsg(http.StatusForbidden, "文档未公开")
 	}
 
-	rootDocVO := DocumentRootVO{
+	rootDocVO := DocumentVO{
 		Id:          doc.Id.Hex(),
 		Title:       doc.Title,
 		Description: doc.Description,
 		Alias:       doc.Alias,
-		Thumbnail:   doc.Alias,
+		Thumbnail:   doc.Thumbnail,
 		IsPublic:    doc.IsPublic,
 		CreatedAt:   doc.CreatedAt,
 		UpdatedAt:   doc.UpdatedAt,
@@ -358,6 +363,7 @@ func (h *DocumentHandler) DocumentDomainToVOList(docs []domain.Document) []Docum
 			Id:          doc.Id.Hex(),
 			Title:       doc.Title,
 			Description: doc.Description,
+			Thumbnail:   doc.Thumbnail,
 			Alias:       doc.Alias,
 			Sort:        doc.Sort,
 			IsPublic:    doc.IsPublic,

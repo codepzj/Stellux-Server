@@ -23,38 +23,38 @@ type DocumentContentHandler struct {
 }
 
 func (h *DocumentContentHandler) RegisterGinRoutes(engine *gin.Engine) {
-	adminDocumentContentGroup := engine.Group("/admin-api/documentContent")
+	adminDocumentContentGroup := engine.Group("/admin-api/document-content")
 	{
 		adminDocumentContentGroup.Use(middleware.JWT())
-		adminDocumentContentGroup.POST("/create", apiwrap.WrapWithJson(h.CreateDocumentContent))                 // 管理员创建文档内容
-		adminDocumentContentGroup.GET("/:id", apiwrap.Wrap(h.FindDocumentContentById))                           // 管理员查询特定Id的文档内容
-		adminDocumentContentGroup.DELETE("/:id", apiwrap.Wrap(h.DeleteDocumentContentById))                      // 管理员删除特定Id的文档内容
-		adminDocumentContentGroup.PUT("/soft-delete/:id", apiwrap.Wrap(h.SoftDeleteDocumentContentById))         // 管理员软删除特定Id的文档内容
-		adminDocumentContentGroup.PUT("/restore/:id", apiwrap.Wrap(h.RestoreDocumentContentById))                // 管理员恢复特定Id的文档内容
-		adminDocumentContentGroup.GET("/getAllDocByParentId", apiwrap.Wrap(h.FindDocumentContentByParentId))     // 管理员查询特定父级Id的所有子文档内容
-		adminDocumentContentGroup.GET("/getAllDocByDocumentId", apiwrap.Wrap(h.FindDocumentContentByDocumentId)) // 管理员查询特定文档Id的所有子文档内容
-		adminDocumentContentGroup.PUT("/update", apiwrap.WrapWithJson(h.UpdateDocumentContentById))              // 管理员更新特定Id的文档内容
-		adminDocumentContentGroup.GET("/list", apiwrap.WrapWithQuery(h.GetDocumentContentList))                  // 管理员获取文档内容列表
-		adminDocumentContentGroup.GET("/search", apiwrap.Wrap(h.SearchDocumentContent))                          // 管理员搜索文档内容
-		adminDocumentContentGroup.PUT("/update-like/:id", apiwrap.Wrap(h.UpdateLikeCount))                       // 管理员更新点赞数
-		adminDocumentContentGroup.PUT("/update-dislike/:id", apiwrap.Wrap(h.UpdateDislikeCount))                 // 管理员更新反对数
-		adminDocumentContentGroup.PUT("/update-comment/:id", apiwrap.Wrap(h.UpdateCommentCount))                 // 管理员更新评论数
-		adminDocumentContentGroup.POST("/delete-list", apiwrap.Wrap(h.DeleteDocumentContentList))                // 管理员批量删除文档内容
+		adminDocumentContentGroup.POST("/create", apiwrap.WrapWithJson(h.CreateDocumentContent))           // 管理员创建文档内容
+		adminDocumentContentGroup.GET("/:id", apiwrap.Wrap(h.FindDocumentContentById))                     // 管理员查询特定Id的文档内容
+		adminDocumentContentGroup.DELETE("/:id", apiwrap.Wrap(h.DeleteDocumentContentById))                // 管理员删除特定Id的文档内容
+		adminDocumentContentGroup.PUT("/soft-delete/:id", apiwrap.Wrap(h.SoftDeleteDocumentContentById))   // 管理员软删除特定Id的文档内容
+		adminDocumentContentGroup.PUT("/restore/:id", apiwrap.Wrap(h.RestoreDocumentContentById))          // 管理员恢复特定Id的文档内容
+		adminDocumentContentGroup.GET("/all/parent-id", apiwrap.Wrap(h.FindDocumentContentByParentId))     // 管理员查询特定父级Id的所有子文档内容
+		adminDocumentContentGroup.GET("/all/document-id", apiwrap.Wrap(h.FindDocumentContentByDocumentId)) // 管理员查询特定文档Id的所有子文档内容
+		adminDocumentContentGroup.PUT("/update", apiwrap.WrapWithJson(h.UpdateDocumentContentById))        // 管理员更新特定Id的文档内容
+		adminDocumentContentGroup.GET("/list", apiwrap.WrapWithQuery(h.GetDocumentContentList))            // 管理员获取文档内容列表
+		adminDocumentContentGroup.GET("/search", apiwrap.Wrap(h.SearchDocumentContent))                    // 管理员搜索文档内容
+		adminDocumentContentGroup.PUT("/update-like/:id", apiwrap.Wrap(h.UpdateLikeCount))                 // 管理员更新点赞数
+		adminDocumentContentGroup.PUT("/update-dislike/:id", apiwrap.Wrap(h.UpdateDislikeCount))           // 管理员更新反对数
+		adminDocumentContentGroup.PUT("/update-comment/:id", apiwrap.Wrap(h.UpdateCommentCount))           // 管理员更新评论数
+		adminDocumentContentGroup.POST("/delete-list", apiwrap.Wrap(h.DeleteDocumentContentList))          // 管理员批量删除文档内容
 	}
 
 	// 公开API
-	publicDocumentContentGroup := engine.Group("/documentContent")
+	publicDocumentContentGroup := engine.Group("/document-content")
 	{
-		publicDocumentContentGroup.GET("/:id", apiwrap.Wrap(h.FindPublicDocumentContentById))                           // 公开查询特定Id的文档内容
-		publicDocumentContentGroup.GET("/getAllDocByParentId", apiwrap.Wrap(h.FindPublicDocumentContentByParentId))     // 公开查询特定父级Id的所有子文档内容
-		publicDocumentContentGroup.GET("/getAllDocByDocumentId", apiwrap.Wrap(h.FindPublicDocumentContentByDocumentId)) // 公开查询特定文档Id的所有子文档内容
-		publicDocumentContentGroup.GET("/list", apiwrap.WrapWithQuery(h.GetPublicDocumentContentList))                  // 公开获取文档内容列表
-		publicDocumentContentGroup.GET("/search", apiwrap.Wrap(h.SearchPublicDocumentContent))                          // 公开搜索文档内容
+		publicDocumentContentGroup.GET("/:id", apiwrap.Wrap(h.FindPublicDocumentContentById))                     // 公开查询特定Id的文档内容
+		publicDocumentContentGroup.GET("/all/parent-id", apiwrap.Wrap(h.FindPublicDocumentContentByParentId))     // 公开查询特定父级Id的所有子文档内容
+		publicDocumentContentGroup.GET("/all/document-id", apiwrap.Wrap(h.FindPublicDocumentContentByDocumentId)) // 公开查询特定文档Id的所有子文档内容
+		publicDocumentContentGroup.GET("/list", apiwrap.WrapWithQuery(h.GetPublicDocumentContentList))            // 公开获取文档内容列表
+		publicDocumentContentGroup.GET("/search", apiwrap.Wrap(h.SearchPublicDocumentContent))                    // 公开搜索文档内容
 	}
 }
 
 // CreateDocumentContent 管理员创建文档内容
-func (h *DocumentContentHandler) CreateDocumentContent(c *gin.Context, dto CreateDocumentContentDto) *apiwrap.Response[any] {
+func (h *DocumentContentHandler) CreateDocumentContent(c *gin.Context, dto CreateDocumentContentRequest) *apiwrap.Response[any] {
 	documentId, _ := bson.ObjectIDFromHex(dto.DocumentId)
 
 	// 处理ParentId，如果为空则使用documentId作为父级ID
@@ -186,7 +186,7 @@ func (h *DocumentContentHandler) FindDocumentContentByDocumentId(c *gin.Context)
 }
 
 // UpdateDocumentContentById 管理员更新特定Id的文档内容
-func (h *DocumentContentHandler) UpdateDocumentContentById(c *gin.Context, dto UpdateDocumentContentDto) *apiwrap.Response[any] {
+func (h *DocumentContentHandler) UpdateDocumentContentById(c *gin.Context, dto UpdateDocumentContentRequest) *apiwrap.Response[any] {
 	objId, _ := bson.ObjectIDFromHex(dto.Id)
 	documentId, _ := bson.ObjectIDFromHex(dto.DocumentId)
 

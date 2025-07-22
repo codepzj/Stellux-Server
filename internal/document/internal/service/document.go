@@ -37,12 +37,6 @@ func (s *DocumentService) CreateDocument(ctx context.Context, doc domain.Documen
 	return s.repo.CreateDocument(ctx, doc)
 }
 
-type DocumentFindDto struct {
-	Id        bson.ObjectID
-	IsDeleted bool
-	IsPublic  bool
-}
-
 func (s *DocumentService) FindDocumentById(ctx context.Context, id bson.ObjectID) (domain.Document, error) {
 	return s.repo.FindDocumentById(ctx, id)
 }

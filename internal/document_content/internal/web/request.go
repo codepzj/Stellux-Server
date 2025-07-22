@@ -1,7 +1,7 @@
 package web
 
 // 创建文档内容请求
-type CreateDocumentContentDto struct {
+type CreateDocumentContentRequest struct {
 	DocumentId  string `json:"document_id" binding:"required,bsonId"`
 	Title       string `json:"title" binding:"required"`
 	Content     string `json:"content"`     // 内容不是必填的
@@ -13,7 +13,7 @@ type CreateDocumentContentDto struct {
 }
 
 // 更新文档内容请求
-type UpdateDocumentContentDto struct {
+type UpdateDocumentContentRequest struct {
 	Id          string `json:"id" binding:"required,bsonId"`
 	DocumentId  string `json:"document_id" binding:"required,bsonId"`
 	Title       string `json:"title" binding:"required"`
