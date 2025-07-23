@@ -4,6 +4,7 @@
 package app
 
 import (
+	"github.com/codepzj/stellux/server/internal/comment"
 	"github.com/codepzj/stellux/server/internal/document"
 	"github.com/codepzj/stellux/server/internal/document_content"
 	"github.com/codepzj/stellux/server/internal/friend"
@@ -46,6 +47,9 @@ func InitApp() *HttpServer {
 
 		friend.InitFriendModule,
 		wire.FieldsOf(new(*friend.Module), "Hdl"),
+
+		comment.InitCommentModule,
+		wire.FieldsOf(new(*comment.Module), "Hdl"),
 
 		NewHttpServer,
 	)

@@ -7,6 +7,7 @@
 package app
 
 import (
+	"github.com/codepzj/stellux/server/internal/comment"
 	"github.com/codepzj/stellux/server/internal/document"
 	"github.com/codepzj/stellux/server/internal/document_content"
 	"github.com/codepzj/stellux/server/internal/file"
@@ -38,8 +39,10 @@ func InitApp() *HttpServer {
 	friendHandler := friendModule.Hdl
 	document_contentModule := document_content.InitDocumentContentModule(database)
 	documentContentHandler := document_contentModule.Hdl
+	commentModule := comment.InitCommentModule(database)
+	commentHandler := commentModule.Hdl
 	v := ioc.InitMiddleWare()
-	engine := ioc.NewGin(userHandler, postHandler, labelHandler, fileHandler, documentHandler, settingHandler, friendHandler, documentContentHandler, v)
+	engine := ioc.NewGin(userHandler, postHandler, labelHandler, fileHandler, documentHandler, settingHandler, friendHandler, documentContentHandler, commentHandler, v)
 	httpServer := NewHttpServer(engine)
 	return httpServer
 }

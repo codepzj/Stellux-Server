@@ -10,7 +10,7 @@ type DocumentCreateRequest struct {
 }
 
 type DocumentUpdateRequest struct {
-	Id          string `json:"id" binding:"required,bsonId"`
+	Id          string `json:"id" binding:"required,bson_id"`
 	Title       string `json:"title" binding:"required"`
 	Description string `json:"description" binding:"required"`
 	Thumbnail   string `json:"thumbnail" binding:"required"`
