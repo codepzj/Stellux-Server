@@ -24,7 +24,7 @@ func (h *CommentHandler) RegisterGinRoutes(engine *gin.Engine) {
 	commentGroup := engine.Group("/comment")
 	{
 		commentGroup.POST("/create", apiwrap.WrapWithJson(h.Create))
-		commentGroup.GET("/list/:postId", apiwrap.Wrap(h.GetListByPostId))
+		commentGroup.GET("/list/:post_id", apiwrap.Wrap(h.GetListByPostId))
 	}
 	adminCommentGroup := engine.Group("/admin-api/comment")
 	{
@@ -62,7 +62,22 @@ func (h *CommentHandler) GetListByPostId(c *gin.Context) *apiwrap.Response[any] 
 	if err != nil {
 		return apiwrap.FailWithMsg(http.StatusInternalServerError, "获取评论列表失败")
 	}
-	return apiwrap.SuccessWithDetail[any](comments, "获取评论列表成功")
+	vo := make([]CommentVO, len(comments))
+	for i, comment := range comments {
+		vo[i] = CommentVO{
+			Id:        comment.Id.Hex(),
+			CreatedAt: comment.CreatedAt,
+			UpdatedAt: comment.UpdatedAt,
+			Nickname:  comment.Nickname,
+			Email:     comment.Email,
+			Url:       comment.Url,
+			Avatar:    comment.Avatar,
+			Content:   comment.Content,
+			PostId:    comment.PostId.Hex(),
+			CommentId: comment.CommentId.Hex(),
+		}
+	}
+	return apiwrap.SuccessWithDetail[any](vo, "获取评论列表成功")
 }
 
 // AdminEdit 管理员编辑评论

@@ -12,11 +12,11 @@ import (
 
 type Comment struct {
 	mongox.Model `bson:",inline"`
-	Nickname     string `bson:"nickname"`
-	Email        string `bson:"email"`
-	Avatar       string `bson:"avatar"`
-	Url          string `bson:"url"`
-	Content      string `bson:"content"`
+	Nickname     string        `bson:"nickname"`
+	Email        string        `bson:"email"`
+	Avatar       string        `bson:"avatar"`
+	Url          string        `bson:"url"`
+	Content      string        `bson:"content"`
 	PostId       bson.ObjectID `bson:"post_id"`
 	CommentId    bson.ObjectID `bson:"comment_id"`
 }
