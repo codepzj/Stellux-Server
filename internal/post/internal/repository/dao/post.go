@@ -165,7 +165,7 @@ func (d *PostDao) GetDetailByID(ctx context.Context, id bson.ObjectID) (*PostCat
 		return nil, err
 	}
 	if len(postResult) == 0 {
-		return nil, errors.New("文章不存在")	
+		return nil, errors.New("文章不存在")
 	}
 	return &postResult[0], err
 }
@@ -211,4 +211,3 @@ func (d *PostDao) RestoreBatch(ctx context.Context, ids []bson.ObjectID) error {
 func (d *PostDao) GetAllPublishPost(ctx context.Context) ([]*Post, error) {
 	return d.coll.Finder().Filter(query.Eq("is_publish", true)).Sort(bson.M{"updated_at": -1}).Find(ctx)
 }
-

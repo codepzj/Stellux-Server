@@ -16,19 +16,19 @@ type Setting struct {
 }
 
 type SiteConfig struct {
-	SiteTitle       string `bson:"site_title"`       // 网站标题
-	SiteSubtitle    string `bson:"site_subtitle"`   // 网站副标题
-	SiteUrl         string `bson:"site_url"`         // 网站地址
-	SiteFavicon     string `bson:"site_favicon"`     // 网站图标
-	SiteAuthor      string `bson:"site_author"`      // 网站作者
+	SiteTitle       string `bson:"site_title"`        // 网站标题
+	SiteSubtitle    string `bson:"site_subtitle"`     // 网站副标题
+	SiteUrl         string `bson:"site_url"`          // 网站地址
+	SiteFavicon     string `bson:"site_favicon"`      // 网站图标
+	SiteAuthor      string `bson:"site_author"`       // 网站作者
 	SiteAnimateText string `bson:"site_animate_text"` // 网站打字机文本
-	SiteAvatar      string `bson:"site_avatar"`      // 网站头像
-	SiteKeywords    string `bson:"site_keywords"`    // 网站关键词
-	SiteDescription string `bson:"site_description"` // 网站描述
-	SiteCopyright   string `bson:"site_copyright"`   // 网站版权
-	SiteIcp         string `bson:"site_icp"`         // 网站备案号
-	SiteIcpLink     string `bson:"site_icplink"`    // 网站备案号链接
-	GithubUsername  string `bson:"github_username"`  // Github用户名
+	SiteAvatar      string `bson:"site_avatar"`       // 网站头像
+	SiteKeywords    string `bson:"site_keywords"`     // 网站关键词
+	SiteDescription string `bson:"site_description"`  // 网站描述
+	SiteCopyright   string `bson:"site_copyright"`    // 网站版权
+	SiteIcp         string `bson:"site_icp"`          // 网站备案号
+	SiteIcpLink     string `bson:"site_icplink"`      // 网站备案号链接
+	GithubUsername  string `bson:"github_username"`   // Github用户名
 }
 
 type ISettingDao interface {

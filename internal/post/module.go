@@ -8,11 +8,11 @@ import (
 )
 
 type (
-	Handler     = web.PostHandler
-	Service     = service.IPostService
+	Handler        = web.PostHandler
+	Service        = service.IPostService
 	SettingService = setting.Service
-	LabelDomain = label.Domain
-	Module      struct {
+	LabelDomain    = label.Domain
+	Module         struct {
 		Svc Service
 		Hdl *Handler
 	}

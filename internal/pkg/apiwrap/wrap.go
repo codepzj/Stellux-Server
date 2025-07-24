@@ -65,14 +65,14 @@ func Wrap[T any](fn func(ctx *gin.Context) T) gin.HandlerFunc {
 
 // 绑定uri请求体[PATCH, PUT, DELETE]
 func WrapWithUri[R any, T any](fn func(ctx *gin.Context, req R) T) gin.HandlerFunc {
-    return func(ctx *gin.Context) {
-        var req R
-        if err := ctx.ShouldBindUri(&req); err != nil {
-            ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-            return
-        }
-        ctx.JSON(http.StatusOK, fn(ctx, req))
-    }
+	return func(ctx *gin.Context) {
+		var req R
+		if err := ctx.ShouldBindUri(&req); err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		ctx.JSON(http.StatusOK, fn(ctx, req))
+	}
 }
 
 // 绑定query请求体[GET]

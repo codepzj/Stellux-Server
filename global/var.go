@@ -10,15 +10,14 @@ import (
 
 // 命令行参数
 var (
-	Mode    = flag.String("mode", "development", "运行模式,eg: development/production")
-	Config  = flag.String("config", "config/stellux.development.yaml", "配置文件路径,eg: config/stellux.development.yaml")
+	Mode   = flag.String("mode", "development", "运行模式,eg: development/production")
+	Config = flag.String("config", "config/stellux.development.yaml", "配置文件路径,eg: config/stellux.development.yaml")
 )
 
 // 错误
 var (
 	ErrDocumentNotPublic = errors.New("文档不是公共文档")
 )
-
 
 // 常量
 var (

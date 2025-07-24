@@ -3,7 +3,7 @@
 package setting
 
 import (
-    "github.com/chenmingyong0423/go-mongox/v2"
+	"github.com/chenmingyong0423/go-mongox/v2"
 	"github.com/codepzj/stellux/server/internal/setting/internal/repository"
 	"github.com/codepzj/stellux/server/internal/setting/internal/repository/dao"
 	"github.com/codepzj/stellux/server/internal/setting/internal/service"
@@ -15,7 +15,7 @@ var SettingProviders = wire.NewSet(web.NewSettingHandler, service.NewSettingServ
 	wire.Bind(new(service.ISettingService), new(*service.SettingService)),
 	wire.Bind(new(repository.ISettingRepository), new(*repository.SettingRepository)),
 	wire.Bind(new(dao.ISettingDao), new(*dao.SettingDao)))
-	
+
 func InitSettingModule(mongoDB *mongox.Database) *Module {
 	panic(wire.Build(
 		SettingProviders,

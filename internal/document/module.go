@@ -8,7 +8,7 @@ import (
 type (
 	Handler = web.DocumentHandler
 	Service = service.IDocumentService
-	Module   struct {
+	Module  struct {
 		Svc Service
 		Hdl *Handler
 	}

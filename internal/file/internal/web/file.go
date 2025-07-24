@@ -24,7 +24,7 @@ func (h *FileHandler) RegisterGinRoutes(engine *gin.Engine) {
 	}
 	fileAdminGroup := engine.Group("/admin-api/file")
 	{
-		fileAdminGroup.POST("/upload",  apiwrap.Wrap(h.UploadFiles))
+		fileAdminGroup.POST("/upload", apiwrap.Wrap(h.UploadFiles))
 		fileAdminGroup.DELETE("/delete", apiwrap.WrapWithJson(h.DeleteFiles))
 	}
 }
@@ -35,7 +35,7 @@ func (h *FileHandler) UploadFiles(c *gin.Context) *apiwrap.Response[any] {
 		return apiwrap.FailWithMsg(apiwrap.RuquestBadRequest, err.Error())
 	}
 
-    files := form.File["files"] 
+	files := form.File["files"]
 	if len(files) == 0 {
 		return apiwrap.FailWithMsg(apiwrap.RuquestBadRequest, "未找到上传的文件")
 	}

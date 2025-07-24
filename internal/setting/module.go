@@ -8,7 +8,7 @@ import (
 type (
 	Handler = web.SettingHandler
 	Service = service.ISettingService
-	Module   struct {
+	Module  struct {
 		Svc Service
 		Hdl *Handler
 	}

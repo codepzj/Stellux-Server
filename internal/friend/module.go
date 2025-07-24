@@ -8,7 +8,7 @@ import (
 type (
 	Handler = web.FriendHandler
 	Service = service.IFriendService
-	Module   struct {
+	Module  struct {
 		Svc Service
 		Hdl *Handler
 	}

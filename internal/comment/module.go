@@ -8,7 +8,7 @@ import (
 type (
 	Handler = web.CommentHandler
 	Service = service.ICommentService
-	Module   struct {
+	Module  struct {
 		Svc Service
 		Hdl *Handler
 	}
