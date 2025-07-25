@@ -9,6 +9,7 @@ import (
 	"github.com/chenmingyong0423/go-mongox/v2/builder/update"
 	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type Document struct {
@@ -18,8 +19,8 @@ type Document struct {
 	Thumbnail    string `bson:"thumbnail"`
 	Alias        string `bson:"alias"`
 	Sort         int    `bson:"sort"`
-	IsPublic     bool   `bson:"isPublic"`
-	IsDeleted    bool   `bson:"isDeleted"`
+	IsPublic     bool   `bson:"is_public"`
+	IsDeleted    bool   `bson:"is_deleted"`
 }
 
 type IDocumentDao interface {
@@ -74,7 +75,7 @@ func (d *DocumentDao) UpdateDocumentById(ctx context.Context, id bson.ObjectID, 
 		{Key: "thumbnail", Value: doc.Thumbnail},
 		{Key: "alias", Value: doc.Alias},
 		{Key: "sort", Value: doc.Sort},
-		{Key: "isPublic", Value: doc.IsPublic},
+		{Key: "is_public", Value: doc.IsPublic},
 	})).UpdateOne(ctx)
 	if err != nil {
 		return err
@@ -99,7 +100,7 @@ func (d *DocumentDao) DeleteDocumentById(ctx context.Context, id bson.ObjectID) 
 func (d *DocumentDao) SoftDeleteDocumentById(ctx context.Context, id bson.ObjectID) error {
 	result, err := d.coll.Updater().Filter(query.Id(id)).Updates(update.SetFields(bson.D{
 		{Key: "deleted_at", Value: time.Now()},
-		{Key: "isDeleted", Value: true},
+		{Key: "is_deleted", Value: true},
 	})).UpdateOne(ctx)
 	if err != nil {
 		return err
@@ -113,7 +114,7 @@ func (d *DocumentDao) SoftDeleteDocumentById(ctx context.Context, id bson.Object
 func (d *DocumentDao) RestoreDocumentById(ctx context.Context, id bson.ObjectID) error {
 	result, err := d.coll.Updater().Filter(query.Id(id)).Updates(update.SetFields(bson.D{
 		{Key: "deleted_at", Value: nil},
-		{Key: "isDeleted", Value: false},
+		{Key: "is_deleted", Value: false},
 	})).UpdateOne(ctx)
 	if err != nil {
 		return err
@@ -126,11 +127,11 @@ func (d *DocumentDao) RestoreDocumentById(ctx context.Context, id bson.ObjectID)
 
 func (d *DocumentDao) FindDocumentByAlias(ctx context.Context, alias string, filter bson.D) (Document, error) {
 	document, err := d.coll.Finder().Filter(query.Eq("alias", alias)).Filter(filter).FindOne(ctx)
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		return Document{}, errors.New("文档不存在")
+	}
 	if err != nil {
 		return Document{}, err
-	}
-	if document == nil {
-		return Document{}, errors.New("文档不存在")
 	}
 	return *document, nil
 }
@@ -139,15 +140,15 @@ func (d *DocumentDao) GetDocumentList(ctx context.Context, page *Page) ([]Docume
 	skip := (page.PageNo - 1) * page.PageSize
 
 	// 获取总数
-	count, err := d.coll.Finder().Filter(query.Eq("isDeleted", false)).Count(ctx)
+	count, err := d.coll.Finder().Filter(query.Eq("is_deleted", false)).Count(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	// 获取列表
 	documents, err := d.coll.Finder().
-		Filter(query.Eq("isDeleted", false)).
-		Sort(bson.D{{Key: "sort", Value: 1}, {Key: "createdAt", Value: -1}}).
+		Filter(query.Eq("is_deleted", false)).
+		Sort(bson.D{{Key: "sort", Value: 1}, {Key: "created_at", Value: -1}}).
 		Skip(skip).
 		Limit(page.PageSize).
 		Find(ctx)
@@ -167,15 +168,15 @@ func (d *DocumentDao) GetPublicDocumentList(ctx context.Context, page *Page) ([]
 	skip := (page.PageNo - 1) * page.PageSize
 
 	// 获取总数
-	count, err := d.coll.Finder().Filter(query.And(query.Eq("isPublic", true), query.Eq("isDeleted", false))).Count(ctx)
+	count, err := d.coll.Finder().Filter(query.And(query.Eq("is_public", true), query.Eq("is_deleted", false))).Count(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	// 获取列表
 	documents, err := d.coll.Finder().
-		Filter(query.And(query.Eq("isPublic", true), query.Eq("isDeleted", false))).
-		Sort(bson.D{{Key: "sort", Value: 1}, {Key: "createdAt", Value: -1}}).
+		Filter(query.And(query.Eq("is_public", true), query.Eq("is_deleted", false))).
+		Sort(bson.D{{Key: "sort", Value: 1}, {Key: "created_at", Value: -1}}).
 		Skip(skip).
 		Limit(page.PageSize).
 		Find(ctx)
@@ -194,8 +195,8 @@ func (d *DocumentDao) GetPublicDocumentList(ctx context.Context, page *Page) ([]
 // GetAllPublicDocuments 获取所有公开文档
 func (d *DocumentDao) GetAllPublicDocuments(ctx context.Context) ([]Document, error) {
 	documents, err := d.coll.Finder().
-		Filter(query.And(query.Eq("isPublic", true), query.Eq("isDeleted", false))).
-		Sort(bson.D{{Key: "sort", Value: 1}, {Key: "createdAt", Value: -1}}).
+		Filter(query.And(query.Eq("is_public", true), query.Eq("is_deleted", false))).
+		Sort(bson.D{{Key: "sort", Value: 1}, {Key: "created_at", Value: -1}}).
 		Find(ctx)
 	if err != nil {
 		return nil, err

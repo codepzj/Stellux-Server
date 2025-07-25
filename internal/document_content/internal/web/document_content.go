@@ -32,7 +32,7 @@ func (h *DocumentContentHandler) RegisterGinRoutes(engine *gin.Engine) {
 		adminDocumentContentGroup.PUT("/soft-delete/:id", apiwrap.Wrap(h.SoftDeleteDocumentContentById))   // 管理员软删除特定Id的文档内容
 		adminDocumentContentGroup.PUT("/restore/:id", apiwrap.Wrap(h.RestoreDocumentContentById))          // 管理员恢复特定Id的文档内容
 		adminDocumentContentGroup.GET("/all/parent-id", apiwrap.Wrap(h.FindDocumentContentByParentId))     // 管理员查询特定父级Id的所有子文档内容
-		adminDocumentContentGroup.GET("/all/document-id", apiwrap.Wrap(h.FindDocumentContentByDocumentId)) // 管理员查询特定文档Id的所有子文档内容
+		adminDocumentContentGroup.GET("/all", apiwrap.Wrap(h.FindDocumentContentByDocumentId)) // 管理员查询特定文档Id的所有子文档内容
 		adminDocumentContentGroup.PUT("/update", apiwrap.WrapWithJson(h.UpdateDocumentContentById))        // 管理员更新特定Id的文档内容
 		adminDocumentContentGroup.GET("/list", apiwrap.WrapWithQuery(h.GetDocumentContentList))            // 管理员获取文档内容列表
 		adminDocumentContentGroup.GET("/search", apiwrap.Wrap(h.SearchDocumentContent))                    // 管理员搜索文档内容
@@ -40,14 +40,12 @@ func (h *DocumentContentHandler) RegisterGinRoutes(engine *gin.Engine) {
 	}
 
 	// 公开API
-	publicDocumentContentGroup := engine.Group("/document-content")
+	documentContentGroup := engine.Group("/document-content")
 	{
-		publicDocumentContentGroup.GET("/:id", apiwrap.Wrap(h.FindPublicDocumentContentById))                           // 公开查询特定Id的文档内容
-		publicDocumentContentGroup.GET("/all/parent-id", apiwrap.Wrap(h.FindPublicDocumentContentByParentId))           // 公开查询特定父级Id的所有子文档内容
-		publicDocumentContentGroup.GET("/all/document-id", apiwrap.Wrap(h.FindPublicDocumentContentByDocumentId))       // 公开查询特定文档Id的所有子文档内容
-		publicDocumentContentGroup.GET("/list", apiwrap.WrapWithQuery(h.GetPublicDocumentContentList))                  // 公开获取文档内容列表
-		publicDocumentContentGroup.GET("/search", apiwrap.Wrap(h.SearchPublicDocumentContent))                          // 公开搜索文档内容
-		publicDocumentContentGroup.GET("/by-root-and-alias", apiwrap.Wrap(h.FindPublicDocumentContentByRootIdAndAlias)) // 公开根据根文档ID和别名查询文档内容
+		documentContentGroup.GET("/:id", apiwrap.Wrap(h.FindPublicDocumentContentById))                     // 公开查询特定Id的文档内容
+		documentContentGroup.GET("/all", apiwrap.Wrap(h.FindPublicDocumentContentByDocumentId)) // 公开查询特定文档Id的所有子文档内容
+		// documentContentGroup.GET("/search", apiwrap.Wrap(h.SearchPublicDocumentContent))                          // 公开搜索文档内容
+		documentContentGroup.GET("/by-root-and-alias", apiwrap.Wrap(h.FindPublicDocumentContentByRootIdAndAlias)) // 公开根据根文档ID和别名查询文档内容
 	}
 }
 
@@ -299,39 +297,19 @@ func (h *DocumentContentHandler) FindPublicDocumentContentByDocumentId(c *gin.Co
 	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVOList(docs), fmt.Sprintf("查询文档内容成功, 文档Id:%s", documentId))
 }
 
-// GetPublicDocumentContentList 公开获取文档内容列表
-func (h *DocumentContentHandler) GetPublicDocumentContentList(c *gin.Context, page apiwrap.Page) *apiwrap.Response[any] {
-	docs, count, err := h.serv.GetPublicDocumentContentList(c, &domain.Page{
-		PageNo:   page.PageNo,
-		PageSize: page.PageSize,
-	})
-	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
-	}
+// // SearchPublicDocumentContent 公开搜索文档内容
+// func (h *DocumentContentHandler) SearchPublicDocumentContent(c *gin.Context) *apiwrap.Response[any] {
+// 	keyword := c.Query("keyword")
+// 	if keyword == "" {
+// 		return apiwrap.FailWithMsg(http.StatusBadRequest, "keyword不能为空")
+// 	}
 
-	docsVO := h.DocumentContentDomainToVOList(docs)
-	// 转换为指针切片
-	docsVOPtr := make([]*DocumentContentVO, len(docsVO))
-	for i := range docsVO {
-		docsVOPtr[i] = &docsVO[i]
-	}
-
-	return apiwrap.SuccessWithDetail[any](apiwrap.ToPageVO(page.PageNo, page.PageSize, count, docsVOPtr), "获取文档内容列表成功")
-}
-
-// SearchPublicDocumentContent 公开搜索文档内容
-func (h *DocumentContentHandler) SearchPublicDocumentContent(c *gin.Context) *apiwrap.Response[any] {
-	keyword := c.Query("keyword")
-	if keyword == "" {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "keyword不能为空")
-	}
-
-	docs, err := h.serv.SearchPublicDocumentContent(c, keyword)
-	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
-	}
-	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVOList(docs), "搜索文档内容成功")
-}
+// 	docs, err := h.serv.SearchPublicDocumentContent(c, keyword)
+// 	if err != nil {
+// 		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
+// 	}
+// 	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVOList(docs), "搜索文档内容成功")
+// }
 
 // FindPublicDocumentContentByRootIdAndAlias 公开根据根文档ID和别名查询文档内容
 func (h *DocumentContentHandler) FindPublicDocumentContentByRootIdAndAlias(c *gin.Context) *apiwrap.Response[any] {

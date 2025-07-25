@@ -45,7 +45,7 @@ type IDocumentContentDao interface {
 	FindDocumentContentByDocumentId(ctx context.Context, documentId bson.ObjectID) ([]DocumentContent, error)
 	UpdateDocumentContentById(ctx context.Context, id bson.ObjectID, doc DocumentContent) error
 	GetDocumentContentList(ctx context.Context, page *Page) ([]DocumentContent, int64, error)
-	GetPublicDocumentContentList(ctx context.Context, page *Page) ([]DocumentContent, int64, error)
+	GetPublicDocumentContentListByDocumentId(ctx context.Context, documentId bson.ObjectID) ([]*DocumentContent, error)
 	SearchDocumentContent(ctx context.Context, keyword string) ([]DocumentContent, error)
 	SearchPublicDocumentContent(ctx context.Context, keyword string) ([]DocumentContent, error)
 	FindPublicDocumentContentById(ctx context.Context, id bson.ObjectID) (DocumentContent, error)
@@ -53,6 +53,7 @@ type IDocumentContentDao interface {
 	FindPublicDocumentContentByDocumentId(ctx context.Context, documentId bson.ObjectID) ([]DocumentContent, error)
 	FindPublicDocumentContentByRootIdAndAlias(ctx context.Context, documentId bson.ObjectID, alias string) (DocumentContent, error)
 	DeleteDocumentContentList(ctx context.Context, ids []string) error
+	JudgeDocumentContentAliasUnique(ctx context.Context, alias string, documentId bson.ObjectID) (bool, error)
 }
 
 type DocumentContentDao struct {
@@ -65,6 +66,7 @@ func NewDocumentContentDao(db *mongox.Database) *DocumentContentDao {
 
 // CreateDocumentContent 创建文档内容
 func (d *DocumentContentDao) CreateDocumentContent(ctx context.Context, doc DocumentContent) (bson.ObjectID, error) {
+	
 	result, err := d.coll.Creator().InsertOne(ctx, &doc)
 	if err != nil {
 		return bson.ObjectID{}, err
@@ -206,32 +208,16 @@ func (d *DocumentContentDao) GetDocumentContentList(ctx context.Context, page *P
 }
 
 // GetPublicDocumentContentList 获取公开文档内容列表
-func (d *DocumentContentDao) GetPublicDocumentContentList(ctx context.Context, page *Page) ([]DocumentContent, int64, error) {
-	skip := (page.PageNo - 1) * page.PageSize
-
-	// 获取总数
-	count, err := d.coll.Finder().Filter(query.And(query.Eq("is_deleted", false))).Count(ctx)
-	if err != nil {
-		return nil, 0, err
-	}
-
+func (d *DocumentContentDao) GetPublicDocumentContentListByDocumentId(ctx context.Context, documentId bson.ObjectID) ([]*DocumentContent, error) {
 	// 获取列表
 	documents, err := d.coll.Finder().
-		Filter(query.Eq("is_deleted", false)).
-		Sort(bson.D{{Key: "sort", Value: 1}, {Key: "created_at", Value: -1}}).
-		Skip(skip).
-		Limit(page.PageSize).
+		Filter(query.And(query.Eq("document_id", documentId), query.Eq("is_deleted", false))).
 		Find(ctx)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
-	results := make([]DocumentContent, len(documents))
-	for i, doc := range documents {
-		results[i] = *doc
-	}
-
-	return results, count, nil
+	return documents, nil
 }
 
 // SearchDocumentContent 搜索文档内容
@@ -358,4 +344,18 @@ func (d *DocumentContentDao) FindPublicDocumentContentByRootIdAndAlias(ctx conte
 		return DocumentContent{}, err
 	}
 	return *doc, nil
+}
+
+// JudgeDocumentContentAliasUnique 判断文档内容别名是否唯一
+func (d *DocumentContentDao) JudgeDocumentContentAliasUnique(ctx context.Context, alias string, documentId bson.ObjectID) (bool, error) {
+	count, err := d.coll.Finder().
+		Filter(query.And(
+			query.Eq("alias", alias),
+			query.Eq("document_id", documentId),
+		)).
+		Count(ctx)
+	if err != nil {
+		return false, err
+	}
+	return count == 0, nil
 }

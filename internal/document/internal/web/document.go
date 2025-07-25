@@ -37,14 +37,14 @@ func (h *DocumentHandler) RegisterGinRoutes(engine *gin.Engine) {
 	}
 
 	// 公开API
-	publicDocumentGroup := engine.Group("/document")
+	documentGroup := engine.Group("/document")
 	{
-		publicDocumentGroup.GET("/public", apiwrap.Wrap(h.GetAllPublicDocument))       // 获取所有公开文档
-		publicDocumentGroup.GET("/find", apiwrap.Wrap(h.FindDocument))                 // 公开查询特定Id的文档
-		publicDocumentGroup.GET("/find-by-alias", apiwrap.Wrap(h.FindDocumentByAlias)) // 公开根据别名查询文档
-		publicDocumentGroup.GET("/list", apiwrap.WrapWithQuery(h.GetDocumentList))     // 公开获取文档列表
-		publicDocumentGroup.GET("/root/:id", apiwrap.Wrap(h.GetRootDocument))          // 获取根文档
-		publicDocumentGroup.GET("/sitemap", apiwrap.Wrap(h.GetDocumentSitemap))        // 获取文档站点地图
+		documentGroup.GET("/all", apiwrap.Wrap(h.GetAllPublicDocument))         // 获取所有公开文档
+		documentGroup.GET("/find", apiwrap.Wrap(h.FindDocument))                // 公开查询特定Id的文档
+		documentGroup.GET("/alias/:alias", apiwrap.Wrap(h.FindDocumentByAlias)) // 公开根据别名查询文档
+		documentGroup.GET("/list", apiwrap.WrapWithQuery(h.GetDocumentList))    // 公开获取文档列表
+		documentGroup.GET("/:id", apiwrap.Wrap(h.GetDocument))                  // 获取根文档
+		documentGroup.GET("/sitemap", apiwrap.Wrap(h.GetDocumentSitemap))       // 获取文档站点地图
 	}
 }
 
@@ -239,7 +239,7 @@ func (h *DocumentHandler) FindDocument(c *gin.Context) *apiwrap.Response[any] {
 
 // FindDocumentByAlias 公开根据别名查询文档
 func (h *DocumentHandler) FindDocumentByAlias(c *gin.Context) *apiwrap.Response[any] {
-	alias := c.Query("alias")
+	alias := c.Param("alias")
 	if alias == "" {
 		return apiwrap.FailWithMsg(http.StatusBadRequest, "alias不能为空")
 	}
@@ -250,6 +250,8 @@ func (h *DocumentHandler) FindDocumentByAlias(c *gin.Context) *apiwrap.Response[
 	}
 	docVO := DocumentVO{
 		Id:          doc.Id.Hex(),
+		CreatedAt:   doc.CreatedAt,
+		UpdatedAt:   doc.UpdatedAt,
 		Title:       doc.Title,
 		Description: doc.Description,
 		Thumbnail:   doc.Thumbnail,
@@ -257,8 +259,6 @@ func (h *DocumentHandler) FindDocumentByAlias(c *gin.Context) *apiwrap.Response[
 		Sort:        doc.Sort,
 		IsPublic:    doc.IsPublic,
 		IsDeleted:   doc.IsDeleted,
-		CreatedAt:   doc.CreatedAt,
-		UpdatedAt:   doc.UpdatedAt,
 	}
 	return apiwrap.SuccessWithDetail[any](docVO, "查询文档成功")
 }
@@ -310,8 +310,8 @@ func (h *DocumentHandler) GetAllPublicDocument(c *gin.Context) *apiwrap.Response
 	return apiwrap.SuccessWithDetail[any](docsVO, "获取所有公开文档成功")
 }
 
-// GetRootDocument 获取根文档
-func (h *DocumentHandler) GetRootDocument(c *gin.Context) *apiwrap.Response[any] {
+// GetDocument 获取文档
+func (h *DocumentHandler) GetDocument(c *gin.Context) *apiwrap.Response[any] {
 	id := c.Param("id")
 	if id == "" {
 		return apiwrap.FailWithMsg(http.StatusBadRequest, "id不能为空")
@@ -332,7 +332,7 @@ func (h *DocumentHandler) GetRootDocument(c *gin.Context) *apiwrap.Response[any]
 		return apiwrap.FailWithMsg(http.StatusForbidden, "文档未公开")
 	}
 
-	rootDocVO := DocumentVO{
+	docVO := DocumentVO{
 		Id:          doc.Id.Hex(),
 		Title:       doc.Title,
 		Description: doc.Description,
@@ -343,7 +343,7 @@ func (h *DocumentHandler) GetRootDocument(c *gin.Context) *apiwrap.Response[any]
 		UpdatedAt:   doc.UpdatedAt,
 	}
 
-	return apiwrap.SuccessWithDetail[any](rootDocVO, "获取根文档成功")
+	return apiwrap.SuccessWithDetail[any](docVO, "获取文档成功")
 }
 
 // GetDocumentSitemap 获取文档站点地图

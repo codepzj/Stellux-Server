@@ -18,7 +18,7 @@ type IDocumentContentRepository interface {
 	FindDocumentContentByDocumentId(ctx context.Context, documentId bson.ObjectID) ([]domain.DocumentContent, error)
 	UpdateDocumentContentById(ctx context.Context, id bson.ObjectID, doc domain.DocumentContent) error
 	GetDocumentContentList(ctx context.Context, page *domain.Page) ([]domain.DocumentContent, int64, error)
-	GetPublicDocumentContentList(ctx context.Context, page *domain.Page) ([]domain.DocumentContent, int64, error)
+	GetPublicDocumentContentListByDocumentId(ctx context.Context, documentId bson.ObjectID) ([]domain.DocumentContent, error)
 	SearchDocumentContent(ctx context.Context, keyword string) ([]domain.DocumentContent, error)
 	SearchPublicDocumentContent(ctx context.Context, keyword string) ([]domain.DocumentContent, error)
 	FindPublicDocumentContentById(ctx context.Context, id bson.ObjectID) (domain.DocumentContent, error)
@@ -26,6 +26,7 @@ type IDocumentContentRepository interface {
 	FindPublicDocumentContentByDocumentId(ctx context.Context, documentId bson.ObjectID) ([]domain.DocumentContent, error)
 	FindPublicDocumentContentByRootIdAndAlias(ctx context.Context, documentId bson.ObjectID, alias string) (domain.DocumentContent, error)
 	DeleteDocumentContentList(ctx context.Context, ids []string) error
+	JudgeDocumentContentAliasUnique(ctx context.Context, alias string, documentId bson.ObjectID) (bool, error)
 }
 
 var _ IDocumentContentRepository = (*DocumentContentRepository)(nil)
@@ -191,13 +192,10 @@ func (r *DocumentContentRepository) GetDocumentContentList(ctx context.Context, 
 }
 
 // GetPublicDocumentContentList 获取公开文档内容列表
-func (r *DocumentContentRepository) GetPublicDocumentContentList(ctx context.Context, page *domain.Page) ([]domain.DocumentContent, int64, error) {
-	docs, count, err := r.dao.GetPublicDocumentContentList(ctx, &dao.Page{
-		PageNo:   page.PageNo,
-		PageSize: page.PageSize,
-	})
+func (r *DocumentContentRepository) GetPublicDocumentContentListByDocumentId(ctx context.Context, documentId bson.ObjectID) ([]domain.DocumentContent, error) {
+	docs, err := r.dao.GetPublicDocumentContentListByDocumentId(ctx, documentId)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	results := make([]domain.DocumentContent, len(docs))
@@ -218,7 +216,7 @@ func (r *DocumentContentRepository) GetPublicDocumentContentList(ctx context.Con
 			IsDeleted:   doc.IsDeleted,
 		}
 	}
-	return results, count, nil
+	return results, nil
 }
 
 // SearchDocumentContent 搜索文档内容
@@ -381,4 +379,9 @@ func (r *DocumentContentRepository) FindPublicDocumentContentByRootIdAndAlias(ct
 		Sort:        doc.Sort,
 		IsDeleted:   doc.IsDeleted,
 	}, nil
+}
+
+// JudgeDocumentContentAliasUnique 判断文档内容别名是否唯一
+func (r *DocumentContentRepository) JudgeDocumentContentAliasUnique(ctx context.Context, alias string, documentId bson.ObjectID) (bool, error) {
+	return r.dao.JudgeDocumentContentAliasUnique(ctx, alias, documentId)
 }
