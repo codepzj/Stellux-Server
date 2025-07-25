@@ -53,7 +53,7 @@ type IDocumentContentDao interface {
 	FindPublicDocumentContentByDocumentId(ctx context.Context, documentId bson.ObjectID) ([]DocumentContent, error)
 	FindPublicDocumentContentByRootIdAndAlias(ctx context.Context, documentId bson.ObjectID, alias string) (DocumentContent, error)
 	DeleteDocumentContentList(ctx context.Context, ids []string) error
-	JudgeDocumentContentAliasUnique(ctx context.Context, alias string, documentId bson.ObjectID) (bool, error)
+	GetDocumentContentListByAlias(ctx context.Context, alias string, documentId bson.ObjectID) ([]*DocumentContent, error)
 }
 
 type DocumentContentDao struct {
@@ -66,7 +66,7 @@ func NewDocumentContentDao(db *mongox.Database) *DocumentContentDao {
 
 // CreateDocumentContent 创建文档内容
 func (d *DocumentContentDao) CreateDocumentContent(ctx context.Context, doc DocumentContent) (bson.ObjectID, error) {
-	
+
 	result, err := d.coll.Creator().InsertOne(ctx, &doc)
 	if err != nil {
 		return bson.ObjectID{}, err
@@ -346,16 +346,18 @@ func (d *DocumentContentDao) FindPublicDocumentContentByRootIdAndAlias(ctx conte
 	return *doc, nil
 }
 
-// JudgeDocumentContentAliasUnique 判断文档内容别名是否唯一
-func (d *DocumentContentDao) JudgeDocumentContentAliasUnique(ctx context.Context, alias string, documentId bson.ObjectID) (bool, error) {
-	count, err := d.coll.Finder().
+// GetDocumentContentAliasCount 获取文档内容别名数量
+func (d *DocumentContentDao) GetDocumentContentListByAlias(ctx context.Context, alias string, documentId bson.ObjectID) ([]*DocumentContent, error) {
+	finder := d.coll.Finder().
 		Filter(query.And(
 			query.Eq("alias", alias),
 			query.Eq("document_id", documentId),
-		)).
-		Count(ctx)
+		))
+
+	docContentList, err := finder.Find(ctx)
+
 	if err != nil {
-		return false, err
+		return nil, err
 	}
-	return count == 0, nil
+	return docContentList, nil
 }

@@ -42,11 +42,11 @@ type DocumentContentService struct {
 }
 
 func (s *DocumentContentService) CreateDocumentContent(ctx context.Context, doc domain.DocumentContent) (bson.ObjectID, error) {
-	unique, err := s.repo.JudgeDocumentContentAliasUnique(ctx, doc.Alias, doc.DocumentId)
+	docContentList, err := s.repo.GetDocumentContentListByAlias(ctx, doc.Alias, doc.DocumentId)
 	if err != nil {
 		return bson.ObjectID{}, err
 	}
-	if !unique {
+	if len(docContentList) > 0 {
 		return bson.ObjectID{}, errors.New("别名已存在")
 	}
 	return s.repo.CreateDocumentContent(ctx, doc)
@@ -77,14 +77,15 @@ func (s *DocumentContentService) FindDocumentContentByDocumentId(ctx context.Con
 }
 
 func (s *DocumentContentService) UpdateDocumentContentById(ctx context.Context, id bson.ObjectID, doc domain.DocumentContent) error {
-	unique, err := s.repo.JudgeDocumentContentAliasUnique(ctx, doc.Alias, doc.DocumentId)
+	docContentList, err := s.repo.GetDocumentContentListByAlias(ctx, doc.Alias, doc.DocumentId)
 	if err != nil {
 		return err
 	}
-	if !unique {
-		return errors.New("别名已存在")
+	// 如果别名不存在,或者别名存在且是当前文档的别名,则更新
+	if len(docContentList) == 0 || (len(docContentList) == 1 && docContentList[0].Id.Hex() == id.Hex()) {
+		return s.repo.UpdateDocumentContentById(ctx, id, doc)
 	}
-	return s.repo.UpdateDocumentContentById(ctx, id, doc)
+	return errors.New("别名已存在")
 }
 
 func (s *DocumentContentService) GetDocumentContentList(ctx context.Context, page *domain.Page) ([]domain.DocumentContent, int64, error) {

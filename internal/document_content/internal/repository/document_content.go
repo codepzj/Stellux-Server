@@ -26,7 +26,7 @@ type IDocumentContentRepository interface {
 	FindPublicDocumentContentByDocumentId(ctx context.Context, documentId bson.ObjectID) ([]domain.DocumentContent, error)
 	FindPublicDocumentContentByRootIdAndAlias(ctx context.Context, documentId bson.ObjectID, alias string) (domain.DocumentContent, error)
 	DeleteDocumentContentList(ctx context.Context, ids []string) error
-	JudgeDocumentContentAliasUnique(ctx context.Context, alias string, documentId bson.ObjectID) (bool, error)
+	GetDocumentContentListByAlias(ctx context.Context, alias string, documentId bson.ObjectID) ([]*domain.DocumentContent, error)
 }
 
 var _ IDocumentContentRepository = (*DocumentContentRepository)(nil)
@@ -381,7 +381,17 @@ func (r *DocumentContentRepository) FindPublicDocumentContentByRootIdAndAlias(ct
 	}, nil
 }
 
-// JudgeDocumentContentAliasUnique 判断文档内容别名是否唯一
-func (r *DocumentContentRepository) JudgeDocumentContentAliasUnique(ctx context.Context, alias string, documentId bson.ObjectID) (bool, error) {
-	return r.dao.JudgeDocumentContentAliasUnique(ctx, alias, documentId)
+// GetDocumentContentAliasCount 获取文档内容别名数量
+func (r *DocumentContentRepository) GetDocumentContentListByAlias(ctx context.Context, alias string, documentId bson.ObjectID) ([]*domain.DocumentContent, error) {
+	docContentList, err := r.dao.GetDocumentContentListByAlias(ctx, alias, documentId)
+	if err != nil {
+		return nil, err
+	}
+	results := make([]*domain.DocumentContent, len(docContentList))
+	for i, doc := range docContentList {
+		results[i] = &domain.DocumentContent{
+			Id:          doc.ID,
+		}
+	}
+	return results, nil
 }

@@ -26,23 +26,23 @@ func (h *DocumentContentHandler) RegisterGinRoutes(engine *gin.Engine) {
 	adminDocumentContentGroup := engine.Group("/admin-api/document-content")
 	{
 		adminDocumentContentGroup.Use(middleware.JWT())
-		adminDocumentContentGroup.POST("/create", apiwrap.WrapWithJson(h.CreateDocumentContent))           // 管理员创建文档内容
-		adminDocumentContentGroup.GET("/:id", apiwrap.Wrap(h.FindDocumentContentById))                     // 管理员查询特定Id的文档内容
-		adminDocumentContentGroup.DELETE("/:id", apiwrap.Wrap(h.DeleteDocumentContentById))                // 管理员删除特定Id的文档内容
-		adminDocumentContentGroup.PUT("/soft-delete/:id", apiwrap.Wrap(h.SoftDeleteDocumentContentById))   // 管理员软删除特定Id的文档内容
-		adminDocumentContentGroup.PUT("/restore/:id", apiwrap.Wrap(h.RestoreDocumentContentById))          // 管理员恢复特定Id的文档内容
-		adminDocumentContentGroup.GET("/all/parent-id", apiwrap.Wrap(h.FindDocumentContentByParentId))     // 管理员查询特定父级Id的所有子文档内容
-		adminDocumentContentGroup.GET("/all", apiwrap.Wrap(h.FindDocumentContentByDocumentId)) // 管理员查询特定文档Id的所有子文档内容
-		adminDocumentContentGroup.PUT("/update", apiwrap.WrapWithJson(h.UpdateDocumentContentById))        // 管理员更新特定Id的文档内容
-		adminDocumentContentGroup.GET("/list", apiwrap.WrapWithQuery(h.GetDocumentContentList))            // 管理员获取文档内容列表
-		adminDocumentContentGroup.GET("/search", apiwrap.Wrap(h.SearchDocumentContent))                    // 管理员搜索文档内容
-		adminDocumentContentGroup.POST("/delete-list", apiwrap.Wrap(h.DeleteDocumentContentList))          // 管理员批量删除文档内容
+		adminDocumentContentGroup.POST("/create", apiwrap.WrapWithJson(h.CreateDocumentContent))         // 管理员创建文档内容
+		adminDocumentContentGroup.GET("/:id", apiwrap.Wrap(h.FindDocumentContentById))                   // 管理员查询特定Id的文档内容
+		adminDocumentContentGroup.DELETE("/:id", apiwrap.Wrap(h.DeleteDocumentContentById))              // 管理员删除特定Id的文档内容
+		adminDocumentContentGroup.PUT("/soft-delete/:id", apiwrap.Wrap(h.SoftDeleteDocumentContentById)) // 管理员软删除特定Id的文档内容
+		adminDocumentContentGroup.PUT("/restore/:id", apiwrap.Wrap(h.RestoreDocumentContentById))        // 管理员恢复特定Id的文档内容
+		adminDocumentContentGroup.GET("/all/parent-id", apiwrap.Wrap(h.FindDocumentContentByParentId))   // 管理员查询特定父级Id的所有子文档内容
+		adminDocumentContentGroup.GET("/all", apiwrap.Wrap(h.FindDocumentContentByDocumentId))           // 管理员查询特定文档Id的所有子文档内容
+		adminDocumentContentGroup.PUT("/update", apiwrap.WrapWithJson(h.UpdateDocumentContentById))      // 管理员更新特定Id的文档内容
+		adminDocumentContentGroup.GET("/list", apiwrap.WrapWithQuery(h.GetDocumentContentList))          // 管理员获取文档内容列表
+		adminDocumentContentGroup.GET("/search", apiwrap.Wrap(h.SearchDocumentContent))                  // 管理员搜索文档内容
+		adminDocumentContentGroup.POST("/delete-list", apiwrap.Wrap(h.DeleteDocumentContentList))        // 管理员批量删除文档内容
 	}
 
 	// 公开API
 	documentContentGroup := engine.Group("/document-content")
 	{
-		documentContentGroup.GET("/:id", apiwrap.Wrap(h.FindPublicDocumentContentById))                     // 公开查询特定Id的文档内容
+		documentContentGroup.GET("/:id", apiwrap.Wrap(h.FindPublicDocumentContentById))         // 公开查询特定Id的文档内容
 		documentContentGroup.GET("/all", apiwrap.Wrap(h.FindPublicDocumentContentByDocumentId)) // 公开查询特定文档Id的所有子文档内容
 		// documentContentGroup.GET("/search", apiwrap.Wrap(h.SearchPublicDocumentContent))                          // 公开搜索文档内容
 		documentContentGroup.GET("/by-root-and-alias", apiwrap.Wrap(h.FindPublicDocumentContentByRootIdAndAlias)) // 公开根据根文档ID和别名查询文档内容
