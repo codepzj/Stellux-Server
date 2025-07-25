@@ -24,9 +24,7 @@ type IDocumentContentService interface {
 	FindPublicDocumentContentById(ctx context.Context, id bson.ObjectID) (domain.DocumentContent, error)
 	FindPublicDocumentContentByParentId(ctx context.Context, parentId bson.ObjectID) ([]domain.DocumentContent, error)
 	FindPublicDocumentContentByDocumentId(ctx context.Context, documentId bson.ObjectID) ([]domain.DocumentContent, error)
-	UpdateLikeCount(ctx context.Context, id bson.ObjectID) error
-	UpdateDislikeCount(ctx context.Context, id bson.ObjectID) error
-	UpdateCommentCount(ctx context.Context, id bson.ObjectID) error
+	FindPublicDocumentContentByRootIdAndAlias(ctx context.Context, documentId bson.ObjectID, alias string) (domain.DocumentContent, error)
 	DeleteDocumentContentList(ctx context.Context, ids []string) error
 }
 
@@ -102,18 +100,10 @@ func (s *DocumentContentService) FindPublicDocumentContentByDocumentId(ctx conte
 	return s.repo.FindPublicDocumentContentByDocumentId(ctx, documentId)
 }
 
-func (s *DocumentContentService) UpdateLikeCount(ctx context.Context, id bson.ObjectID) error {
-	return s.repo.UpdateLikeCount(ctx, id)
-}
-
-func (s *DocumentContentService) UpdateDislikeCount(ctx context.Context, id bson.ObjectID) error {
-	return s.repo.UpdateDislikeCount(ctx, id)
-}
-
-func (s *DocumentContentService) UpdateCommentCount(ctx context.Context, id bson.ObjectID) error {
-	return s.repo.UpdateCommentCount(ctx, id)
-}
-
 func (s *DocumentContentService) DeleteDocumentContentList(ctx context.Context, ids []string) error {
 	return s.repo.DeleteDocumentContentList(ctx, ids)
+}
+
+func (s *DocumentContentService) FindPublicDocumentContentByRootIdAndAlias(ctx context.Context, documentId bson.ObjectID, alias string) (domain.DocumentContent, error) {
+	return s.repo.FindPublicDocumentContentByRootIdAndAlias(ctx, documentId, alias)
 }

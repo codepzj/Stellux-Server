@@ -24,9 +24,7 @@ type IDocumentContentRepository interface {
 	FindPublicDocumentContentById(ctx context.Context, id bson.ObjectID) (domain.DocumentContent, error)
 	FindPublicDocumentContentByParentId(ctx context.Context, parentId bson.ObjectID) ([]domain.DocumentContent, error)
 	FindPublicDocumentContentByDocumentId(ctx context.Context, documentId bson.ObjectID) ([]domain.DocumentContent, error)
-	UpdateLikeCount(ctx context.Context, id bson.ObjectID) error
-	UpdateDislikeCount(ctx context.Context, id bson.ObjectID) error
-	UpdateCommentCount(ctx context.Context, id bson.ObjectID) error
+	FindPublicDocumentContentByRootIdAndAlias(ctx context.Context, documentId bson.ObjectID, alias string) (domain.DocumentContent, error)
 	DeleteDocumentContentList(ctx context.Context, ids []string) error
 }
 
@@ -43,18 +41,15 @@ type DocumentContentRepository struct {
 // CreateDocumentContent 创建文档内容
 func (r *DocumentContentRepository) CreateDocumentContent(ctx context.Context, doc domain.DocumentContent) (bson.ObjectID, error) {
 	return r.dao.CreateDocumentContent(ctx, dao.DocumentContent{
-		DocumentId:   doc.DocumentId,
-		Title:        doc.Title,
-		Content:      doc.Content,
-		Description:  doc.Description,
-		Alias:        doc.Alias,
-		ParentId:     doc.ParentId,
-		IsDir:        doc.IsDir,
-		Sort:         doc.Sort,
-		LikeCount:    doc.LikeCount,
-		DislikeCount: doc.DislikeCount,
-		CommentCount: doc.CommentCount,
-		IsDeleted:    doc.IsDeleted,
+		DocumentId:  doc.DocumentId,
+		Title:       doc.Title,
+		Content:     doc.Content,
+		Description: doc.Description,
+		Alias:       doc.Alias,
+		ParentId:    doc.ParentId,
+		IsDir:       doc.IsDir,
+		Sort:        doc.Sort,
+		IsDeleted:   doc.IsDeleted,
 	})
 }
 
@@ -66,22 +61,19 @@ func (r *DocumentContentRepository) FindDocumentContentById(ctx context.Context,
 	}
 
 	return domain.DocumentContent{
-		Id:           doc.ID,
-		CreatedAt:    doc.CreatedAt,
-		UpdatedAt:    doc.UpdatedAt,
-		DeletedAt:    doc.DeletedAt,
-		DocumentId:   doc.DocumentId,
-		Title:        doc.Title,
-		Content:      doc.Content,
-		Description:  doc.Description,
-		Alias:        doc.Alias,
-		ParentId:     doc.ParentId,
-		IsDir:        doc.IsDir,
-		Sort:         doc.Sort,
-		LikeCount:    doc.LikeCount,
-		DislikeCount: doc.DislikeCount,
-		CommentCount: doc.CommentCount,
-		IsDeleted:    doc.IsDeleted,
+		Id:          doc.ID,
+		CreatedAt:   doc.CreatedAt,
+		UpdatedAt:   doc.UpdatedAt,
+		DeletedAt:   doc.DeletedAt,
+		DocumentId:  doc.DocumentId,
+		Title:       doc.Title,
+		Content:     doc.Content,
+		Description: doc.Description,
+		Alias:       doc.Alias,
+		ParentId:    doc.ParentId,
+		IsDir:       doc.IsDir,
+		Sort:        doc.Sort,
+		IsDeleted:   doc.IsDeleted,
 	}, nil
 }
 
@@ -109,22 +101,19 @@ func (r *DocumentContentRepository) FindDocumentContentByParentId(ctx context.Co
 	results := make([]domain.DocumentContent, len(docs))
 	for i, doc := range docs {
 		results[i] = domain.DocumentContent{
-			Id:           doc.ID,
-			CreatedAt:    doc.CreatedAt,
-			UpdatedAt:    doc.UpdatedAt,
-			DeletedAt:    doc.DeletedAt,
-			DocumentId:   doc.DocumentId,
-			Title:        doc.Title,
-			Content:      doc.Content,
-			Description:  doc.Description,
-			Alias:        doc.Alias,
-			ParentId:     doc.ParentId,
-			IsDir:        doc.IsDir,
-			Sort:         doc.Sort,
-			LikeCount:    doc.LikeCount,
-			DislikeCount: doc.DislikeCount,
-			CommentCount: doc.CommentCount,
-			IsDeleted:    doc.IsDeleted,
+			Id:          doc.ID,
+			CreatedAt:   doc.CreatedAt,
+			UpdatedAt:   doc.UpdatedAt,
+			DeletedAt:   doc.DeletedAt,
+			DocumentId:  doc.DocumentId,
+			Title:       doc.Title,
+			Content:     doc.Content,
+			Description: doc.Description,
+			Alias:       doc.Alias,
+			ParentId:    doc.ParentId,
+			IsDir:       doc.IsDir,
+			Sort:        doc.Sort,
+			IsDeleted:   doc.IsDeleted,
 		}
 	}
 	return results, nil
@@ -138,22 +127,19 @@ func (r *DocumentContentRepository) FindDocumentContentByDocumentId(ctx context.
 	results := make([]domain.DocumentContent, len(docs))
 	for i, doc := range docs {
 		results[i] = domain.DocumentContent{
-			Id:           doc.ID,
-			CreatedAt:    doc.CreatedAt,
-			UpdatedAt:    doc.UpdatedAt,
-			DeletedAt:    doc.DeletedAt,
-			DocumentId:   doc.DocumentId,
-			Title:        doc.Title,
-			Content:      doc.Content,
-			Description:  doc.Description,
-			Alias:        doc.Alias,
-			ParentId:     doc.ParentId,
-			IsDir:        doc.IsDir,
-			Sort:         doc.Sort,
-			LikeCount:    doc.LikeCount,
-			DislikeCount: doc.DislikeCount,
-			CommentCount: doc.CommentCount,
-			IsDeleted:    doc.IsDeleted,
+			Id:          doc.ID,
+			CreatedAt:   doc.CreatedAt,
+			UpdatedAt:   doc.UpdatedAt,
+			DeletedAt:   doc.DeletedAt,
+			DocumentId:  doc.DocumentId,
+			Title:       doc.Title,
+			Content:     doc.Content,
+			Description: doc.Description,
+			Alias:       doc.Alias,
+			ParentId:    doc.ParentId,
+			IsDir:       doc.IsDir,
+			Sort:        doc.Sort,
+			IsDeleted:   doc.IsDeleted,
 		}
 	}
 	return results, nil
@@ -161,18 +147,15 @@ func (r *DocumentContentRepository) FindDocumentContentByDocumentId(ctx context.
 
 func (r *DocumentContentRepository) UpdateDocumentContentById(ctx context.Context, id bson.ObjectID, doc domain.DocumentContent) error {
 	return r.dao.UpdateDocumentContentById(ctx, id, dao.DocumentContent{
-		DocumentId:   doc.DocumentId,
-		Title:        doc.Title,
-		Content:      doc.Content,
-		Description:  doc.Description,
-		Alias:        doc.Alias,
-		ParentId:     doc.ParentId,
-		IsDir:        doc.IsDir,
-		Sort:         doc.Sort,
-		LikeCount:    doc.LikeCount,
-		DislikeCount: doc.DislikeCount,
-		CommentCount: doc.CommentCount,
-		IsDeleted:    doc.IsDeleted,
+		DocumentId:  doc.DocumentId,
+		Title:       doc.Title,
+		Content:     doc.Content,
+		Description: doc.Description,
+		Alias:       doc.Alias,
+		ParentId:    doc.ParentId,
+		IsDir:       doc.IsDir,
+		Sort:        doc.Sort,
+		IsDeleted:   doc.IsDeleted,
 	})
 }
 
@@ -189,22 +172,19 @@ func (r *DocumentContentRepository) GetDocumentContentList(ctx context.Context, 
 	results := make([]domain.DocumentContent, len(docs))
 	for i, doc := range docs {
 		results[i] = domain.DocumentContent{
-			Id:           doc.ID,
-			CreatedAt:    doc.CreatedAt,
-			UpdatedAt:    doc.UpdatedAt,
-			DeletedAt:    doc.DeletedAt,
-			DocumentId:   doc.DocumentId,
-			Title:        doc.Title,
-			Content:      doc.Content,
-			Description:  doc.Description,
-			Alias:        doc.Alias,
-			ParentId:     doc.ParentId,
-			IsDir:        doc.IsDir,
-			Sort:         doc.Sort,
-			LikeCount:    doc.LikeCount,
-			DislikeCount: doc.DislikeCount,
-			CommentCount: doc.CommentCount,
-			IsDeleted:    doc.IsDeleted,
+			Id:          doc.ID,
+			CreatedAt:   doc.CreatedAt,
+			UpdatedAt:   doc.UpdatedAt,
+			DeletedAt:   doc.DeletedAt,
+			DocumentId:  doc.DocumentId,
+			Title:       doc.Title,
+			Content:     doc.Content,
+			Description: doc.Description,
+			Alias:       doc.Alias,
+			ParentId:    doc.ParentId,
+			IsDir:       doc.IsDir,
+			Sort:        doc.Sort,
+			IsDeleted:   doc.IsDeleted,
 		}
 	}
 	return results, count, nil
@@ -223,22 +203,19 @@ func (r *DocumentContentRepository) GetPublicDocumentContentList(ctx context.Con
 	results := make([]domain.DocumentContent, len(docs))
 	for i, doc := range docs {
 		results[i] = domain.DocumentContent{
-			Id:           doc.ID,
-			CreatedAt:    doc.CreatedAt,
-			UpdatedAt:    doc.UpdatedAt,
-			DeletedAt:    doc.DeletedAt,
-			DocumentId:   doc.DocumentId,
-			Title:        doc.Title,
-			Content:      doc.Content,
-			Description:  doc.Description,
-			Alias:        doc.Alias,
-			ParentId:     doc.ParentId,
-			IsDir:        doc.IsDir,
-			Sort:         doc.Sort,
-			LikeCount:    doc.LikeCount,
-			DislikeCount: doc.DislikeCount,
-			CommentCount: doc.CommentCount,
-			IsDeleted:    doc.IsDeleted,
+			Id:          doc.ID,
+			CreatedAt:   doc.CreatedAt,
+			UpdatedAt:   doc.UpdatedAt,
+			DeletedAt:   doc.DeletedAt,
+			DocumentId:  doc.DocumentId,
+			Title:       doc.Title,
+			Content:     doc.Content,
+			Description: doc.Description,
+			Alias:       doc.Alias,
+			ParentId:    doc.ParentId,
+			IsDir:       doc.IsDir,
+			Sort:        doc.Sort,
+			IsDeleted:   doc.IsDeleted,
 		}
 	}
 	return results, count, nil
@@ -254,22 +231,19 @@ func (r *DocumentContentRepository) SearchDocumentContent(ctx context.Context, k
 	results := make([]domain.DocumentContent, len(docs))
 	for i, doc := range docs {
 		results[i] = domain.DocumentContent{
-			Id:           doc.ID,
-			CreatedAt:    doc.CreatedAt,
-			UpdatedAt:    doc.UpdatedAt,
-			DeletedAt:    doc.DeletedAt,
-			DocumentId:   doc.DocumentId,
-			Title:        doc.Title,
-			Content:      doc.Content,
-			Description:  doc.Description,
-			Alias:        doc.Alias,
-			ParentId:     doc.ParentId,
-			IsDir:        doc.IsDir,
-			Sort:         doc.Sort,
-			LikeCount:    doc.LikeCount,
-			DislikeCount: doc.DislikeCount,
-			CommentCount: doc.CommentCount,
-			IsDeleted:    doc.IsDeleted,
+			Id:          doc.ID,
+			CreatedAt:   doc.CreatedAt,
+			UpdatedAt:   doc.UpdatedAt,
+			DeletedAt:   doc.DeletedAt,
+			DocumentId:  doc.DocumentId,
+			Title:       doc.Title,
+			Content:     doc.Content,
+			Description: doc.Description,
+			Alias:       doc.Alias,
+			ParentId:    doc.ParentId,
+			IsDir:       doc.IsDir,
+			Sort:        doc.Sort,
+			IsDeleted:   doc.IsDeleted,
 		}
 	}
 	return results, nil
@@ -285,22 +259,19 @@ func (r *DocumentContentRepository) SearchPublicDocumentContent(ctx context.Cont
 	results := make([]domain.DocumentContent, len(docs))
 	for i, doc := range docs {
 		results[i] = domain.DocumentContent{
-			Id:           doc.ID,
-			CreatedAt:    doc.CreatedAt,
-			UpdatedAt:    doc.UpdatedAt,
-			DeletedAt:    doc.DeletedAt,
-			DocumentId:   doc.DocumentId,
-			Title:        doc.Title,
-			Content:      doc.Content,
-			Description:  doc.Description,
-			Alias:        doc.Alias,
-			ParentId:     doc.ParentId,
-			IsDir:        doc.IsDir,
-			Sort:         doc.Sort,
-			LikeCount:    doc.LikeCount,
-			DislikeCount: doc.DislikeCount,
-			CommentCount: doc.CommentCount,
-			IsDeleted:    doc.IsDeleted,
+			Id:          doc.ID,
+			CreatedAt:   doc.CreatedAt,
+			UpdatedAt:   doc.UpdatedAt,
+			DeletedAt:   doc.DeletedAt,
+			DocumentId:  doc.DocumentId,
+			Title:       doc.Title,
+			Content:     doc.Content,
+			Description: doc.Description,
+			Alias:       doc.Alias,
+			ParentId:    doc.ParentId,
+			IsDir:       doc.IsDir,
+			Sort:        doc.Sort,
+			IsDeleted:   doc.IsDeleted,
 		}
 	}
 	return results, nil
@@ -314,22 +285,19 @@ func (r *DocumentContentRepository) FindPublicDocumentContentById(ctx context.Co
 	}
 
 	return domain.DocumentContent{
-		Id:           doc.ID,
-		CreatedAt:    doc.CreatedAt,
-		UpdatedAt:    doc.UpdatedAt,
-		DeletedAt:    doc.DeletedAt,
-		DocumentId:   doc.DocumentId,
-		Title:        doc.Title,
-		Content:      doc.Content,
-		Description:  doc.Description,
-		Alias:        doc.Alias,
-		ParentId:     doc.ParentId,
-		IsDir:        doc.IsDir,
-		Sort:         doc.Sort,
-		LikeCount:    doc.LikeCount,
-		DislikeCount: doc.DislikeCount,
-		CommentCount: doc.CommentCount,
-		IsDeleted:    doc.IsDeleted,
+		Id:          doc.ID,
+		CreatedAt:   doc.CreatedAt,
+		UpdatedAt:   doc.UpdatedAt,
+		DeletedAt:   doc.DeletedAt,
+		DocumentId:  doc.DocumentId,
+		Title:       doc.Title,
+		Content:     doc.Content,
+		Description: doc.Description,
+		Alias:       doc.Alias,
+		ParentId:    doc.ParentId,
+		IsDir:       doc.IsDir,
+		Sort:        doc.Sort,
+		IsDeleted:   doc.IsDeleted,
 	}, nil
 }
 
@@ -342,22 +310,19 @@ func (r *DocumentContentRepository) FindPublicDocumentContentByParentId(ctx cont
 	results := make([]domain.DocumentContent, len(docs))
 	for i, doc := range docs {
 		results[i] = domain.DocumentContent{
-			Id:           doc.ID,
-			CreatedAt:    doc.CreatedAt,
-			UpdatedAt:    doc.UpdatedAt,
-			DeletedAt:    doc.DeletedAt,
-			DocumentId:   doc.DocumentId,
-			Title:        doc.Title,
-			Content:      doc.Content,
-			Description:  doc.Description,
-			Alias:        doc.Alias,
-			ParentId:     doc.ParentId,
-			IsDir:        doc.IsDir,
-			Sort:         doc.Sort,
-			LikeCount:    doc.LikeCount,
-			DislikeCount: doc.DislikeCount,
-			CommentCount: doc.CommentCount,
-			IsDeleted:    doc.IsDeleted,
+			Id:          doc.ID,
+			CreatedAt:   doc.CreatedAt,
+			UpdatedAt:   doc.UpdatedAt,
+			DeletedAt:   doc.DeletedAt,
+			DocumentId:  doc.DocumentId,
+			Title:       doc.Title,
+			Content:     doc.Content,
+			Description: doc.Description,
+			Alias:       doc.Alias,
+			ParentId:    doc.ParentId,
+			IsDir:       doc.IsDir,
+			Sort:        doc.Sort,
+			IsDeleted:   doc.IsDeleted,
 		}
 	}
 	return results, nil
@@ -372,42 +337,48 @@ func (r *DocumentContentRepository) FindPublicDocumentContentByDocumentId(ctx co
 	results := make([]domain.DocumentContent, len(docs))
 	for i, doc := range docs {
 		results[i] = domain.DocumentContent{
-			Id:           doc.ID,
-			CreatedAt:    doc.CreatedAt,
-			UpdatedAt:    doc.UpdatedAt,
-			DeletedAt:    doc.DeletedAt,
-			DocumentId:   doc.DocumentId,
-			Title:        doc.Title,
-			Content:      doc.Content,
-			Description:  doc.Description,
-			Alias:        doc.Alias,
-			ParentId:     doc.ParentId,
-			IsDir:        doc.IsDir,
-			Sort:         doc.Sort,
-			LikeCount:    doc.LikeCount,
-			DislikeCount: doc.DislikeCount,
-			CommentCount: doc.CommentCount,
-			IsDeleted:    doc.IsDeleted,
+			Id:          doc.ID,
+			CreatedAt:   doc.CreatedAt,
+			UpdatedAt:   doc.UpdatedAt,
+			DeletedAt:   doc.DeletedAt,
+			DocumentId:  doc.DocumentId,
+			Title:       doc.Title,
+			Content:     doc.Content,
+			Description: doc.Description,
+			Alias:       doc.Alias,
+			ParentId:    doc.ParentId,
+			IsDir:       doc.IsDir,
+			Sort:        doc.Sort,
+			IsDeleted:   doc.IsDeleted,
 		}
 	}
 	return results, nil
 }
 
-// UpdateLikeCount 更新点赞数
-func (r *DocumentContentRepository) UpdateLikeCount(ctx context.Context, id bson.ObjectID) error {
-	return r.dao.UpdateLikeCount(ctx, id)
-}
-
-// UpdateDislikeCount 更新反对数
-func (r *DocumentContentRepository) UpdateDislikeCount(ctx context.Context, id bson.ObjectID) error {
-	return r.dao.UpdateDislikeCount(ctx, id)
-}
-
-// UpdateCommentCount 更新评论数
-func (r *DocumentContentRepository) UpdateCommentCount(ctx context.Context, id bson.ObjectID) error {
-	return r.dao.UpdateCommentCount(ctx, id)
-}
-
 func (r *DocumentContentRepository) DeleteDocumentContentList(ctx context.Context, ids []string) error {
 	return r.dao.DeleteDocumentContentList(ctx, ids)
+}
+
+// FindPublicDocumentContentByRootIdAndAlias 根据根文档ID和别名查询公开文档内容
+func (r *DocumentContentRepository) FindPublicDocumentContentByRootIdAndAlias(ctx context.Context, documentId bson.ObjectID, alias string) (domain.DocumentContent, error) {
+	doc, err := r.dao.FindPublicDocumentContentByRootIdAndAlias(ctx, documentId, alias)
+	if err != nil {
+		return domain.DocumentContent{}, err
+	}
+
+	return domain.DocumentContent{
+		Id:          doc.ID,
+		CreatedAt:   doc.CreatedAt,
+		UpdatedAt:   doc.UpdatedAt,
+		DeletedAt:   doc.DeletedAt,
+		DocumentId:  doc.DocumentId,
+		Title:       doc.Title,
+		Content:     doc.Content,
+		Description: doc.Description,
+		Alias:       doc.Alias,
+		ParentId:    doc.ParentId,
+		IsDir:       doc.IsDir,
+		Sort:        doc.Sort,
+		IsDeleted:   doc.IsDeleted,
+	}, nil
 }

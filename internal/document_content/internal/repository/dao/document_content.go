@@ -16,18 +16,15 @@ import (
 
 type DocumentContent struct {
 	mongox.Model `bson:",inline"`
-	DocumentId   bson.ObjectID `bson:"document_id"`   // 根文档Id
-	Title        string        `bson:"title"`         // 文档标题
-	Content      string        `bson:"content"`       // 文档内容
-	Description  string        `bson:"description"`   // 文档描述
-	Alias        string        `bson:"alias"`         // 文档别名
-	ParentId     bson.ObjectID `bson:"parent_id"`     // 父级Id
-	IsDir        bool          `bson:"is_dir"`        // 是否是目录
-	Sort         int           `bson:"sort"`          // 排序
-	LikeCount    int           `bson:"like_count"`    // 点赞数
-	DislikeCount int           `bson:"dislike_count"` // 反对数
-	CommentCount int           `bson:"comment_count"` // 评论数
-	IsDeleted    bool          `bson:"is_deleted"`    // 是否删除
+	DocumentId   bson.ObjectID `bson:"document_id"` // 根文档Id
+	Title        string        `bson:"title"`       // 文档标题
+	Content      string        `bson:"content"`     // 文档内容
+	Description  string        `bson:"description"` // 文档描述
+	Alias        string        `bson:"alias"`       // 文档别名
+	ParentId     bson.ObjectID `bson:"parent_id"`   // 父级Id
+	IsDir        bool          `bson:"is_dir"`      // 是否是目录
+	Sort         int           `bson:"sort"`        // 排序
+	IsDeleted    bool          `bson:"is_deleted"`  // 是否删除
 }
 
 // Page 分页查询参数
@@ -54,9 +51,7 @@ type IDocumentContentDao interface {
 	FindPublicDocumentContentById(ctx context.Context, id bson.ObjectID) (DocumentContent, error)
 	FindPublicDocumentContentByParentId(ctx context.Context, parentId bson.ObjectID) ([]DocumentContent, error)
 	FindPublicDocumentContentByDocumentId(ctx context.Context, documentId bson.ObjectID) ([]DocumentContent, error)
-	UpdateLikeCount(ctx context.Context, id bson.ObjectID) error
-	UpdateDislikeCount(ctx context.Context, id bson.ObjectID) error
-	UpdateCommentCount(ctx context.Context, id bson.ObjectID) error
+	FindPublicDocumentContentByRootIdAndAlias(ctx context.Context, documentId bson.ObjectID, alias string) (DocumentContent, error)
 	DeleteDocumentContentList(ctx context.Context, ids []string) error
 }
 
@@ -170,9 +165,6 @@ func (d *DocumentContentDao) UpdateDocumentContentById(ctx context.Context, id b
 		{Key: "parent_id", Value: doc.ParentId},
 		{Key: "is_dir", Value: doc.IsDir},
 		{Key: "sort", Value: doc.Sort},
-		{Key: "like_count", Value: doc.LikeCount},
-		{Key: "dislike_count", Value: doc.DislikeCount},
-		{Key: "comment_count", Value: doc.CommentCount},
 		{Key: "is_deleted", Value: doc.IsDeleted},
 	})).UpdateOne(ctx)
 	if err != nil {
@@ -335,51 +327,6 @@ func (d *DocumentContentDao) FindPublicDocumentContentByDocumentId(ctx context.C
 	return results, nil
 }
 
-// UpdateLikeCount 更新点赞数
-func (d *DocumentContentDao) UpdateLikeCount(ctx context.Context, id bson.ObjectID) error {
-	result, err := d.coll.Updater().
-		Filter(query.Id(id)).
-		Updates(update.Inc("like_count", 1)).
-		UpdateOne(ctx)
-	if err != nil {
-		return err
-	}
-	if result.MatchedCount == 0 {
-		return errors.New("文档不存在")
-	}
-	return nil
-}
-
-// UpdateDislikeCount 更新反对数
-func (d *DocumentContentDao) UpdateDislikeCount(ctx context.Context, id bson.ObjectID) error {
-	result, err := d.coll.Updater().
-		Filter(query.Id(id)).
-		Updates(update.Inc("dislike_count", 1)).
-		UpdateOne(ctx)
-	if err != nil {
-		return err
-	}
-	if result.MatchedCount == 0 {
-		return errors.New("文档不存在")
-	}
-	return nil
-}
-
-// UpdateCommentCount 更新评论数
-func (d *DocumentContentDao) UpdateCommentCount(ctx context.Context, id bson.ObjectID) error {
-	result, err := d.coll.Updater().
-		Filter(query.Id(id)).
-		Updates(update.Inc("comment_count", 1)).
-		UpdateOne(ctx)
-	if err != nil {
-		return err
-	}
-	if result.MatchedCount == 0 {
-		return errors.New("文档不存在")
-	}
-	return nil
-}
-
 func (d *DocumentContentDao) DeleteDocumentContentList(ctx context.Context, ids []string) error {
 	objIDs := make([]bson.ObjectID, 0, len(ids))
 	for _, id := range ids {
@@ -392,4 +339,23 @@ func (d *DocumentContentDao) DeleteDocumentContentList(ctx context.Context, ids 
 	filter := bson.M{"_id": bson.M{"$in": objIDs}}
 	_, err := d.coll.Deleter().Filter(filter).DeleteMany(ctx)
 	return err
+}
+
+// FindPublicDocumentContentByRootIdAndAlias 根据根文档ID和别名查询公开文档内容
+func (d *DocumentContentDao) FindPublicDocumentContentByRootIdAndAlias(ctx context.Context, documentId bson.ObjectID, alias string) (DocumentContent, error) {
+	doc, err := d.coll.Finder().
+		Filter(query.And(
+			query.Eq("document_id", documentId),
+			query.Eq("alias", alias),
+			query.Eq("is_deleted", false),
+		)).
+		FindOne(ctx)
+
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		return DocumentContent{}, errors.New("document_content中不存在该别名的文档")
+	}
+	if err != nil {
+		return DocumentContent{}, err
+	}
+	return *doc, nil
 }

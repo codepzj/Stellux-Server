@@ -36,20 +36,18 @@ func (h *DocumentContentHandler) RegisterGinRoutes(engine *gin.Engine) {
 		adminDocumentContentGroup.PUT("/update", apiwrap.WrapWithJson(h.UpdateDocumentContentById))        // 管理员更新特定Id的文档内容
 		adminDocumentContentGroup.GET("/list", apiwrap.WrapWithQuery(h.GetDocumentContentList))            // 管理员获取文档内容列表
 		adminDocumentContentGroup.GET("/search", apiwrap.Wrap(h.SearchDocumentContent))                    // 管理员搜索文档内容
-		adminDocumentContentGroup.PUT("/update-like/:id", apiwrap.Wrap(h.UpdateLikeCount))                 // 管理员更新点赞数
-		adminDocumentContentGroup.PUT("/update-dislike/:id", apiwrap.Wrap(h.UpdateDislikeCount))           // 管理员更新反对数
-		adminDocumentContentGroup.PUT("/update-comment/:id", apiwrap.Wrap(h.UpdateCommentCount))           // 管理员更新评论数
 		adminDocumentContentGroup.POST("/delete-list", apiwrap.Wrap(h.DeleteDocumentContentList))          // 管理员批量删除文档内容
 	}
 
 	// 公开API
 	publicDocumentContentGroup := engine.Group("/document-content")
 	{
-		publicDocumentContentGroup.GET("/:id", apiwrap.Wrap(h.FindPublicDocumentContentById))                     // 公开查询特定Id的文档内容
-		publicDocumentContentGroup.GET("/all/parent-id", apiwrap.Wrap(h.FindPublicDocumentContentByParentId))     // 公开查询特定父级Id的所有子文档内容
-		publicDocumentContentGroup.GET("/all/document-id", apiwrap.Wrap(h.FindPublicDocumentContentByDocumentId)) // 公开查询特定文档Id的所有子文档内容
-		publicDocumentContentGroup.GET("/list", apiwrap.WrapWithQuery(h.GetPublicDocumentContentList))            // 公开获取文档内容列表
-		publicDocumentContentGroup.GET("/search", apiwrap.Wrap(h.SearchPublicDocumentContent))                    // 公开搜索文档内容
+		publicDocumentContentGroup.GET("/:id", apiwrap.Wrap(h.FindPublicDocumentContentById))                           // 公开查询特定Id的文档内容
+		publicDocumentContentGroup.GET("/all/parent-id", apiwrap.Wrap(h.FindPublicDocumentContentByParentId))           // 公开查询特定父级Id的所有子文档内容
+		publicDocumentContentGroup.GET("/all/document-id", apiwrap.Wrap(h.FindPublicDocumentContentByDocumentId))       // 公开查询特定文档Id的所有子文档内容
+		publicDocumentContentGroup.GET("/list", apiwrap.WrapWithQuery(h.GetPublicDocumentContentList))                  // 公开获取文档内容列表
+		publicDocumentContentGroup.GET("/search", apiwrap.Wrap(h.SearchPublicDocumentContent))                          // 公开搜索文档内容
+		publicDocumentContentGroup.GET("/by-root-and-alias", apiwrap.Wrap(h.FindPublicDocumentContentByRootIdAndAlias)) // 公开根据根文档ID和别名查询文档内容
 	}
 }
 
@@ -248,51 +246,6 @@ func (h *DocumentContentHandler) SearchDocumentContent(c *gin.Context) *apiwrap.
 	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVOList(docs), "搜索文档内容成功")
 }
 
-// UpdateLikeCount 管理员更新点赞数
-func (h *DocumentContentHandler) UpdateLikeCount(c *gin.Context) *apiwrap.Response[any] {
-	id := c.Param("id")
-	objId, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "id格式错误")
-	}
-
-	err = h.serv.UpdateLikeCount(c, objId)
-	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
-	}
-	return apiwrap.SuccessWithMsg("更新点赞数成功")
-}
-
-// UpdateDislikeCount 管理员更新反对数
-func (h *DocumentContentHandler) UpdateDislikeCount(c *gin.Context) *apiwrap.Response[any] {
-	id := c.Param("id")
-	objId, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "id格式错误")
-	}
-
-	err = h.serv.UpdateDislikeCount(c, objId)
-	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
-	}
-	return apiwrap.SuccessWithMsg("更新反对数成功")
-}
-
-// UpdateCommentCount 管理员更新评论数
-func (h *DocumentContentHandler) UpdateCommentCount(c *gin.Context) *apiwrap.Response[any] {
-	id := c.Param("id")
-	objId, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "id格式错误")
-	}
-
-	err = h.serv.UpdateCommentCount(c, objId)
-	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
-	}
-	return apiwrap.SuccessWithMsg("更新评论数成功")
-}
-
 // FindPublicDocumentContentById 公开查询特定Id的文档内容
 func (h *DocumentContentHandler) FindPublicDocumentContentById(c *gin.Context) *apiwrap.Response[any] {
 	documentId := c.Param("id")
@@ -380,23 +333,62 @@ func (h *DocumentContentHandler) SearchPublicDocumentContent(c *gin.Context) *ap
 	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVOList(docs), "搜索文档内容成功")
 }
 
+// FindPublicDocumentContentByRootIdAndAlias 公开根据根文档ID和别名查询文档内容
+func (h *DocumentContentHandler) FindPublicDocumentContentByRootIdAndAlias(c *gin.Context) *apiwrap.Response[any] {
+	documentId := c.Query("document_id")
+	if documentId == "" {
+		return apiwrap.FailWithMsg(http.StatusBadRequest, "document_id不能为空")
+	}
+
+	alias := c.Query("alias")
+	if alias == "" {
+		return apiwrap.FailWithMsg(http.StatusBadRequest, "alias不能为空")
+	}
+
+	objId, err := bson.ObjectIDFromHex(documentId)
+	if err != nil {
+		return apiwrap.FailWithMsg(http.StatusBadRequest, "document_id格式错误")
+	}
+
+	// 由于我们还没有实现FindPublicDocumentContentByRootIdAndAlias方法
+	// 我们可以使用现有的方法来模拟这个功能
+	docs, err := h.serv.FindPublicDocumentContentByDocumentId(c, objId)
+	if err != nil {
+		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
+	}
+
+	// 在获取的文档列表中查找匹配别名的文档
+	var targetDoc domain.DocumentContent
+	found := false
+	for _, doc := range docs {
+		if doc.Alias == alias {
+			targetDoc = doc
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return apiwrap.FailWithMsg(http.StatusNotFound, "未找到指定别名的文档")
+	}
+
+	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVO(targetDoc), fmt.Sprintf("查询文档内容成功, 根文档ID:%s, 别名:%s", documentId, alias))
+}
+
 // DocumentContentDomainToVO 将domain对象转换为VO
 func (h *DocumentContentHandler) DocumentContentDomainToVO(doc domain.DocumentContent) DocumentContentVO {
 	return DocumentContentVO{
-		Id:           doc.Id.Hex(),
-		CreatedAt:    doc.CreatedAt,
-		UpdatedAt:    doc.UpdatedAt,
-		DocumentId:   doc.DocumentId.Hex(),
-		Title:        doc.Title,
-		Content:      doc.Content,
-		Description:  doc.Description,
-		Alias:        doc.Alias,
-		ParentId:     doc.ParentId.Hex(),
-		IsDir:        doc.IsDir,
-		Sort:         doc.Sort,
-		LikeCount:    doc.LikeCount,
-		DislikeCount: doc.DislikeCount,
-		CommentCount: doc.CommentCount,
+		Id:          doc.Id.Hex(),
+		CreatedAt:   doc.CreatedAt,
+		UpdatedAt:   doc.UpdatedAt,
+		DocumentId:  doc.DocumentId.Hex(),
+		Title:       doc.Title,
+		Content:     doc.Content,
+		Description: doc.Description,
+		Alias:       doc.Alias,
+		ParentId:    doc.ParentId.Hex(),
+		IsDir:       doc.IsDir,
+		Sort:        doc.Sort,
 	}
 }
 
