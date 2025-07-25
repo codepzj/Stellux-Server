@@ -15,7 +15,6 @@ import (
 	"github.com/codepzj/stellux/server/internal/ioc"
 	"github.com/codepzj/stellux/server/internal/label"
 	"github.com/codepzj/stellux/server/internal/post"
-	"github.com/codepzj/stellux/server/internal/setting"
 	"github.com/codepzj/stellux/server/internal/user"
 )
 
@@ -25,8 +24,7 @@ func InitApp() *HttpServer {
 	database := ioc.NewMongoDB()
 	module := user.InitUserModule(database)
 	userHandler := module.Hdl
-	settingModule := setting.InitSettingModule(database)
-	postModule := post.InitPostModule(database, settingModule)
+	postModule := post.InitPostModule(database)
 	postHandler := postModule.Hdl
 	labelModule := label.InitLabelModule(database)
 	labelHandler := labelModule.Hdl
@@ -34,7 +32,6 @@ func InitApp() *HttpServer {
 	fileHandler := fileModule.Hdl
 	documentModule := document.InitDocumentModule(database)
 	documentHandler := documentModule.Hdl
-	settingHandler := settingModule.Hdl
 	friendModule := friend.InitFriendModule(database)
 	friendHandler := friendModule.Hdl
 	document_contentModule := document_content.InitDocumentContentModule(database)
@@ -42,7 +39,7 @@ func InitApp() *HttpServer {
 	commentModule := comment.InitCommentModule(database)
 	commentHandler := commentModule.Hdl
 	v := ioc.InitMiddleWare()
-	engine := ioc.NewGin(userHandler, postHandler, labelHandler, fileHandler, documentHandler, settingHandler, friendHandler, documentContentHandler, commentHandler, v)
+	engine := ioc.NewGin(userHandler, postHandler, labelHandler, fileHandler, documentHandler, friendHandler, documentContentHandler, commentHandler, v)
 	httpServer := NewHttpServer(engine)
 	return httpServer
 }

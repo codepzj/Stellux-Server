@@ -8,7 +8,6 @@ import (
 	"github.com/codepzj/stellux/server/internal/post/internal/repository/dao"
 	"github.com/codepzj/stellux/server/internal/post/internal/service"
 	"github.com/codepzj/stellux/server/internal/post/internal/web"
-	"github.com/codepzj/stellux/server/internal/setting"
 	"github.com/google/wire"
 )
 
@@ -17,10 +16,9 @@ var PostProviders = wire.NewSet(web.NewPostHandler, service.NewPostService, repo
 	wire.Bind(new(repository.IPostRepository), new(*repository.PostRepository)),
 	wire.Bind(new(dao.IPostDao), new(*dao.PostDao)))
 
-func InitPostModule(mongoDB *mongox.Database, settingModule *setting.Module) *Module {
+func InitPostModule(mongoDB *mongox.Database) *Module {
 	panic(wire.Build(
 		PostProviders,
-		wire.FieldsOf(new(*setting.Module), "Svc"),
-		wire.Struct(new(Module), "Svc", "Hdl"),
+		wire.Struct(new(Module), "Hdl"),
 	))
 }

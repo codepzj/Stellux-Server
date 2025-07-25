@@ -14,10 +14,3 @@ type DocumentVO struct {
 	IsPublic    bool      `json:"is_public"`
 	IsDeleted   bool      `json:"is_deleted"`
 }
-
-type DocumentSitemapVO struct {
-	Loc        string  `json:"loc"`
-	Lastmod    string  `json:"lastmod"`
-	Changefreq string  `json:"changefreq"`
-	Priority   float64 `json:"priority"`
-}

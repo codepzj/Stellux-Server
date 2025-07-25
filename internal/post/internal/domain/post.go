@@ -16,6 +16,7 @@ type Post struct {
 	Content     string          // 内容
 	Description string          // 描述
 	Author      string          // 作者
+	Alias       string          // 别名
 	CategoryID  bson.ObjectID   // 分类ID
 	TagsID      []bson.ObjectID // 标签ID
 	IsPublish   bool            // 是否发布
@@ -31,6 +32,7 @@ type PostDetail struct {
 	Content     string         // 内容
 	Description string         // 描述
 	Author      string         // 作者
+	Alias       string         // 别名
 	Category    label.Domain   // 分类
 	Tags        []label.Domain // 标签
 	IsPublish   bool           // 是否发布

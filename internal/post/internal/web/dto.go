@@ -14,6 +14,7 @@ type PostDto struct {
 	Content     string    `json:"content" binding:"required"`
 	Description string    `json:"description"`
 	Author      string    `json:"author" binding:"required"`
+	Alias       string    `json:"alias" binding:"required"`
 	CategoryID  string    `json:"category_id" binding:"required"`
 	TagsID      []string  `json:"tags_id" binding:"required"`
 	IsPublish   bool      `json:"is_publish"`
@@ -28,6 +29,7 @@ type PostUpdateDto struct {
 	Content     string    `json:"content"`
 	Description string    `json:"description"`
 	Author      string    `json:"author"`
+	Alias       string    `json:"alias" binding:"required"`
 	CategoryID  string    `json:"category_id" binding:"required"`
 	TagsID      []string  `json:"tags_id" binding:"required"`
 	IsPublish   bool      `json:"is_publish"`

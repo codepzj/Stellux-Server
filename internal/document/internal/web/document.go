@@ -39,12 +39,11 @@ func (h *DocumentHandler) RegisterGinRoutes(engine *gin.Engine) {
 	// 公开API
 	documentGroup := engine.Group("/document")
 	{
+		documentGroup.GET("/:id", apiwrap.Wrap(h.GetDocument))                  // 获取根文档
 		documentGroup.GET("/all", apiwrap.Wrap(h.GetAllPublicDocument))         // 获取所有公开文档
 		documentGroup.GET("/find", apiwrap.Wrap(h.FindDocument))                // 公开查询特定Id的文档
 		documentGroup.GET("/alias/:alias", apiwrap.Wrap(h.FindDocumentByAlias)) // 公开根据别名查询文档
 		documentGroup.GET("/list", apiwrap.WrapWithQuery(h.GetDocumentList))    // 公开获取文档列表
-		documentGroup.GET("/:id", apiwrap.Wrap(h.GetDocument))                  // 获取根文档
-		documentGroup.GET("/sitemap", apiwrap.Wrap(h.GetDocumentSitemap))       // 获取文档站点地图
 	}
 }
 
@@ -344,15 +343,6 @@ func (h *DocumentHandler) GetDocument(c *gin.Context) *apiwrap.Response[any] {
 	}
 
 	return apiwrap.SuccessWithDetail[any](docVO, "获取文档成功")
-}
-
-// GetDocumentSitemap 获取文档站点地图
-func (h *DocumentHandler) GetDocumentSitemap(c *gin.Context) *apiwrap.Response[any] {
-	// 暂时返回空数组，后续可以实现站点地图生成逻辑
-	// TODO: 实现文档站点地图生成
-	sitemapData := []DocumentSitemapVO{}
-
-	return apiwrap.SuccessWithDetail[any](sitemapData, "获取文档站点地图成功")
 }
 
 // DocumentDomainToVOList 将domain对象转换为VO列表

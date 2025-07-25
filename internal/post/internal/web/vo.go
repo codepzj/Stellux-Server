@@ -18,6 +18,7 @@ type PostVO struct {
 	Content     string    `json:"content"`
 	Description string    `json:"description"`
 	Author      string    `json:"author"`
+	Alias       string    `json:"alias"`
 	CategoryID  string    `json:"category_id"`
 	TagsID      []string  `json:"tags_id"`
 	IsPublish   bool      `json:"is_publish"`
@@ -33,30 +34,12 @@ type PostDetailVO struct {
 	Content     string    `json:"content"`
 	Description string    `json:"description"`
 	Author      string    `json:"author"`
+	Alias       string    `json:"alias"`
 	Category    string    `json:"category"`
 	Tags        []string  `json:"tags"`
 	IsPublish   bool      `json:"is_publish"`
 	IsTop       bool      `json:"is_top"`
 	Thumbnail   string    `json:"thumbnail"`
-}
-
-type SiteMapVO struct {
-	Loc        string  `json:"loc"`
-	Lastmod    string  `json:"lastmod"`
-	Changefreq string  `json:"changefreq"`
-	Priority   float64 `json:"priority"`
-}
-
-type SeoSettingVO struct {
-	SiteAuthor      string `json:"site_author"`
-	SiteUrl         string `json:"site_url"`
-	SiteDescription string `json:"site_description"`
-	SiteKeywords    string `json:"site_keywords"`
-	Robots          string `json:"robots"`
-	OgImage         string `json:"og_image"`
-	OgType          string `json:"og_type"`
-	TwitterCard     string `json:"twitter_card"`
-	TwitterSite     string `json:"twitter_site"`
 }
 
 func GetCategoryNameFromLabel(label label.Domain) string {
@@ -76,6 +59,7 @@ func (h *PostHandler) PostDTOToDomain(postReq PostDto) *domain.Post {
 		Content:     postReq.Content,
 		Description: postReq.Description,
 		Author:      postReq.Author,
+		Alias:       postReq.Alias,
 		CategoryID:  apiwrap.ConvertBsonID(postReq.CategoryID).ToObjectID(),
 		TagsID:      apiwrap.ToObjectIDList(apiwrap.ConvertBsonIDList(postReq.TagsID)),
 		IsPublish:   postReq.IsPublish,
@@ -92,6 +76,7 @@ func (h *PostHandler) PostUpdateDTOToDomain(postUpdateReq PostUpdateDto) *domain
 		Content:     postUpdateReq.Content,
 		Description: postUpdateReq.Description,
 		Author:      postUpdateReq.Author,
+		Alias:       postUpdateReq.Alias,
 		CategoryID:  apiwrap.ConvertBsonID(postUpdateReq.CategoryID).ToObjectID(),
 		TagsID:      apiwrap.ToObjectIDList(apiwrap.ConvertBsonIDList(postUpdateReq.TagsID)),
 		IsPublish:   postUpdateReq.IsPublish,
@@ -109,6 +94,7 @@ func (h *PostHandler) PostDetailToVO(post *domain.PostDetail) *PostDetailVO {
 		Content:     post.Content,
 		Description: post.Description,
 		Author:      post.Author,
+		Alias:       post.Alias,
 		Category:    GetCategoryNameFromLabel(post.Category),
 		Tags:        GetTagNamesFromLabels(post.Tags),
 		IsPublish:   post.IsPublish,
@@ -132,6 +118,7 @@ func (h *PostHandler) PostToVO(post *domain.Post) *PostVO {
 		Content:     post.Content,
 		Description: post.Description,
 		Author:      post.Author,
+		Alias:       post.Alias,
 		CategoryID:  post.CategoryID.Hex(),
 		TagsID: lo.Map(post.TagsID, func(id bson.ObjectID, _ int) string {
 			return id.Hex()
@@ -145,16 +132,5 @@ func (h *PostHandler) PostToVO(post *domain.Post) *PostVO {
 func (h *PostHandler) PostListToVOList(posts []*domain.Post) []*PostVO {
 	return lo.Map(posts, func(post *domain.Post, _ int) *PostVO {
 		return h.PostToVO(post)
-	})
-}
-
-func (h *PostHandler) PostListToSiteMapVOList(posts []*domain.Post, siteUrl string) []*SiteMapVO {
-	return lo.Map(posts, func(post *domain.Post, _ int) *SiteMapVO {
-		return &SiteMapVO{
-			Loc:        siteUrl + "/post/" + post.ID.Hex(),
-			Lastmod:    post.UpdatedAt.String(),
-			Changefreq: "weekly",
-			Priority:   0.8,
-		}
 	})
 }

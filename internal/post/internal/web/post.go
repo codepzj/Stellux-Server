@@ -1,24 +1,21 @@
 package web
 
 import (
-	"encoding/json"
+	"net/http"
 
 	"github.com/codepzj/stellux/server/internal/pkg/apiwrap"
 	"github.com/codepzj/stellux/server/internal/post/internal/service"
-	"github.com/codepzj/stellux/server/internal/setting"
 	"github.com/gin-gonic/gin"
 )
 
-func NewPostHandler(serv service.IPostService, settingService setting.Service) *PostHandler {
+func NewPostHandler(serv service.IPostService) *PostHandler {
 	return &PostHandler{
-		serv:           serv,
-		settingService: settingService,
+		serv: serv,
 	}
 }
 
 type PostHandler struct {
-	serv           service.IPostService
-	settingService setting.Service
+	serv service.IPostService
 }
 
 func (h *PostHandler) RegisterGinRoutes(engine *gin.Engine) {
@@ -40,8 +37,8 @@ func (h *PostHandler) RegisterGinRoutes(engine *gin.Engine) {
 	{
 		postGroup.GET("/list", apiwrap.WrapWithQuery(h.GetPublishPostList)) // 获取发布文章列表
 		postGroup.GET("/:id", apiwrap.WrapWithUri(h.GetPostById))           // 获取文章详情
+		postGroup.GET("/alias/:alias", apiwrap.Wrap(h.FindByAlias))         // 根据别名获取文章详情
 		postGroup.GET("/search", apiwrap.Wrap(h.GetPostByKeyWord))          // 搜索文章
-		postGroup.GET("/sitemap", apiwrap.Wrap(h.GetSiteMap))               // 获取站点地图
 		postGroup.GET("/all", apiwrap.Wrap(h.GetAllPublishPost))            // 获取所有发布文章
 	}
 }
@@ -50,7 +47,7 @@ func (h *PostHandler) AdminCreatePost(c *gin.Context, postReq PostDto) *apiwrap.
 	post := h.PostDTOToDomain(postReq)
 	err := h.serv.AdminCreatePost(c, post)
 	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
 	}
 	return apiwrap.SuccessWithMsg("创建文章成功")
 }
@@ -59,7 +56,7 @@ func (h *PostHandler) AdminUpdatePost(c *gin.Context, postUpdateReq PostUpdateDt
 	postUpdate := h.PostUpdateDTOToDomain(postUpdateReq)
 	err := h.serv.AdminUpdatePost(c, postUpdate)
 	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
 	}
 	return apiwrap.SuccessWithMsg("更新文章成功")
 }
@@ -67,7 +64,7 @@ func (h *PostHandler) AdminUpdatePost(c *gin.Context, postUpdateReq PostUpdateDt
 func (h *PostHandler) AdminUpdatePostPublishStatus(c *gin.Context, postPublishStatusRequest PostPublishStatusRequest) *apiwrap.Response[any] {
 	err := h.serv.AdminUpdatePostPublishStatus(c, apiwrap.ConvertBsonID(postPublishStatusRequest.ID).ToObjectID(), *postPublishStatusRequest.IsPublish)
 	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
 	}
 	return apiwrap.SuccessWithMsg("更新文章发布状态成功")
 }
@@ -75,7 +72,7 @@ func (h *PostHandler) AdminUpdatePostPublishStatus(c *gin.Context, postPublishSt
 func (h *PostHandler) AdminRestorePost(c *gin.Context, postIDRequest PostIdRequest) *apiwrap.Response[any] {
 	err := h.serv.AdminRestorePost(c, apiwrap.ConvertBsonID(postIDRequest.Id).ToObjectID())
 	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
 	}
 	return apiwrap.SuccessWithMsg("恢复文章成功")
 }
@@ -83,7 +80,7 @@ func (h *PostHandler) AdminRestorePost(c *gin.Context, postIDRequest PostIdReque
 func (h *PostHandler) AdminRestorePostBatch(c *gin.Context, postIDListRequest PostIDListRequest) *apiwrap.Response[any] {
 	err := h.serv.AdminRestorePostBatch(c, apiwrap.ToObjectIDList(apiwrap.ConvertBsonIDList(postIDListRequest.IDList)))
 	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
 	}
 	return apiwrap.SuccessWithMsg("批量恢复文章成功")
 }
@@ -91,7 +88,7 @@ func (h *PostHandler) AdminRestorePostBatch(c *gin.Context, postIDListRequest Po
 func (h *PostHandler) AdminSoftDeletePost(c *gin.Context, postIDRequest PostIdRequest) *apiwrap.Response[any] {
 	err := h.serv.AdminSoftDeletePost(c, apiwrap.ConvertBsonID(postIDRequest.Id).ToObjectID())
 	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
 	}
 	return apiwrap.SuccessWithMsg("软删除文章成功")
 }
@@ -99,7 +96,7 @@ func (h *PostHandler) AdminSoftDeletePost(c *gin.Context, postIDRequest PostIdRe
 func (h *PostHandler) AdminSoftDeletePostBatch(c *gin.Context, postIDListRequest PostIDListRequest) *apiwrap.Response[any] {
 	err := h.serv.AdminSoftDeletePostBatch(c, apiwrap.ToObjectIDList(apiwrap.ConvertBsonIDList(postIDListRequest.IDList)))
 	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
 	}
 	return apiwrap.SuccessWithMsg("批量软删除文章成功")
 }
@@ -107,7 +104,7 @@ func (h *PostHandler) AdminSoftDeletePostBatch(c *gin.Context, postIDListRequest
 func (h *PostHandler) AdminDeletePost(c *gin.Context, postIDRequest PostIdRequest) *apiwrap.Response[any] {
 	err := h.serv.AdminDeletePost(c, apiwrap.ConvertBsonID(postIDRequest.Id).ToObjectID())
 	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
 	}
 	return apiwrap.SuccessWithMsg("删除文章成功")
 }
@@ -115,7 +112,7 @@ func (h *PostHandler) AdminDeletePost(c *gin.Context, postIDRequest PostIdReques
 func (h *PostHandler) AdminDeletePostBatch(c *gin.Context, postIDListRequest PostIDListRequest) *apiwrap.Response[any] {
 	err := h.serv.AdminDeletePostBatch(c, apiwrap.ToObjectIDList(apiwrap.ConvertBsonIDList(postIDListRequest.IDList)))
 	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
 	}
 	return apiwrap.SuccessWithMsg("批量删除文章成功")
 }
@@ -124,7 +121,7 @@ func (h *PostHandler) AdminDeletePostBatch(c *gin.Context, postIDListRequest Pos
 func (h *PostHandler) GetPublishPostList(c *gin.Context, pageReq apiwrap.Page) *apiwrap.Response[any] {
 	postDetailList, total, err := h.serv.GetPostList(c, &pageReq, "publish")
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error())
+		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
 	}
 	postVos := h.PostDetailListToVOList(postDetailList)
 
@@ -136,7 +133,7 @@ func (h *PostHandler) GetPublishPostList(c *gin.Context, pageReq apiwrap.Page) *
 func (h *PostHandler) AdminGetDraftDetailPostList(c *gin.Context, pageReq apiwrap.Page) *apiwrap.Response[any] {
 	postDetailList, total, err := h.serv.GetPostList(c, &pageReq, "draft")
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error())
+		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
 	}
 	postVos := h.PostDetailListToVOList(postDetailList)
 
@@ -147,7 +144,7 @@ func (h *PostHandler) AdminGetDraftDetailPostList(c *gin.Context, pageReq apiwra
 func (h *PostHandler) AdminGetBinDetailPostList(c *gin.Context, pageReq apiwrap.Page) *apiwrap.Response[any] {
 	postDetailList, total, err := h.serv.GetPostList(c, &pageReq, "bin")
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error())
+		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
 	}
 	postVos := h.PostDetailListToVOList(postDetailList)
 
@@ -159,16 +156,29 @@ func (h *PostHandler) AdminGetBinDetailPostList(c *gin.Context, pageReq apiwrap.
 func (h *PostHandler) GetPostById(c *gin.Context, postIDRequest PostIdRequest) *apiwrap.Response[any] {
 	postDetail, err := h.serv.GetPostDetailById(c, apiwrap.ConvertBsonID(postIDRequest.Id).ToObjectID())
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error())
+		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
 	}
 	return apiwrap.SuccessWithDetail[any](h.PostDetailToVO(postDetail), "获取文章详情成功")
+}
+
+// FindByAlias 根据别名获取文章详情
+func (h *PostHandler) FindByAlias(c *gin.Context) *apiwrap.Response[any] {
+	alias := c.Param("alias")
+	if alias == "" {
+		return apiwrap.FailWithMsg(http.StatusBadRequest, "别名不能为空")
+	}
+	post, err := h.serv.FindByAlias(c, alias)
+	if err != nil {
+		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
+	}
+	return apiwrap.SuccessWithDetail[any](h.PostToVO(post), "获取文章详情成功")
 }
 
 func (h *PostHandler) GetPostByKeyWord(c *gin.Context) *apiwrap.Response[any] {
 	keyword := c.Query("keyword")
 	postList, err := h.serv.GetPostByKeyWord(c, keyword)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error())
+		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
 	}
 	return apiwrap.SuccessWithDetail[any](h.PostListToVOList(postList), "获取文章成功")
 }
@@ -176,23 +186,7 @@ func (h *PostHandler) GetPostByKeyWord(c *gin.Context) *apiwrap.Response[any] {
 func (h *PostHandler) GetAllPublishPost(c *gin.Context) *apiwrap.Response[any] {
 	postList, err := h.serv.GetAllPublishPost(c)
 	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
 	}
 	return apiwrap.SuccessWithDetail[any](h.PostListToVOList(postList), "获取所有发布文章成功")
-}
-
-func (h *PostHandler) GetSiteMap(c *gin.Context) *apiwrap.Response[any] {
-	postList, err := h.serv.GetAllPublishPost(c)
-	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
-	}
-	setting, err := h.settingService.GetSetting(c, "seo_setting")
-	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
-	}
-	var seoSetting SeoSettingVO
-	bj, _ := json.Marshal(setting.Value)
-	json.Unmarshal(bj, &seoSetting)
-	siteMapVos := h.PostListToSiteMapVOList(postList, seoSetting.SiteUrl)
-	return apiwrap.SuccessWithDetail[any](siteMapVos, "获取站点地图成功")
 }

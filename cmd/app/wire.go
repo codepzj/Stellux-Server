@@ -14,7 +14,6 @@ import (
 	"github.com/codepzj/stellux/server/internal/file"
 	"github.com/codepzj/stellux/server/internal/label"
 	"github.com/codepzj/stellux/server/internal/post"
-	"github.com/codepzj/stellux/server/internal/setting"
 	"github.com/google/wire"
 )
 
@@ -41,9 +40,6 @@ func InitApp() *HttpServer {
 
 		document_content.InitDocumentContentModule,
 		wire.FieldsOf(new(*document_content.Module), "Hdl"),
-
-		setting.InitSettingModule,
-		wire.FieldsOf(new(*setting.Module), "Hdl"),
 
 		friend.InitFriendModule,
 		wire.FieldsOf(new(*friend.Module), "Hdl"),

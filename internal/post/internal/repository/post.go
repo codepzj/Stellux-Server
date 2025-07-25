@@ -29,6 +29,8 @@ type IPostRepository interface {
 	GetDetailByID(ctx context.Context, id bson.ObjectID) (*domain.PostDetail, error)
 	GetList(ctx context.Context, page *apiwrap.Page, postType string) ([]*domain.PostDetail, int64, error)
 	GetAllPublishPost(ctx context.Context) ([]*domain.Post, error)
+	FindByAlias(ctx context.Context, alias string) (*domain.Post, error)
+	FindAliasIsExist(ctx context.Context, alias string) (bool, error)
 }
 
 var _ IPostRepository = (*PostRepository)(nil)
@@ -152,6 +154,18 @@ func (r *PostRepository) GetAllPublishPost(ctx context.Context) ([]*domain.Post,
 	return r.PostDOToPostDomainList(posts), nil
 }
 
+func (r *PostRepository) FindByAlias(ctx context.Context, alias string) (*domain.Post, error) {
+	post, err := r.dao.FindByAlias(ctx, alias)
+	if err != nil {
+		return nil, err
+	}
+	return r.PostDOToPostDomain(post), nil
+}
+
+func (r *PostRepository) FindAliasIsExist(ctx context.Context, alias string) (bool, error) {
+	return r.dao.FindAliasIsExist(ctx, alias)
+}
+
 // PostDomain2PostDO 将domain.Post转换为dao.Post
 func (r *PostRepository) PostDomainToPostDO(post *domain.Post) *dao.Post {
 	return &dao.Post{
@@ -160,6 +174,7 @@ func (r *PostRepository) PostDomainToPostDO(post *domain.Post) *dao.Post {
 		Content:     post.Content,
 		Description: post.Description,
 		Author:      post.Author,
+		Alias:       post.Alias,
 		CategoryID:  post.CategoryID,
 		TagsID:      post.TagsID,
 		IsPublish:   post.IsPublish,
@@ -175,6 +190,7 @@ func (r *PostRepository) PostDomainToUpdatePostDO(post *domain.Post) *dao.Update
 		Content:     post.Content,
 		Description: post.Description,
 		Author:      post.Author,
+		Alias:       post.Alias,
 		CategoryID:  post.CategoryID,
 		TagsID:      post.TagsID,
 		IsPublish:   post.IsPublish,
@@ -199,6 +215,7 @@ func (r *PostRepository) PostDOToPostDomain(post *dao.Post) *domain.Post {
 		Content:     post.Content,
 		Description: post.Description,
 		Author:      post.Author,
+		Alias:       post.Alias,
 		CategoryID:  post.CategoryID,
 		TagsID:      post.TagsID,
 		IsPublish:   post.IsPublish,
@@ -217,6 +234,7 @@ func (r *PostRepository) PostCategoryTagsDOToPostDetail(postCategoryTags *dao.Po
 		Content:     postCategoryTags.Content,
 		Description: postCategoryTags.Description,
 		Author:      postCategoryTags.Author,
+		Alias:       postCategoryTags.Alias,
 		Category:    postCategoryTags.Category,
 		Tags:        postCategoryTags.Tags,
 		Thumbnail:   postCategoryTags.Thumbnail,

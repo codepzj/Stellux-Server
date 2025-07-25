@@ -21,6 +21,7 @@ type Post struct {
 	Content      string          `bson:"content"`
 	Description  string          `bson:"description"`
 	Author       string          `bson:"author"`
+	Alias        string          `bson:"alias"`
 	CategoryID   bson.ObjectID   `bson:"category_id"`
 	TagsID       []bson.ObjectID `bson:"tags_id"`
 	IsPublish    bool            `bson:"is_publish"`
@@ -33,6 +34,7 @@ type PostUpdate struct {
 	Content     string          `bson:"content"`
 	Description string          `bson:"description"`
 	Author      string          `bson:"author"`
+	Alias       string          `bson:"alias"`
 	CategoryID  bson.ObjectID   `bson:"category_id"`
 	TagsID      []bson.ObjectID `bson:"tags_id"`
 	IsPublish   bool            `bson:"is_publish"`
@@ -49,6 +51,7 @@ type PostCategoryTags struct {
 	Content     string         `bson:"content"`
 	Description string         `bson:"description"`
 	Author      string         `bson:"author"`
+	Alias       string         `bson:"alias"`
 	Category    label.Domain   `bson:"category"`
 	Tags        []label.Domain `bson:"tags"`
 	IsPublish   bool           `bson:"is_publish"`
@@ -62,6 +65,7 @@ type UpdatePost struct {
 	Content     string          `bson:"content"`
 	Description string          `bson:"description"`
 	Author      string          `bson:"author"`
+	Alias       string          `bson:"alias"`
 	CategoryID  bson.ObjectID   `bson:"category_id"`
 	TagsID      []bson.ObjectID `bson:"tags_id"`
 	IsPublish   bool            `bson:"is_publish"`
@@ -84,6 +88,8 @@ type IPostDao interface {
 	GetDetailByID(ctx context.Context, id bson.ObjectID) (*PostCategoryTags, error)
 	GetList(ctx context.Context, pagePipeline mongo.Pipeline, cond bson.D) ([]*PostCategoryTags, int64, error)
 	GetAllPublishPost(ctx context.Context) ([]*Post, error)
+	FindByAlias(ctx context.Context, alias string) (*Post, error)
+	FindAliasIsExist(ctx context.Context, alias string) (bool, error)
 }
 
 var _ IPostDao = (*PostDao)(nil)
@@ -210,4 +216,25 @@ func (d *PostDao) RestoreBatch(ctx context.Context, ids []bson.ObjectID) error {
 // GetAllPublishPost 获取所有发布文章
 func (d *PostDao) GetAllPublishPost(ctx context.Context) ([]*Post, error) {
 	return d.coll.Finder().Filter(query.Eq("is_publish", true)).Sort(bson.M{"updated_at": -1}).Find(ctx)
+}
+
+// FindByAlias 根据别名获取文章
+func (d *PostDao) FindByAlias(ctx context.Context, alias string) (*Post, error) {
+	post, err := d.coll.Finder().Filter(query.Eq("alias", alias)).FindOne(ctx)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return post, nil
+}
+
+// FindAliasIsExist 判断别名是否存在
+func (d *PostDao) FindAliasIsExist(ctx context.Context, alias string) (bool, error) {
+	count, err := d.coll.Finder().Filter(query.Eq("alias", alias)).Count(ctx)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
