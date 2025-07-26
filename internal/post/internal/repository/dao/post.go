@@ -227,9 +227,6 @@ func (d *PostDao) GetAllPublishPost(ctx context.Context) ([]*Post, error) {
 func (d *PostDao) FindByAlias(ctx context.Context, alias string) (*Post, error) {
 	post, err := d.coll.Finder().Filter(query.Eq("alias", alias)).FindOne(ctx)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, nil
-		}
 		return nil, err
 	}
 	return post, nil

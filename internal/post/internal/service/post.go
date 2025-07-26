@@ -8,6 +8,7 @@ import (
 	"github.com/codepzj/stellux/server/internal/post/internal/domain"
 	"github.com/codepzj/stellux/server/internal/post/internal/repository"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type IPostService interface {
@@ -41,25 +42,21 @@ type PostService struct {
 }
 
 func (s *PostService) AdminCreatePost(ctx context.Context, post *domain.Post) error {
-	existPost, err := s.repo.FindByAlias(ctx, post.Alias)
-	if err != nil {
+	if existPost, err := s.repo.FindByAlias(ctx, post.Alias); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
 		return err
-	}
-	if existPost != nil {
+	} else if existPost != nil {
 		return errors.New("别名已存在")
 	}
 	return s.repo.Create(ctx, post)
 }
 
 func (s *PostService) AdminUpdatePost(ctx context.Context, post *domain.Post) error {
-	existPost, err := s.repo.FindByAlias(ctx, post.Alias)
-	if err != nil {
+	if existPost, err := s.repo.FindByAlias(ctx, post.Alias); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
 		return err
+	} else if existPost != nil && existPost.Id != post.Id {
+		return errors.New("别名已存在")
 	}
-	if existPost == nil || existPost.Id == post.Id {
-		return s.repo.Update(ctx, post)
-	}
-	return errors.New("别名已存在")
+	return s.repo.Update(ctx, post)
 }
 
 func (s *PostService) AdminUpdatePostPublishStatus(ctx context.Context, id bson.ObjectID, isPublish bool) error {
