@@ -7,10 +7,10 @@ import (
 )
 
 type (
-	Handler        = web.PostHandler
-	Service        = service.IPostService
-	LabelDomain    = label.Domain
-	Module         struct {
+	Handler     = web.PostHandler
+	Service     = service.IPostService
+	LabelDomain = label.Domain
+	Module      struct {
 		Svc Service
 		Hdl *Handler
 	}

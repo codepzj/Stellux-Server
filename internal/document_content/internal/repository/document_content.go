@@ -390,7 +390,7 @@ func (r *DocumentContentRepository) GetDocumentContentListByAlias(ctx context.Co
 	results := make([]*domain.DocumentContent, len(docContentList))
 	for i, doc := range docContentList {
 		results[i] = &domain.DocumentContent{
-			Id:          doc.ID,
+			Id: doc.ID,
 		}
 	}
 	return results, nil
