@@ -104,7 +104,7 @@ func (r *LabelRepository) LabelDomainToLabelDO(label *domain.Label) *dao.Label {
 
 func (r *LabelRepository) LabelDoToDomain(label *dao.Label) *domain.Label {
 	return &domain.Label{
-		ID:        label.ID,
+		Id:        label.ID,
 		LabelType: label.LabelType,
 		Name:      label.Name,
 	}
@@ -119,7 +119,7 @@ func (r *LabelRepository) LabelDoToDomainList(labels []*dao.Label) []*domain.Lab
 func (r *LabelRepository) LabelPostCountDoToDomainList(labelPostCounts []*dao.LabelPostCount) []*domain.LabelPostCount {
 	return lo.Map(labelPostCounts, func(labelPostCount *dao.LabelPostCount, _ int) *domain.LabelPostCount {
 		return &domain.LabelPostCount{
-			ID:        labelPostCount.ID,
+			Id:        labelPostCount.ID,
 			LabelType: labelPostCount.LabelType,
 			Name:      labelPostCount.Name,
 			Count:     labelPostCount.Count,

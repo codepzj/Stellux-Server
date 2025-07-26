@@ -9,7 +9,6 @@ import (
 	"github.com/chenmingyong0423/go-mongox/v2/builder/update"
 	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type Document struct {
@@ -24,16 +23,16 @@ type Document struct {
 }
 
 type IDocumentDao interface {
-	CreateDocument(ctx context.Context, doc Document) (bson.ObjectID, error)
-	FindDocumentById(ctx context.Context, id bson.ObjectID) (Document, error)
-	UpdateDocumentById(ctx context.Context, id bson.ObjectID, doc Document) error
+	CreateDocument(ctx context.Context, doc *Document) (bson.ObjectID, error)
+	FindDocumentById(ctx context.Context, id bson.ObjectID) (*Document, error)
+	UpdateDocumentById(ctx context.Context, id bson.ObjectID, doc *Document) error
 	DeleteDocumentById(ctx context.Context, id bson.ObjectID) error
 	SoftDeleteDocumentById(ctx context.Context, id bson.ObjectID) error
 	RestoreDocumentById(ctx context.Context, id bson.ObjectID) error
-	FindDocumentByAlias(ctx context.Context, alias string, filter bson.D) (Document, error)
-	GetDocumentList(ctx context.Context, page *Page) ([]Document, int64, error)
-	GetPublicDocumentList(ctx context.Context, page *Page) ([]Document, int64, error)
-	GetAllPublicDocuments(ctx context.Context) ([]Document, error)
+	FindDocumentByAlias(ctx context.Context, alias string) (*Document, error)
+	GetDocumentList(ctx context.Context, page *Page) ([]*Document, int64, error)
+	GetPublicDocumentList(ctx context.Context, page *Page) ([]*Document, int64, error)
+	GetAllPublicDocuments(ctx context.Context) ([]*Document, error)
 }
 
 // Page 分页查询参数
@@ -52,23 +51,23 @@ type DocumentDao struct {
 	coll *mongox.Collection[Document]
 }
 
-func (d *DocumentDao) CreateDocument(ctx context.Context, doc Document) (bson.ObjectID, error) {
-	result, err := d.coll.Creator().InsertOne(ctx, &doc)
+func (d *DocumentDao) CreateDocument(ctx context.Context, doc *Document) (bson.ObjectID, error) {
+	result, err := d.coll.Creator().InsertOne(ctx, doc)
 	if err != nil {
 		return bson.ObjectID{}, err
 	}
 	return result.InsertedID.(bson.ObjectID), nil
 }
 
-func (d *DocumentDao) FindDocumentById(ctx context.Context, id bson.ObjectID) (Document, error) {
+func (d *DocumentDao) FindDocumentById(ctx context.Context, id bson.ObjectID) (*Document, error) {
 	document, err := d.coll.Finder().Filter(query.Id(id)).FindOne(ctx)
 	if err != nil {
-		return Document{}, err
+		return nil, err
 	}
-	return *document, nil
+	return document, nil
 }
 
-func (d *DocumentDao) UpdateDocumentById(ctx context.Context, id bson.ObjectID, doc Document) error {
+func (d *DocumentDao) UpdateDocumentById(ctx context.Context, id bson.ObjectID, doc *Document) error {
 	result, err := d.coll.Updater().Filter(query.Id(id)).Updates(update.SetFields(bson.D{
 		{Key: "title", Value: doc.Title},
 		{Key: "description", Value: doc.Description},
@@ -125,18 +124,15 @@ func (d *DocumentDao) RestoreDocumentById(ctx context.Context, id bson.ObjectID)
 	return nil
 }
 
-func (d *DocumentDao) FindDocumentByAlias(ctx context.Context, alias string, filter bson.D) (Document, error) {
-	document, err := d.coll.Finder().Filter(query.Eq("alias", alias)).Filter(filter).FindOne(ctx)
-	if errors.Is(err, mongo.ErrNoDocuments) {
-		return Document{}, errors.New("文档不存在")
-	}
+func (d *DocumentDao) FindDocumentByAlias(ctx context.Context, alias string) (*Document, error) {
+	document, err := d.coll.Finder().Filter(query.Eq("alias", alias)).FindOne(ctx)
 	if err != nil {
-		return Document{}, err
+		return nil, err
 	}
-	return *document, nil
+	return document, nil
 }
 
-func (d *DocumentDao) GetDocumentList(ctx context.Context, page *Page) ([]Document, int64, error) {
+func (d *DocumentDao) GetDocumentList(ctx context.Context, page *Page) ([]*Document, int64, error) {
 	skip := (page.PageNo - 1) * page.PageSize
 
 	// 获取总数
@@ -156,15 +152,10 @@ func (d *DocumentDao) GetDocumentList(ctx context.Context, page *Page) ([]Docume
 		return nil, 0, err
 	}
 
-	results := make([]Document, len(documents))
-	for i, doc := range documents {
-		results[i] = *doc
-	}
-
-	return results, count, nil
+	return documents, count, nil
 }
 
-func (d *DocumentDao) GetPublicDocumentList(ctx context.Context, page *Page) ([]Document, int64, error) {
+func (d *DocumentDao) GetPublicDocumentList(ctx context.Context, page *Page) ([]*Document, int64, error) {
 	skip := (page.PageNo - 1) * page.PageSize
 
 	// 获取总数
@@ -184,16 +175,11 @@ func (d *DocumentDao) GetPublicDocumentList(ctx context.Context, page *Page) ([]
 		return nil, 0, err
 	}
 
-	results := make([]Document, len(documents))
-	for i, doc := range documents {
-		results[i] = *doc
-	}
-
-	return results, count, nil
+	return documents, count, nil
 }
 
 // GetAllPublicDocuments 获取所有公开文档
-func (d *DocumentDao) GetAllPublicDocuments(ctx context.Context) ([]Document, error) {
+func (d *DocumentDao) GetAllPublicDocuments(ctx context.Context) ([]*Document, error) {
 	documents, err := d.coll.Finder().
 		Filter(query.And(query.Eq("is_public", true), query.Eq("is_deleted", false))).
 		Sort(bson.D{{Key: "sort", Value: 1}, {Key: "created_at", Value: -1}}).
@@ -201,11 +187,5 @@ func (d *DocumentDao) GetAllPublicDocuments(ctx context.Context) ([]Document, er
 	if err != nil {
 		return nil, err
 	}
-
-	results := make([]Document, len(documents))
-	for i, doc := range documents {
-		results[i] = *doc
-	}
-
-	return results, nil
+	return documents, nil
 }

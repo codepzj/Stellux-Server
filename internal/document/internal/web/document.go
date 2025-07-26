@@ -49,7 +49,7 @@ func (h *DocumentHandler) RegisterGinRoutes(engine *gin.Engine) {
 
 // AdminCreateDocument 管理员创建文档
 func (h *DocumentHandler) AdminCreateDocument(c *gin.Context, req DocumentCreateRequest) *apiwrap.Response[any] {
-	id, err := h.serv.CreateDocument(c, domain.Document{
+	id, err := h.serv.CreateDocument(c, &domain.Document{
 		Title:       req.Title,
 		Description: req.Description,
 		Thumbnail:   req.Thumbnail,
@@ -98,7 +98,7 @@ func (h *DocumentHandler) AdminUpdateDocument(c *gin.Context, req DocumentUpdate
 		return apiwrap.FailWithMsg(http.StatusBadRequest, "id格式错误")
 	}
 
-	err = h.serv.UpdateDocumentById(c, objId, domain.Document{
+	err = h.serv.UpdateDocumentById(c, objId, &domain.Document{
 		Title:       req.Title,
 		Description: req.Description,
 		Thumbnail:   req.Thumbnail,
@@ -164,7 +164,7 @@ func (h *DocumentHandler) AdminFindDocumentByAlias(c *gin.Context) *apiwrap.Resp
 		return apiwrap.FailWithMsg(http.StatusBadRequest, "alias不能为空")
 	}
 
-	doc, err := h.serv.FindDocumentByAlias(c, alias, bson.D{})
+	doc, err := h.serv.FindDocumentByAlias(c, alias)
 	if err != nil {
 		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
 	}
@@ -243,7 +243,7 @@ func (h *DocumentHandler) FindDocumentByAlias(c *gin.Context) *apiwrap.Response[
 		return apiwrap.FailWithMsg(http.StatusBadRequest, "alias不能为空")
 	}
 
-	doc, err := h.serv.FindDocumentByAlias(c, alias, bson.D{{Key: "is_public", Value: true}, {Key: "is_deleted", Value: false}})
+	doc, err := h.serv.FindDocumentByAlias(c, alias)
 	if err != nil {
 		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
 	}
@@ -346,7 +346,7 @@ func (h *DocumentHandler) GetDocument(c *gin.Context) *apiwrap.Response[any] {
 }
 
 // DocumentDomainToVOList 将domain对象转换为VO列表
-func (h *DocumentHandler) DocumentDomainToVOList(docs []domain.Document) []DocumentVO {
+func (h *DocumentHandler) DocumentDomainToVOList(docs []*domain.Document) []DocumentVO {
 	docsVO := make([]DocumentVO, len(docs))
 	for i, doc := range docs {
 		docsVO[i] = DocumentVO{

@@ -11,7 +11,7 @@ import (
 )
 
 type PostVO struct {
-	ID          string    `json:"id"`
+	Id          string    `json:"id"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 	Title       string    `json:"title"`
@@ -60,8 +60,8 @@ func (h *PostHandler) PostDTOToDomain(postReq PostDto) *domain.Post {
 		Description: postReq.Description,
 		Author:      postReq.Author,
 		Alias:       postReq.Alias,
-		CategoryID:  apiwrap.ConvertBsonID(postReq.CategoryID).ToObjectID(),
-		TagsID:      apiwrap.ToObjectIDList(apiwrap.ConvertBsonIDList(postReq.TagsID)),
+		CategoryId:  apiwrap.ConvertBsonID(postReq.CategoryID).ToObjectID(),
+		TagsId:      apiwrap.ToObjectIDList(apiwrap.ConvertBsonIDList(postReq.TagsID)),
 		IsPublish:   postReq.IsPublish,
 		IsTop:       postReq.IsTop,
 		Thumbnail:   postReq.Thumbnail,
@@ -70,15 +70,15 @@ func (h *PostHandler) PostDTOToDomain(postReq PostDto) *domain.Post {
 
 func (h *PostHandler) PostUpdateDTOToDomain(postUpdateReq PostUpdateDto) *domain.Post {
 	return &domain.Post{
-		ID:          apiwrap.ConvertBsonID(postUpdateReq.Id).ToObjectID(),
+		Id:          apiwrap.ConvertBsonID(postUpdateReq.Id).ToObjectID(),
 		CreatedAt:   postUpdateReq.CreatedAt,
 		Title:       postUpdateReq.Title,
 		Content:     postUpdateReq.Content,
 		Description: postUpdateReq.Description,
 		Author:      postUpdateReq.Author,
 		Alias:       postUpdateReq.Alias,
-		CategoryID:  apiwrap.ConvertBsonID(postUpdateReq.CategoryID).ToObjectID(),
-		TagsID:      apiwrap.ToObjectIDList(apiwrap.ConvertBsonIDList(postUpdateReq.TagsID)),
+		CategoryId:  apiwrap.ConvertBsonID(postUpdateReq.CategoryID).ToObjectID(),
+		TagsId:      apiwrap.ToObjectIDList(apiwrap.ConvertBsonIDList(postUpdateReq.TagsID)),
 		IsPublish:   postUpdateReq.IsPublish,
 		IsTop:       postUpdateReq.IsTop,
 		Thumbnail:   postUpdateReq.Thumbnail,
@@ -87,7 +87,7 @@ func (h *PostHandler) PostUpdateDTOToDomain(postUpdateReq PostUpdateDto) *domain
 
 func (h *PostHandler) PostDetailToVO(post *domain.PostDetail) *PostDetailVO {
 	return &PostDetailVO{
-		ID:          post.ID.Hex(),
+		ID:          post.Id.Hex(),
 		CreatedAt:   post.CreatedAt,
 		UpdatedAt:   post.UpdatedAt,
 		Title:       post.Title,
@@ -111,7 +111,7 @@ func (h *PostHandler) PostDetailListToVOList(posts []*domain.PostDetail) []*Post
 
 func (h *PostHandler) PostToVO(post *domain.Post) *PostVO {
 	return &PostVO{
-		ID:          post.ID.Hex(),
+		Id:          post.Id.Hex(),
 		CreatedAt:   post.CreatedAt,
 		UpdatedAt:   post.UpdatedAt,
 		Title:       post.Title,
@@ -119,8 +119,8 @@ func (h *PostHandler) PostToVO(post *domain.Post) *PostVO {
 		Description: post.Description,
 		Author:      post.Author,
 		Alias:       post.Alias,
-		CategoryID:  post.CategoryID.Hex(),
-		TagsID: lo.Map(post.TagsID, func(id bson.ObjectID, _ int) string {
+		CategoryID:  post.CategoryId.Hex(),
+		TagsID: lo.Map(post.TagsId, func(id bson.ObjectID, _ int) string {
 			return id.Hex()
 		}),
 		IsPublish: post.IsPublish,

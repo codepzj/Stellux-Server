@@ -9,7 +9,7 @@ import (
 
 // Post 文章
 type Post struct {
-	ID          bson.ObjectID   // 文章ID
+	Id          bson.ObjectID   // 文章ID
 	CreatedAt   time.Time       // 创建时间
 	UpdatedAt   time.Time       // 更新时间
 	Title       string          // 标题
@@ -17,27 +17,29 @@ type Post struct {
 	Description string          // 描述
 	Author      string          // 作者
 	Alias       string          // 别名
-	CategoryID  bson.ObjectID   // 分类ID
-	TagsID      []bson.ObjectID // 标签ID
+	CategoryId  bson.ObjectID   // 分类ID
+	TagsId      []bson.ObjectID // 标签ID
 	IsPublish   bool            // 是否发布
 	IsTop       bool            // 是否置顶
 	Thumbnail   string          // 缩略图
 }
 
 type PostDetail struct {
-	ID          bson.ObjectID  // 文章ID
-	CreatedAt   time.Time      // 创建时间
-	UpdatedAt   time.Time      // 更新时间
-	Title       string         // 标题
-	Content     string         // 内容
-	Description string         // 描述
-	Author      string         // 作者
-	Alias       string         // 别名
-	Category    label.Domain   // 分类
-	Tags        []label.Domain // 标签
-	IsPublish   bool           // 是否发布
-	IsTop       bool           // 是否置顶
-	Thumbnail   string         // 缩略图
+	Id          bson.ObjectID   // 文章ID
+	CreatedAt   time.Time       // 创建时间
+	UpdatedAt   time.Time       // 更新时间
+	Title       string          // 标题
+	Content     string          // 内容
+	Description string          // 描述
+	Author      string          // 作者
+	Alias       string          // 别名
+	CategoryId  bson.ObjectID   // 分类Id
+	Category    label.Domain    // 分类
+	TagsId      []bson.ObjectID // 标签Id
+	Tags        []label.Domain  // 标签
+	IsPublish   bool            // 是否发布
+	IsTop       bool            // 是否置顶
+	Thumbnail   string          // 缩略图
 }
 
 // Page 分页

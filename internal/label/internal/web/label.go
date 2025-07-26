@@ -50,7 +50,7 @@ func (h *LabelHandler) AdminCreate(c *gin.Context, label *LabelRequest) *apiwrap
 // AdminUpdate 更新标签
 func (h *LabelHandler) AdminUpdate(c *gin.Context, label *LabelRequest) *apiwrap.Response[any] {
 	err := h.serv.UpdateLabel(c, label.ID, &domain.Label{
-		ID:        apiwrap.ConvertBsonID(label.ID).ToObjectID(),
+		Id:        apiwrap.ConvertBsonID(label.ID).ToObjectID(),
 		LabelType: label.LabelType,
 		Name:      label.Name,
 	})
@@ -127,7 +127,7 @@ func (h *LabelHandler) QueryTagsLabelWithCount(c *gin.Context) *apiwrap.Response
 
 func (h *LabelHandler) LabelDTOToDomain(label *LabelRequest) *domain.Label {
 	return &domain.Label{
-		ID:        apiwrap.ConvertBsonID(label.ID).ToObjectID(),
+		Id:        apiwrap.ConvertBsonID(label.ID).ToObjectID(),
 		LabelType: label.LabelType,
 		Name:      label.Name,
 	}
@@ -135,7 +135,7 @@ func (h *LabelHandler) LabelDTOToDomain(label *LabelRequest) *domain.Label {
 
 func (h *LabelHandler) LabelDomainToVO(label *domain.Label) *LabelVO {
 	return &LabelVO{
-		ID:        label.ID.Hex(),
+		ID:        label.Id.Hex(),
 		LabelType: label.LabelType,
 		Name:      label.Name,
 	}
@@ -150,7 +150,7 @@ func (h *LabelHandler) DomainToVOList(labels []*domain.Label) []*LabelVO {
 func (h *LabelHandler) LabelWithCountDomainToVOList(labels []*domain.LabelPostCount) []*LabelWithCountVO {
 	return lo.Map(labels, func(label *domain.LabelPostCount, _ int) *LabelWithCountVO {
 		return &LabelWithCountVO{
-			ID:        label.ID.Hex(),
+			ID:        label.Id.Hex(),
 			LabelType: label.LabelType,
 			Name:      label.Name,
 			Count:     label.Count,

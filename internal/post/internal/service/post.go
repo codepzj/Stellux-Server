@@ -26,7 +26,6 @@ type IPostService interface {
 	GetPostList(ctx context.Context, page *apiwrap.Page, postType string) ([]*domain.PostDetail, int64, error)
 	GetAllPublishPost(ctx context.Context) ([]*domain.Post, error)
 	FindByAlias(ctx context.Context, alias string) (*domain.Post, error)
-	FindAliasIsExist(ctx context.Context, alias string) (bool, error)
 }
 
 var _ IPostService = (*PostService)(nil)
@@ -42,25 +41,25 @@ type PostService struct {
 }
 
 func (s *PostService) AdminCreatePost(ctx context.Context, post *domain.Post) error {
-	exist, err := s.repo.FindAliasIsExist(ctx, post.Alias)
+	existPost, err := s.repo.FindByAlias(ctx, post.Alias)
 	if err != nil {
 		return err
 	}
-	if exist {
+	if existPost != nil {
 		return errors.New("别名已存在")
 	}
 	return s.repo.Create(ctx, post)
 }
 
 func (s *PostService) AdminUpdatePost(ctx context.Context, post *domain.Post) error {
-	exist, err := s.repo.FindAliasIsExist(ctx, post.Alias)
+	existPost, err := s.repo.FindByAlias(ctx, post.Alias)
 	if err != nil {
 		return err
 	}
-	if exist {
-		return errors.New("别名已存在")
+	if existPost == nil || existPost.Id == post.Id {
+		return s.repo.Update(ctx, post)
 	}
-	return s.repo.Update(ctx, post)
+	return errors.New("别名已存在")
 }
 
 func (s *PostService) AdminUpdatePostPublishStatus(ctx context.Context, id bson.ObjectID, isPublish bool) error {
@@ -124,9 +123,4 @@ func (s *PostService) GetAllPublishPost(ctx context.Context) ([]*domain.Post, er
 // FindByAlias 根据别名获取文章
 func (s *PostService) FindByAlias(ctx context.Context, alias string) (*domain.Post, error) {
 	return s.repo.FindByAlias(ctx, alias)
-}
-
-// JudgeAliasUnique 判断别名是否唯一
-func (s *PostService) FindAliasIsExist(ctx context.Context, alias string) (bool, error) {
-	return s.repo.FindAliasIsExist(ctx, alias)
 }

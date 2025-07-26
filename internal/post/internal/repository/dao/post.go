@@ -2,6 +2,7 @@ package dao
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/chenmingyong0423/go-mongox/v2"
@@ -44,7 +45,7 @@ type PostUpdate struct {
 
 // 聚合查询返回带有category和tags的结构体
 type PostCategoryTags struct {
-	ID          bson.ObjectID  `bson:"_id"`
+	Id          bson.ObjectID  `bson:"_id"`
 	CreatedAt   time.Time      `bson:"created_at"`
 	UpdatedAt   time.Time      `bson:"updated_at"`
 	Title       string         `bson:"title"`
@@ -66,8 +67,8 @@ type UpdatePost struct {
 	Description string          `bson:"description"`
 	Author      string          `bson:"author"`
 	Alias       string          `bson:"alias"`
-	CategoryID  bson.ObjectID   `bson:"category_id"`
-	TagsID      []bson.ObjectID `bson:"tags_id"`
+	CategoryId  bson.ObjectID   `bson:"category_id"`
+	TagsId      []bson.ObjectID `bson:"tags_id"`
 	IsPublish   bool            `bson:"is_publish"`
 	IsTop       bool            `bson:"is_top"`
 	Thumbnail   string          `bson:"thumbnail"`
@@ -89,7 +90,6 @@ type IPostDao interface {
 	GetList(ctx context.Context, pagePipeline mongo.Pipeline, cond bson.D) ([]*PostCategoryTags, int64, error)
 	GetAllPublishPost(ctx context.Context) ([]*Post, error)
 	FindByAlias(ctx context.Context, alias string) (*Post, error)
-	FindAliasIsExist(ctx context.Context, alias string) (bool, error)
 }
 
 var _ IPostDao = (*PostDao)(nil)
@@ -178,7 +178,12 @@ func (d *PostDao) GetDetailByID(ctx context.Context, id bson.ObjectID) (*PostCat
 
 // GetByID 获取文章
 func (d *PostDao) GetByID(ctx context.Context, id bson.ObjectID) (*Post, error) {
-	return d.coll.Finder().Filter(query.Id(id)).FindOne(ctx)
+	post, err := d.coll.Finder().Filter(query.Id(id)).FindOne(ctx)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(*post)
+	return post, nil
 }
 
 // GetByKeyWord 获取文章
@@ -228,13 +233,4 @@ func (d *PostDao) FindByAlias(ctx context.Context, alias string) (*Post, error) 
 		return nil, err
 	}
 	return post, nil
-}
-
-// FindAliasIsExist 判断别名是否存在
-func (d *PostDao) FindAliasIsExist(ctx context.Context, alias string) (bool, error) {
-	count, err := d.coll.Finder().Filter(query.Eq("alias", alias)).Count(ctx)
-	if err != nil {
-		return false, err
-	}
-	return count > 0, nil
 }

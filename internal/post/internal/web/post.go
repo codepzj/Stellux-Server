@@ -35,11 +35,12 @@ func (h *PostHandler) RegisterGinRoutes(engine *gin.Engine) {
 	}
 	postGroup := engine.Group("/post")
 	{
-		postGroup.GET("/list", apiwrap.WrapWithQuery(h.GetPublishPostList)) // 获取发布文章列表
-		postGroup.GET("/:id", apiwrap.WrapWithUri(h.GetPostById))           // 获取文章详情
-		postGroup.GET("/alias/:alias", apiwrap.Wrap(h.FindByAlias))         // 根据别名获取文章详情
-		postGroup.GET("/search", apiwrap.Wrap(h.GetPostByKeyWord))          // 搜索文章
-		postGroup.GET("/all", apiwrap.Wrap(h.GetAllPublishPost))            // 获取所有发布文章
+		postGroup.GET("/list", apiwrap.WrapWithQuery(h.GetPublishPostList))    // 获取发布文章列表
+		postGroup.GET("/:id", apiwrap.WrapWithUri(h.GetPostById))              // 获取文章
+		postGroup.GET("/detail/:id", apiwrap.WrapWithUri(h.GetPostDetailById)) // 获取文章详情
+		postGroup.GET("/alias/:alias", apiwrap.Wrap(h.FindByAlias))            // 根据别名获取文章详情
+		postGroup.GET("/search", apiwrap.Wrap(h.GetPostByKeyWord))             // 搜索文章
+		postGroup.GET("/all", apiwrap.Wrap(h.GetAllPublishPost))               // 获取所有发布文章
 	}
 }
 
@@ -152,13 +153,22 @@ func (h *PostHandler) AdminGetBinDetailPostList(c *gin.Context, pageReq apiwrap.
 	return apiwrap.SuccessWithDetail[any](pageVo, "获取回收站文章列表成功")
 }
 
-// GetPostById 获取文章详情
-func (h *PostHandler) GetPostById(c *gin.Context, postIDRequest PostIdRequest) *apiwrap.Response[any] {
+// GetPostDetailById 获取文章详情
+func (h *PostHandler) GetPostDetailById(c *gin.Context, postIDRequest PostIdRequest) *apiwrap.Response[any] {
 	postDetail, err := h.serv.GetPostDetailById(c, apiwrap.ConvertBsonID(postIDRequest.Id).ToObjectID())
 	if err != nil {
 		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
 	}
 	return apiwrap.SuccessWithDetail[any](h.PostDetailToVO(postDetail), "获取文章详情成功")
+}
+
+// GetPostById 获取文章详情
+func (h *PostHandler) GetPostById(c *gin.Context, postIDRequest PostIdRequest) *apiwrap.Response[any] {
+	post, err := h.serv.GetPostById(c, apiwrap.ConvertBsonID(postIDRequest.Id).ToObjectID())
+	if err != nil {
+		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
+	}
+	return apiwrap.SuccessWithDetail[any](h.PostToVO(post), "获取文章详情成功")
 }
 
 // FindByAlias 根据别名获取文章详情

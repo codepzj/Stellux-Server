@@ -9,16 +9,16 @@ import (
 )
 
 type IDocumentRepository interface {
-	CreateDocument(ctx context.Context, doc domain.Document) (bson.ObjectID, error)
-	FindDocumentById(ctx context.Context, id bson.ObjectID) (domain.Document, error)
-	UpdateDocumentById(ctx context.Context, id bson.ObjectID, doc domain.Document) error
+	CreateDocument(ctx context.Context, doc *domain.Document) (bson.ObjectID, error)
+	FindDocumentById(ctx context.Context, id bson.ObjectID) (*domain.Document, error)
+	UpdateDocumentById(ctx context.Context, id bson.ObjectID, doc *domain.Document) error
 	DeleteDocumentById(ctx context.Context, id bson.ObjectID) error
 	SoftDeleteDocumentById(ctx context.Context, id bson.ObjectID) error
 	RestoreDocumentById(ctx context.Context, id bson.ObjectID) error
-	FindDocumentByAlias(ctx context.Context, alias string, filter bson.D) (domain.Document, error)
-	GetDocumentList(ctx context.Context, page *domain.Page) ([]domain.Document, int64, error)
-	GetPublicDocumentList(ctx context.Context, page *domain.Page) ([]domain.Document, int64, error)
-	GetAllPublicDocuments(ctx context.Context) ([]domain.Document, error)
+	FindDocumentByAlias(ctx context.Context, alias string) (*domain.Document, error)
+	GetDocumentList(ctx context.Context, page *domain.Page) ([]*domain.Document, int64, error)
+	GetPublicDocumentList(ctx context.Context, page *domain.Page) ([]*domain.Document, int64, error)
+	GetAllPublicDocuments(ctx context.Context) ([]*domain.Document, error)
 }
 
 var _ IDocumentRepository = (*DocumentRepository)(nil)
@@ -31,8 +31,8 @@ type DocumentRepository struct {
 	dao dao.IDocumentDao
 }
 
-func (r *DocumentRepository) CreateDocument(ctx context.Context, doc domain.Document) (bson.ObjectID, error) {
-	return r.dao.CreateDocument(ctx, dao.Document{
+func (r *DocumentRepository) CreateDocument(ctx context.Context, doc *domain.Document) (bson.ObjectID, error) {
+	return r.dao.CreateDocument(ctx, &dao.Document{
 		Title:       doc.Title,
 		Description: doc.Description,
 		Thumbnail:   doc.Thumbnail,
@@ -44,12 +44,12 @@ func (r *DocumentRepository) CreateDocument(ctx context.Context, doc domain.Docu
 }
 
 // FindDocumentById 根据条件查询文档
-func (r *DocumentRepository) FindDocumentById(ctx context.Context, id bson.ObjectID) (domain.Document, error) {
+func (r *DocumentRepository) FindDocumentById(ctx context.Context, id bson.ObjectID) (*domain.Document, error) {
 	doc, err := r.dao.FindDocumentById(ctx, id)
 	if err != nil {
-		return domain.Document{}, err
+		return nil, err
 	}
-	return domain.Document{
+	return &domain.Document{
 		Id:          doc.ID,
 		CreatedAt:   doc.CreatedAt,
 		UpdatedAt:   doc.UpdatedAt,
@@ -64,8 +64,8 @@ func (r *DocumentRepository) FindDocumentById(ctx context.Context, id bson.Objec
 }
 
 // UpdateDocumentById 根据id更新文档
-func (r *DocumentRepository) UpdateDocumentById(ctx context.Context, id bson.ObjectID, doc domain.Document) error {
-	return r.dao.UpdateDocumentById(ctx, id, dao.Document{
+func (r *DocumentRepository) UpdateDocumentById(ctx context.Context, id bson.ObjectID, doc *domain.Document) error {
+	return r.dao.UpdateDocumentById(ctx, id, &dao.Document{
 		Title:       doc.Title,
 		Description: doc.Description,
 		Thumbnail:   doc.Thumbnail,
@@ -92,12 +92,12 @@ func (r *DocumentRepository) RestoreDocumentById(ctx context.Context, id bson.Ob
 }
 
 // FindDocumentByAlias 根据别名查询文档
-func (r *DocumentRepository) FindDocumentByAlias(ctx context.Context, alias string, filter bson.D) (domain.Document, error) {
-	doc, err := r.dao.FindDocumentByAlias(ctx, alias, filter)
+func (r *DocumentRepository) FindDocumentByAlias(ctx context.Context, alias string) (*domain.Document, error) {
+	doc, err := r.dao.FindDocumentByAlias(ctx, alias)
 	if err != nil {
-		return domain.Document{}, err
+		return nil, err
 	}
-	return domain.Document{
+	return &domain.Document{
 		Id:          doc.ID,
 		CreatedAt:   doc.CreatedAt,
 		UpdatedAt:   doc.UpdatedAt,
@@ -112,7 +112,7 @@ func (r *DocumentRepository) FindDocumentByAlias(ctx context.Context, alias stri
 }
 
 // GetDocumentList 获取文档列表
-func (r *DocumentRepository) GetDocumentList(ctx context.Context, page *domain.Page) ([]domain.Document, int64, error) {
+func (r *DocumentRepository) GetDocumentList(ctx context.Context, page *domain.Page) ([]*domain.Document, int64, error) {
 	docs, count, err := r.dao.GetDocumentList(ctx, &dao.Page{
 		PageNo:   page.PageNo,
 		PageSize: page.PageSize,
@@ -121,9 +121,9 @@ func (r *DocumentRepository) GetDocumentList(ctx context.Context, page *domain.P
 		return nil, 0, err
 	}
 
-	results := make([]domain.Document, len(docs))
+	results := make([]*domain.Document, len(docs))
 	for i, doc := range docs {
-		results[i] = domain.Document{
+		results[i] = &domain.Document{
 			Id:          doc.ID,
 			CreatedAt:   doc.CreatedAt,
 			UpdatedAt:   doc.UpdatedAt,
@@ -140,7 +140,7 @@ func (r *DocumentRepository) GetDocumentList(ctx context.Context, page *domain.P
 }
 
 // GetPublicDocumentList 获取公开文档列表
-func (r *DocumentRepository) GetPublicDocumentList(ctx context.Context, page *domain.Page) ([]domain.Document, int64, error) {
+func (r *DocumentRepository) GetPublicDocumentList(ctx context.Context, page *domain.Page) ([]*domain.Document, int64, error) {
 	docs, count, err := r.dao.GetPublicDocumentList(ctx, &dao.Page{
 		PageNo:   page.PageNo,
 		PageSize: page.PageSize,
@@ -149,9 +149,9 @@ func (r *DocumentRepository) GetPublicDocumentList(ctx context.Context, page *do
 		return nil, 0, err
 	}
 
-	results := make([]domain.Document, len(docs))
+	results := make([]*domain.Document, len(docs))
 	for i, doc := range docs {
-		results[i] = domain.Document{
+		results[i] = &domain.Document{
 			Id:          doc.ID,
 			CreatedAt:   doc.CreatedAt,
 			UpdatedAt:   doc.UpdatedAt,
@@ -168,15 +168,15 @@ func (r *DocumentRepository) GetPublicDocumentList(ctx context.Context, page *do
 }
 
 // GetAllPublicDocuments 获取所有公开文档
-func (r *DocumentRepository) GetAllPublicDocuments(ctx context.Context) ([]domain.Document, error) {
+func (r *DocumentRepository) GetAllPublicDocuments(ctx context.Context) ([]*domain.Document, error) {
 	docs, err := r.dao.GetAllPublicDocuments(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	results := make([]domain.Document, len(docs))
+	results := make([]*domain.Document, len(docs))
 	for i, doc := range docs {
-		results[i] = domain.Document{
+		results[i] = &domain.Document{
 			Id:          doc.ID,
 			CreatedAt:   doc.CreatedAt,
 			UpdatedAt:   doc.UpdatedAt,

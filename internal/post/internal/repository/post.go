@@ -30,7 +30,6 @@ type IPostRepository interface {
 	GetList(ctx context.Context, page *apiwrap.Page, postType string) ([]*domain.PostDetail, int64, error)
 	GetAllPublishPost(ctx context.Context) ([]*domain.Post, error)
 	FindByAlias(ctx context.Context, alias string) (*domain.Post, error)
-	FindAliasIsExist(ctx context.Context, alias string) (bool, error)
 }
 
 var _ IPostRepository = (*PostRepository)(nil)
@@ -48,7 +47,7 @@ func (r *PostRepository) Create(ctx context.Context, post *domain.Post) error {
 }
 
 func (r *PostRepository) Update(ctx context.Context, post *domain.Post) error {
-	return r.dao.Update(ctx, post.ID, r.PostDomainToUpdatePostDO(post))
+	return r.dao.Update(ctx, post.Id, r.PostDomainToUpdatePostDO(post))
 }
 
 // UpdatePostPublishStatus 更新文章发布状态
@@ -162,10 +161,6 @@ func (r *PostRepository) FindByAlias(ctx context.Context, alias string) (*domain
 	return r.PostDOToPostDomain(post), nil
 }
 
-func (r *PostRepository) FindAliasIsExist(ctx context.Context, alias string) (bool, error) {
-	return r.dao.FindAliasIsExist(ctx, alias)
-}
-
 // PostDomain2PostDO 将domain.Post转换为dao.Post
 func (r *PostRepository) PostDomainToPostDO(post *domain.Post) *dao.Post {
 	return &dao.Post{
@@ -175,8 +170,8 @@ func (r *PostRepository) PostDomainToPostDO(post *domain.Post) *dao.Post {
 		Description: post.Description,
 		Author:      post.Author,
 		Alias:       post.Alias,
-		CategoryID:  post.CategoryID,
-		TagsID:      post.TagsID,
+		CategoryID:  post.CategoryId,
+		TagsID:      post.TagsId,
 		IsPublish:   post.IsPublish,
 		IsTop:       post.IsTop,
 		Thumbnail:   post.Thumbnail,
@@ -191,8 +186,8 @@ func (r *PostRepository) PostDomainToUpdatePostDO(post *domain.Post) *dao.Update
 		Description: post.Description,
 		Author:      post.Author,
 		Alias:       post.Alias,
-		CategoryID:  post.CategoryID,
-		TagsID:      post.TagsID,
+		CategoryId:  post.CategoryId,
+		TagsId:      post.TagsId,
 		IsPublish:   post.IsPublish,
 		IsTop:       post.IsTop,
 		Thumbnail:   post.Thumbnail,
@@ -208,7 +203,7 @@ func (r *PostRepository) PostDOToPostDomainList(posts []*dao.Post) []*domain.Pos
 // PostDOToPostDomain 将dao.Post转换为domain.Post
 func (r *PostRepository) PostDOToPostDomain(post *dao.Post) *domain.Post {
 	return &domain.Post{
-		ID:          post.ID,
+		Id:          post.ID,
 		CreatedAt:   post.CreatedAt,
 		UpdatedAt:   post.UpdatedAt,
 		Title:       post.Title,
@@ -216,8 +211,8 @@ func (r *PostRepository) PostDOToPostDomain(post *dao.Post) *domain.Post {
 		Description: post.Description,
 		Author:      post.Author,
 		Alias:       post.Alias,
-		CategoryID:  post.CategoryID,
-		TagsID:      post.TagsID,
+		CategoryId:  post.CategoryID,
+		TagsId:      post.TagsID,
 		IsPublish:   post.IsPublish,
 		IsTop:       post.IsTop,
 		Thumbnail:   post.Thumbnail,
@@ -227,7 +222,7 @@ func (r *PostRepository) PostDOToPostDomain(post *dao.Post) *domain.Post {
 // PostCategoryTagsDOToPostDetail 将dao.PostCategoryTags转换为domain.PostDetail
 func (r *PostRepository) PostCategoryTagsDOToPostDetail(postCategoryTags *dao.PostCategoryTags) *domain.PostDetail {
 	return &domain.PostDetail{
-		ID:          postCategoryTags.ID,
+		Id:          postCategoryTags.Id,
 		CreatedAt:   postCategoryTags.CreatedAt,
 		UpdatedAt:   postCategoryTags.UpdatedAt,
 		Title:       postCategoryTags.Title,
