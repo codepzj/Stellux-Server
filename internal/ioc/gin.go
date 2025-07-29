@@ -4,7 +4,6 @@ import (
 	"github.com/codepzj/stellux/server/internal/document"
 	"github.com/codepzj/stellux/server/internal/document_content"
 	"github.com/codepzj/stellux/server/internal/file"
-	"github.com/codepzj/stellux/server/internal/friend"
 	"github.com/codepzj/stellux/server/internal/label"
 	"github.com/codepzj/stellux/server/internal/pkg/apiwrap"
 	"github.com/codepzj/stellux/server/internal/post"
@@ -16,7 +15,7 @@ import (
 )
 
 // NewGin 初始化gin服务器
-func NewGin(userHdl *user.Handler, postHdl *post.Handler, labelHdl *label.Handler, fileHdl *file.Handler, documentHdl *document.Handler, friendHdl *friend.Handler, documentContentHdl *document_content.Handler, middleware []gin.HandlerFunc) *gin.Engine {
+func NewGin(userHdl *user.Handler, postHdl *post.Handler, labelHdl *label.Handler, fileHdl *file.Handler, documentHdl *document.Handler, documentContentHdl *document_content.Handler, middleware []gin.HandlerFunc) *gin.Engine {
 	router := gin.Default()
 
 	// 验证器
@@ -40,7 +39,6 @@ func NewGin(userHdl *user.Handler, postHdl *post.Handler, labelHdl *label.Handle
 		labelHdl.RegisterGinRoutes(router)
 		fileHdl.RegisterGinRoutes(router)
 		documentHdl.RegisterGinRoutes(router)
-		friendHdl.RegisterGinRoutes(router)
 		documentContentHdl.RegisterGinRoutes(router)
 	}
 

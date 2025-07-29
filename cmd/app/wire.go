@@ -6,7 +6,6 @@ package app
 import (
 	"github.com/codepzj/stellux/server/internal/document"
 	"github.com/codepzj/stellux/server/internal/document_content"
-	"github.com/codepzj/stellux/server/internal/friend"
 	"github.com/codepzj/stellux/server/internal/ioc"
 	"github.com/codepzj/stellux/server/internal/user"
 
@@ -39,9 +38,6 @@ func InitApp() *HttpServer {
 
 		document_content.InitDocumentContentModule,
 		wire.FieldsOf(new(*document_content.Module), "Hdl"),
-
-		friend.InitFriendModule,
-		wire.FieldsOf(new(*friend.Module), "Hdl"),
 
 		NewHttpServer,
 	)
