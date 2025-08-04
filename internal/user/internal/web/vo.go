@@ -15,8 +15,7 @@ type UserVO struct {
 }
 
 type LoginVO struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
+	AccessToken string `json:"access_token"`
 }
 
 func (h *UserHandler) UserDomainToVO(user *domain.User) *UserVO {

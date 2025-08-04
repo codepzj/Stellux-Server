@@ -24,22 +24,6 @@ func GenerateAccessToken(id string) (string, error) {
 			Subject:   "stellux",
 			IssuedAt:  jwt.NewNumericDate(now),
 			NotBefore: jwt.NewNumericDate(now),
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
-		},
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtKey)
-}
-
-func GenerateRefreshToken(id string) (string, error) {
-	now := time.Now().Local()
-	claims := JwtCustomClaims{
-		ID: id,
-		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    "stellux",
-			Subject:   "stellux",
-			IssuedAt:  jwt.NewNumericDate(now),
-			NotBefore: jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour)),
 		},
 	}

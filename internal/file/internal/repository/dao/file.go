@@ -17,7 +17,7 @@ type File struct {
 }
 
 type IFileDao interface {
-	CreateMany(ctx context.Context, files []*File) error
+	Create(ctx context.Context, file *File) error
 	Get(ctx context.Context, id bson.ObjectID) (*File, error)
 	GetList(ctx context.Context, skip int64, limit int64) ([]*File, int64, error)
 	GetListByIDList(ctx context.Context, idList []bson.ObjectID) ([]*File, error)
@@ -36,13 +36,13 @@ type FileDao struct {
 	coll *mongox.Collection[File]
 }
 
-func (d *FileDao) CreateMany(ctx context.Context, files []*File) error {
-	insertResult, err := d.coll.Creator().InsertMany(ctx, files)
+func (d *FileDao) Create(ctx context.Context, file *File) error {
+	result, err := d.coll.Creator().InsertOne(ctx, file)
 	if err != nil {
 		return err
 	}
-	if len(insertResult.InsertedIDs) != len(files) {
-		return errors.New("文件信息与保存数量不匹配")
+	if result.InsertedID == nil {
+		return errors.New("保存文件失败")
 	}
 	return nil
 }

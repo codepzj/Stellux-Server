@@ -11,7 +11,7 @@ import (
 )
 
 type IFileRepository interface {
-	CreateMany(ctx context.Context, files []*domain.File) error
+	Create(ctx context.Context, file *domain.File) error
 	Get(ctx context.Context, id bson.ObjectID) (*domain.File, error)
 	GetList(ctx context.Context, page *apiwrap.Page) ([]*domain.File, int64, error)
 	GetListByIDList(ctx context.Context, idList []bson.ObjectID) ([]*domain.File, error)
@@ -29,8 +29,8 @@ type FileRepository struct {
 	dao dao.IFileDao
 }
 
-func (r *FileRepository) CreateMany(ctx context.Context, files []*domain.File) error {
-	return r.dao.CreateMany(ctx, r.FileDomainToDaoList(files))
+func (r *FileRepository) Create(ctx context.Context, file *domain.File) error {
+	return r.dao.Create(ctx, r.FileDomainToDao(file))
 }
 
 func (r *FileRepository) Get(ctx context.Context, id bson.ObjectID) (*domain.File, error) {

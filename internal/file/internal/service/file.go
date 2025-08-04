@@ -16,7 +16,7 @@ import (
 )
 
 type IFileService interface {
-	UploadFiles(ctx *gin.Context, files []*multipart.FileHeader) error
+	UploadFile(ctx *gin.Context, file *multipart.FileHeader) error
 	QueryFileList(ctx *gin.Context, page *apiwrap.Page) ([]*domain.File, int64, error)
 	DeleteFiles(ctx *gin.Context, idList []string) error
 }
@@ -33,40 +33,35 @@ type FileService struct {
 	repo repository.IFileRepository
 }
 
-func (s *FileService) UploadFiles(ctx *gin.Context, files []*multipart.FileHeader) error {
-	var uploadFiles []*domain.File
+func (s *FileService) UploadFile(ctx *gin.Context, file *multipart.FileHeader) error {
 	err := os.MkdirAll("static/images", os.ModePerm)
 	if err != nil {
 		return err
 	}
 
 	// 获取domain文件信息
-	for i := range files {
-		fileName := files[i].Filename
-		// 生成新的文件名
-		timestamp := time.Now().Unix()
-		newFileName := strconv.FormatInt(timestamp, 10) + utils.RandString(10) + filepath.Ext(fileName)
-		networkPath := "/images/" + newFileName
-		filePath := "static/images/" + newFileName
-		uploadFile := &domain.File{
-			FileName: fileName,
-			Url:      networkPath,
-			Dst:      filePath,
-		}
-		uploadFiles = append(uploadFiles, uploadFile)
+
+	fileName := file.Filename
+	// 生成新的文件名
+	timestamp := time.Now().Unix()
+	newFileName := strconv.FormatInt(timestamp, 10) + utils.RandString(10) + filepath.Ext(fileName)
+	networkPath := "/images/" + newFileName
+	filePath := "static/images/" + newFileName
+	uploadFile := &domain.File{
+		FileName: fileName,
+		Url:      networkPath,
+		Dst:      filePath,
 	}
 
-	// 遍历保存文件
-	for i, uploadFile := range uploadFiles {
-		os.MkdirAll(filepath.Dir(uploadFile.Dst), 0755)
-		err := ctx.SaveUploadedFile(files[i], uploadFile.Dst)
-		if err != nil {
-			return errors.Wrapf(err, "保存文件失败: %s", uploadFile.FileName)
-		}
+	// 保存文件
+	os.MkdirAll(filepath.Dir(uploadFile.Dst), 0755)
+	err = ctx.SaveUploadedFile(file, uploadFile.Dst)
+	if err != nil {
+		return errors.Wrapf(err, "保存文件失败: %s", uploadFile.FileName)
 	}
 
 	// 5. 存入数据库
-	err = s.repo.CreateMany(ctx, uploadFiles)
+	err = s.repo.Create(ctx, uploadFile)
 	if err != nil {
 		return err
 	}

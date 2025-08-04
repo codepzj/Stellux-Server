@@ -1,8 +1,6 @@
 package web
 
 import (
-	"time"
-
 	"github.com/codepzj/stellux/server/internal/pkg/apiwrap"
 	"github.com/codepzj/stellux/server/internal/pkg/middleware"
 	"github.com/codepzj/stellux/server/internal/pkg/utils"
@@ -24,7 +22,6 @@ type UserHandler struct {
 func (h *UserHandler) RegisterGinRoutes(engine *gin.Engine) {
 	userGroup := engine.Group("/user")
 	{
-		userGroup.GET("/refresh", apiwrap.Wrap(h.RefreshToken))
 		userGroup.POST("/login", apiwrap.WrapWithJson(h.Login))
 	}
 	adminGroup := engine.Group("/admin-api/user")
@@ -52,43 +49,10 @@ func (h *UserHandler) Login(c *gin.Context, userRequest LoginRequest) *apiwrap.R
 	if err != nil {
 		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
 	}
-	refreshToken, err := utils.GenerateRefreshToken(id)
-	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
-	}
 	loginVO := LoginVO{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+		AccessToken: accessToken,
 	}
 	return apiwrap.SuccessWithDetail[any](loginVO, "登录成功")
-}
-
-func (h *UserHandler) RefreshToken(c *gin.Context) *apiwrap.Response[any] {
-	// 校验refresh_token是否有效
-	refreshToken := c.Query("refresh_token")
-	if refreshToken == "" {
-		return apiwrap.FailWithMsg(apiwrap.RuquestBadRequest, "refresh_token不能为空")
-	}
-	claims, err := utils.ParseToken(refreshToken)
-	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RequestRefreshTokenExpired, "refresh_token已过期,请重新登录")
-	}
-	accessToken, err := utils.GenerateAccessToken(claims.ID)
-	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
-	}
-	// 若refresh_token临近过期，则生成新的refresh_token
-	if claims.ExpiresAt.Before(time.Now().Add(time.Hour * 24 * 7)) {
-		var err error
-		refreshToken, err = utils.GenerateRefreshToken(claims.ID)
-		if err != nil {
-			return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
-		}
-	}
-	return apiwrap.SuccessWithDetail[any](LoginVO{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-	}, "刷新token成功")
 }
 
 func (h *UserHandler) AdminCreateUser(c *gin.Context, createUserRequest CreateUserRequest) *apiwrap.Response[any] {
