@@ -194,9 +194,9 @@ func (h *PostHandler) GetPostByKeyWord(c *gin.Context) (*apiwrap.Response[any], 
 }
 
 func (h *PostHandler) GetAllPublishPost(c *gin.Context) (*apiwrap.Response[any], error) {
-	postList, err := h.serv.GetAllPublishPost(c)
+	postDetailList, err := h.serv.GetAllPublishPost(c)
 	if err != nil {
 		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
-	return apiwrap.SuccessWithDetail[any](h.PostListToVOList(postList), "获取所有发布文章成功"), nil
+	return apiwrap.SuccessWithDetail[any](h.PostDetailListToVOList(postDetailList), "获取所有发布文章成功"), nil
 }

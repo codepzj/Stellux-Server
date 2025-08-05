@@ -28,7 +28,7 @@ type IPostRepository interface {
 	GetByKeyWord(ctx context.Context, keyWord string) ([]*domain.Post, error)
 	GetDetailByID(ctx context.Context, id bson.ObjectID) (*domain.PostDetail, error)
 	GetList(ctx context.Context, page *apiwrap.Page, postType string) ([]*domain.PostDetail, int64, error)
-	GetAllPublishPost(ctx context.Context) ([]*domain.Post, error)
+	GetAllPublishPost(ctx context.Context) ([]*domain.PostDetail, error)
 	FindByAlias(ctx context.Context, alias string) (*domain.Post, error)
 }
 
@@ -155,12 +155,29 @@ func (r *PostRepository) GetList(ctx context.Context, page *apiwrap.Page, postTy
 	return r.PostCategoryTagsDOToPostDetailList(posts), count, nil
 }
 
-func (r *PostRepository) GetAllPublishPost(ctx context.Context) ([]*domain.Post, error) {
-	posts, err := r.dao.GetAllPublishPost(ctx)
+func (r *PostRepository) GetAllPublishPost(ctx context.Context) ([]*domain.PostDetail, error) {
+	var cond bson.D
+	builder := query.NewBuilder().And(query.Eq("deleted_at", nil)).And(query.Eq("is_publish", true))
+	cond = builder.Build()
+	sortBuilder := bsonx.NewD().Add("is_top", -1).Add("created_at", -1)
+	pipeline := aggregation.NewStageBuilder().Match(cond).
+		Lookup("label", "category", &aggregation.LookUpOptions{
+			LocalField:   "category_id",
+			ForeignField: "_id",
+		}).
+		Unwind("$category", &aggregation.UnWindOptions{
+			PreserveNullAndEmptyArrays: true,
+		}).
+		Lookup("label", "tags", &aggregation.LookUpOptions{
+			LocalField:   "tags_id",
+			ForeignField: "_id",
+		}).
+		Sort(sortBuilder.Build()).Build()
+	posts, _, err := r.dao.GetList(ctx, pipeline, cond)
 	if err != nil {
 		return nil, err
 	}
-	return r.PostDOToPostDomainList(posts), nil
+	return r.PostCategoryTagsDOToPostDetailList(posts), nil
 }
 
 func (r *PostRepository) FindByAlias(ctx context.Context, alias string) (*domain.Post, error) {

@@ -25,7 +25,7 @@ type IPostService interface {
 	GetPostByKeyWord(ctx context.Context, keyWord string) ([]*domain.Post, error)
 	GetPostDetailById(ctx context.Context, id bson.ObjectID) (*domain.PostDetail, error)
 	GetPostList(ctx context.Context, page *apiwrap.Page, postType string) ([]*domain.PostDetail, int64, error)
-	GetAllPublishPost(ctx context.Context) ([]*domain.Post, error)
+	GetAllPublishPost(ctx context.Context) ([]*domain.PostDetail, error)
 	FindByAlias(ctx context.Context, alias string) (*domain.Post, error)
 }
 
@@ -113,7 +113,7 @@ func (s *PostService) GetPostList(ctx context.Context, page *apiwrap.Page, postT
 }
 
 // GetAllPublishPost 获取所有发布文章
-func (s *PostService) GetAllPublishPost(ctx context.Context) ([]*domain.Post, error) {
+func (s *PostService) GetAllPublishPost(ctx context.Context) ([]*domain.PostDetail, error) {
 	return s.repo.GetAllPublishPost(ctx)
 }
 
