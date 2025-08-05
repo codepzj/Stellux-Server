@@ -116,27 +116,37 @@ func (r *PostRepository) GetByKeyWord(ctx context.Context, keyWord string) ([]*d
 // GetList 获取文章列表
 func (r *PostRepository) GetList(ctx context.Context, page *apiwrap.Page, postType string) ([]*domain.PostDetail, int64, error) {
 	var cond bson.D
+	builder := query.NewBuilder().
+		Or(
+			query.RegexOptions("title", page.Keyword, "i"),
+			query.RegexOptions("description", page.Keyword, "i"),
+		).And(query.Eq("deleted_at", nil))
 	switch postType {
 	case "publish":
-		cond = query.NewBuilder().Or(query.RegexOptions("title", page.Keyword, "i"), query.RegexOptions("description", page.Keyword, "i")).And(query.Eq("deleted_at", nil), query.Eq("is_publish", true)).Build()
+		builder = builder.And(query.Eq("is_publish", true))
 	case "draft":
-		cond = query.NewBuilder().Or(query.RegexOptions("title", page.Keyword, "i"), query.RegexOptions("description", page.Keyword, "i")).And(query.Eq("deleted_at", nil), query.Eq("is_publish", false)).Build()
-	case "bin":
-		cond = query.NewBuilder().Or(query.RegexOptions("title", page.Keyword, "i"), query.RegexOptions("description", page.Keyword, "i")).And(query.Ne("deleted_at", nil)).Build()
+		builder = builder.And(query.Eq("is_publish", false))
 	}
+	cond = builder.Build()
 	skip := (page.PageNo - 1) * page.PageSize
 	limit := page.PageSize
 	sortBuilder := bsonx.NewD().Add("is_top", -1).Add("created_at", -1)
 	if page.Field != "" {
 		sortBuilder.Add(page.Field, r.OrderConvertToInt(page.Order))
 	}
-	pagePipeline := aggregation.NewStageBuilder().Match(cond).Lookup("label", "category", &aggregation.LookUpOptions{
-		LocalField:   "category_id",
-		ForeignField: "_id",
-	}).Unwind("$category", nil).Lookup("label", "tags", &aggregation.LookUpOptions{
-		LocalField:   "tags_id",
-		ForeignField: "_id",
-	}).Sort(sortBuilder.Build()).Skip(skip).Limit(limit).Build()
+	pagePipeline := aggregation.NewStageBuilder().Match(cond).
+		Lookup("label", "category", &aggregation.LookUpOptions{
+			LocalField:   "category_id",
+			ForeignField: "_id",
+		}).
+		Unwind("$category", &aggregation.UnWindOptions{
+			PreserveNullAndEmptyArrays: true,
+		}).
+		Lookup("label", "tags", &aggregation.LookUpOptions{
+			LocalField:   "tags_id",
+			ForeignField: "_id",
+		}).
+		Sort(sortBuilder.Build()).Skip(skip).Limit(limit).Build()
 
 	posts, count, err := r.dao.GetList(ctx, pagePipeline, cond)
 	if err != nil {

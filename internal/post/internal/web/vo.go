@@ -7,7 +7,6 @@ import (
 	"github.com/codepzj/stellux/server/internal/pkg/apiwrap"
 	"github.com/codepzj/stellux/server/internal/post/internal/domain"
 	"github.com/samber/lo"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type PostVO struct {
@@ -110,6 +109,17 @@ func (h *PostHandler) PostDetailListToVOList(posts []*domain.PostDetail) []*Post
 }
 
 func (h *PostHandler) PostToVO(post *domain.Post) *PostVO {
+	categoryId := ""
+	tagsId := []string{}
+	// mongodb查询得到的categoryId和tagsId可能出现空值，转成字符串需要处理
+	if !post.CategoryId.IsZero() {
+		categoryId = post.CategoryId.Hex()
+	}
+	for i := 0; i < len(post.TagsId); i++ {
+		if !post.TagsId[i].IsZero() {
+			tagsId = append(tagsId, post.TagsId[i].Hex())
+		}
+	}
 	return &PostVO{
 		Id:          post.Id.Hex(),
 		CreatedAt:   post.CreatedAt,
@@ -119,13 +129,11 @@ func (h *PostHandler) PostToVO(post *domain.Post) *PostVO {
 		Description: post.Description,
 		Author:      post.Author,
 		Alias:       post.Alias,
-		CategoryID:  post.CategoryId.Hex(),
-		TagsID: lo.Map(post.TagsId, func(id bson.ObjectID, _ int) string {
-			return id.Hex()
-		}),
-		IsPublish: post.IsPublish,
-		IsTop:     post.IsTop,
-		Thumbnail: post.Thumbnail,
+		CategoryID:  categoryId,
+		TagsID:      tagsId,
+		IsPublish:   post.IsPublish,
+		IsTop:       post.IsTop,
+		Thumbnail:   post.Thumbnail,
 	}
 }
 

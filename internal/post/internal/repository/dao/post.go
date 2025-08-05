@@ -2,7 +2,6 @@ package dao
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/chenmingyong0423/go-mongox/v2"
@@ -182,7 +181,6 @@ func (d *PostDao) GetByID(ctx context.Context, id bson.ObjectID) (*Post, error) 
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(*post)
 	return post, nil
 }
 
