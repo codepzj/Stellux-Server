@@ -1,9 +1,18 @@
-package global
+package app
 
 import (
+	"flag"
 	"io"
 	"log/slog"
 	"os"
+
+	"github.com/spf13/viper"
+)
+
+// 命令行参数
+var (
+	Mode   = flag.String("mode", "development", "运行模式,eg: development/production")
+	Config = flag.String("config", "config/stellux.development.yaml", "配置文件路径,eg: config/stellux.development.yaml")
 )
 
 func InitLogger(mode string) {
@@ -33,4 +42,22 @@ func InitLogger(mode string) {
 	}
 
 	slog.SetDefault(slog.New(handler))
+}
+
+func InitViper(config string) {
+	viper.SetConfigFile(config)
+	slog.Info("使用配置文件", "config", config)
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic("viper读取配置文件失败")
+	}
+}
+
+func init() {
+	// 解析命令行参数
+	flag.Parse()
+	// 初始化logger
+	InitLogger(*Mode)
+	// 初始化viper
+	InitViper(*Config)
 }

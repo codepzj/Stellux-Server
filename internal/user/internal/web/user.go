@@ -1,6 +1,8 @@
 package web
 
 import (
+	"errors"
+
 	"github.com/codepzj/stellux/server/internal/pkg/apiwrap"
 	"github.com/codepzj/stellux/server/internal/pkg/middleware"
 	"github.com/codepzj/stellux/server/internal/pkg/utils"
@@ -36,26 +38,26 @@ func (h *UserHandler) RegisterGinRoutes(engine *gin.Engine) {
 	}
 }
 
-func (h *UserHandler) Login(c *gin.Context, userRequest LoginRequest) *apiwrap.Response[any] {
+func (h *UserHandler) Login(c *gin.Context, userRequest LoginRequest) (*apiwrap.Response[any], error) {
 	user := domain.User{
 		Username: userRequest.Username,
 		Password: userRequest.Password,
 	}
 	exist, id := h.serv.CheckUserExist(c, &user)
 	if !exist {
-		return apiwrap.FailWithMsg(apiwrap.RuquestBadRequest, "用户名或密码错误")
+		return apiwrap.FailWithMsg(400, "用户名或密码错误"), errors.New("用户名或密码错误")
 	}
 	accessToken, err := utils.GenerateAccessToken(id)
 	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
 	loginVO := LoginVO{
 		AccessToken: accessToken,
 	}
-	return apiwrap.SuccessWithDetail[any](loginVO, "登录成功")
+	return apiwrap.SuccessWithDetail[any](loginVO, "登录成功"), nil
 }
 
-func (h *UserHandler) AdminCreateUser(c *gin.Context, createUserRequest CreateUserRequest) *apiwrap.Response[any] {
+func (h *UserHandler) AdminCreateUser(c *gin.Context, createUserRequest CreateUserRequest) (*apiwrap.Response[any], error) {
 	user := domain.User{
 		Username: createUserRequest.Username,
 		Password: createUserRequest.Password,
@@ -66,12 +68,12 @@ func (h *UserHandler) AdminCreateUser(c *gin.Context, createUserRequest CreateUs
 	}
 	err := h.serv.AdminCreate(c, &user)
 	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
-	return apiwrap.SuccessWithMsg("创建用户成功")
+	return apiwrap.SuccessWithMsg("创建用户成功"), nil
 }
 
-func (h *UserHandler) AdminUpdateUser(c *gin.Context, updateUserRequest UpdateUserRequest) *apiwrap.Response[any] {
+func (h *UserHandler) AdminUpdateUser(c *gin.Context, updateUserRequest UpdateUserRequest) (*apiwrap.Response[any], error) {
 	user := domain.User{
 		ID:       apiwrap.ConvertBsonID(updateUserRequest.ID).ToObjectID(),
 		Nickname: updateUserRequest.Nickname,
@@ -80,44 +82,44 @@ func (h *UserHandler) AdminUpdateUser(c *gin.Context, updateUserRequest UpdateUs
 	}
 	err := h.serv.AdminUpdate(c, &user)
 	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
-	return apiwrap.SuccessWithMsg("更新用户成功")
+	return apiwrap.SuccessWithMsg("更新用户成功"), nil
 }
 
-func (h *UserHandler) AdminUpdatePassword(c *gin.Context, updatePasswordRequest UpdatePasswordRequest) *apiwrap.Response[any] {
+func (h *UserHandler) AdminUpdatePassword(c *gin.Context, updatePasswordRequest UpdatePasswordRequest) (*apiwrap.Response[any], error) {
 	err := h.serv.AdminUpdatePassword(c, updatePasswordRequest.ID, updatePasswordRequest.OldPassword, updatePasswordRequest.NewPassword)
 	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
-	return apiwrap.SuccessWithMsg("更新密码成功")
+	return apiwrap.SuccessWithMsg("更新密码成功"), nil
 }
 
-func (h *UserHandler) AdminDeleteUser(c *gin.Context) *apiwrap.Response[any] {
+func (h *UserHandler) AdminDeleteUser(c *gin.Context) (*apiwrap.Response[any], error) {
 	id := c.Param("id")
 	err := h.serv.AdminDelete(c, id)
 	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
-	return apiwrap.SuccessWithMsg("删除用户成功")
+	return apiwrap.SuccessWithMsg("删除用户成功"), nil
 }
 
-func (h *UserHandler) AdminGetUserList(c *gin.Context, page apiwrap.Page) *apiwrap.Response[any] {
+func (h *UserHandler) AdminGetUserList(c *gin.Context, page apiwrap.Page) (*apiwrap.Response[any], error) {
 	users, count, err := h.serv.GetUserList(c, &domain.Page{
 		PageNo:   page.PageNo,
 		PageSize: page.PageSize,
 	})
 	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
-	return apiwrap.SuccessWithDetail[any](apiwrap.ToPageVO(page.PageNo, page.PageSize, count, h.UserDomainToVOList(users)), "获取用户列表成功")
+	return apiwrap.SuccessWithDetail[any](apiwrap.ToPageVO(page.PageNo, page.PageSize, count, h.UserDomainToVOList(users)), "获取用户列表成功"), nil
 }
 
-func (h *UserHandler) AdminGetUserInfo(c *gin.Context) *apiwrap.Response[any] {
+func (h *UserHandler) AdminGetUserInfo(c *gin.Context) (*apiwrap.Response[any], error) {
 	id := c.GetString("userId")
 	user, err := h.serv.GetUserInfo(c, id)
 	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
-	return apiwrap.SuccessWithDetail[any](h.UserDomainToVO(user), "获取用户信息成功")
+	return apiwrap.SuccessWithDetail[any](h.UserDomainToVO(user), "获取用户信息成功"), nil
 }

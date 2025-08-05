@@ -1,8 +1,9 @@
 package web
 
 import (
+	"errors"
 	"fmt"
-	"net/http"
+		"net/http"
 
 	"github.com/codepzj/stellux/server/internal/document_content/internal/domain"
 	"github.com/codepzj/stellux/server/internal/document_content/internal/service"
@@ -50,7 +51,7 @@ func (h *DocumentContentHandler) RegisterGinRoutes(engine *gin.Engine) {
 }
 
 // CreateDocumentContent 管理员创建文档内容
-func (h *DocumentContentHandler) CreateDocumentContent(c *gin.Context, dto CreateDocumentContentRequest) *apiwrap.Response[any] {
+func (h *DocumentContentHandler) CreateDocumentContent(c *gin.Context, dto CreateDocumentContentRequest) (*apiwrap.Response[any], error) {
 	documentId, _ := bson.ObjectIDFromHex(dto.DocumentId)
 
 	// 处理ParentId，如果为空则使用documentId作为父级ID
@@ -72,117 +73,117 @@ func (h *DocumentContentHandler) CreateDocumentContent(c *gin.Context, dto Creat
 		Sort:        dto.Sort,
 	})
 	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
-	return apiwrap.SuccessWithMsg(fmt.Sprintf("创建文档内容成功, 文档Id:%s", id.Hex()))
+	return apiwrap.SuccessWithMsg(fmt.Sprintf("创建文档内容成功, 文档Id:%s", id.Hex())), nil
 }
 
 // FindDocumentContentById 管理员查询特定Id的文档内容
-func (h *DocumentContentHandler) FindDocumentContentById(c *gin.Context) *apiwrap.Response[any] {
+func (h *DocumentContentHandler) FindDocumentContentById(c *gin.Context) (*apiwrap.Response[any], error) {
 	documentId := c.Param("id")
 	if documentId == "" {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "id不能为空")
+		return apiwrap.FailWithMsg(400, "id不能为空"), errors.New("id不能为空")
 	}
 
 	objId, err := bson.ObjectIDFromHex(documentId)
 	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "id格式错误")
+		return apiwrap.FailWithMsg(http.StatusBadRequest, "id格式错误"), err
 	}
 
 	doc, err := h.serv.FindDocumentContentById(c, objId)
 	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error()), err
 	}
-	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVO(doc), fmt.Sprintf("查询文档内容成功, 文档Id:%s", documentId))
+	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVO(doc), fmt.Sprintf("查询文档内容成功, 文档Id:%s", documentId)), nil
 }
 
 // DeleteDocumentContentById 管理员删除特定Id的文档内容
-func (h *DocumentContentHandler) DeleteDocumentContentById(c *gin.Context) *apiwrap.Response[any] {
+func (h *DocumentContentHandler) DeleteDocumentContentById(c *gin.Context) (*apiwrap.Response[any], error) {
 	documentId := c.Param("id")
 	if documentId == "" {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "id不能为空")
+		return apiwrap.FailWithMsg(400, "id不能为空"), errors.New("id不能为空")
 	}
 	objId, err := bson.ObjectIDFromHex(documentId)
 	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "id格式错误")
+		return apiwrap.FailWithMsg(400, "id格式错误"), err
 	}
 	err = h.serv.DeleteDocumentContentById(c, objId)
 	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
-	return apiwrap.SuccessWithMsg(fmt.Sprintf("删除文档内容成功, 文档Id:%s", documentId))
+	return apiwrap.SuccessWithMsg(fmt.Sprintf("删除文档内容成功, 文档Id:%s", documentId)), nil
 }
 
 // SoftDeleteDocumentContentById 管理员软删除特定Id的文档内容
-func (h *DocumentContentHandler) SoftDeleteDocumentContentById(c *gin.Context) *apiwrap.Response[any] {
+func (h *DocumentContentHandler) SoftDeleteDocumentContentById(c *gin.Context) (*apiwrap.Response[any], error) {
 	documentId := c.Param("id")
 	if documentId == "" {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "id不能为空")
+		return apiwrap.FailWithMsg(400, "id不能为空"), errors.New("id不能为空")
 	}
 	objId, err := bson.ObjectIDFromHex(documentId)
 	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "id格式错误")
+		return apiwrap.FailWithMsg(400, "id格式错误"), err
 	}
 	err = h.serv.SoftDeleteDocumentContentById(c, objId)
 	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
-	return apiwrap.SuccessWithMsg(fmt.Sprintf("软删除文档内容成功, 文档Id:%s", documentId))
+	return apiwrap.SuccessWithMsg(fmt.Sprintf("软删除文档内容成功, 文档Id:%s", documentId)), nil
 }
 
 // RestoreDocumentContentById 管理员恢复特定Id的文档内容
-func (h *DocumentContentHandler) RestoreDocumentContentById(c *gin.Context) *apiwrap.Response[any] {
+func (h *DocumentContentHandler) RestoreDocumentContentById(c *gin.Context) (*apiwrap.Response[any], error) {
 	documentId := c.Param("id")
 	if documentId == "" {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "id不能为空")
+		return apiwrap.FailWithMsg(400, "id不能为空"), errors.New("id不能为空")
 	}
 	objId, err := bson.ObjectIDFromHex(documentId)
 	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "id格式错误")
+		return apiwrap.FailWithMsg(400, "id格式错误"), err
 	}
 	err = h.serv.RestoreDocumentContentById(c, objId)
 	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
-	return apiwrap.SuccessWithMsg(fmt.Sprintf("恢复文档内容成功, 文档Id:%s", documentId))
+	return apiwrap.SuccessWithMsg(fmt.Sprintf("恢复文档内容成功, 文档Id:%s", documentId)), nil
 }
 
 // FindDocumentContentByParentId 管理员根据父级Id查询所有子文档内容
-func (h *DocumentContentHandler) FindDocumentContentByParentId(c *gin.Context) *apiwrap.Response[any] {
+func (h *DocumentContentHandler) FindDocumentContentByParentId(c *gin.Context) (*apiwrap.Response[any], error) {
 	parentId := c.Query("parent_id")
 	if parentId == "" {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "parent_id不能为空")
+		return apiwrap.FailWithMsg(400, "parent_id不能为空"), errors.New("parent_id不能为空")
 	}
 	objId, err := bson.ObjectIDFromHex(parentId)
 	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "parentId格式错误")
+		return apiwrap.FailWithMsg(400, "parentId格式错误"), err
 	}
 	docs, err := h.serv.FindDocumentContentByParentId(c, objId)
 	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
-	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVOList(docs), fmt.Sprintf("查询文档内容成功, 父级Id:%s", parentId))
+	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVOList(docs), fmt.Sprintf("查询文档内容成功, 父级Id:%s", parentId)), nil
 }
 
 // FindDocumentContentByDocumentId 管理员根据文档Id查询所有子文档内容
-func (h *DocumentContentHandler) FindDocumentContentByDocumentId(c *gin.Context) *apiwrap.Response[any] {
+func (h *DocumentContentHandler) FindDocumentContentByDocumentId(c *gin.Context) (*apiwrap.Response[any], error) {
 	documentId := c.Query("document_id")
 	if documentId == "" {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "document_id不能为空")
+		return apiwrap.FailWithMsg(400, "document_id不能为空"), errors.New("document_id不能为空")
 	}
 	objId, err := bson.ObjectIDFromHex(documentId)
 	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "documentId格式错误")
+		return apiwrap.FailWithMsg(400, "documentId格式错误"), err
 	}
 	docs, err := h.serv.FindDocumentContentByDocumentId(c, objId)
 	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
-	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVOList(docs), fmt.Sprintf("查询文档内容成功, 文档Id:%s", documentId))
+	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVOList(docs), fmt.Sprintf("查询文档内容成功, 文档Id:%s", documentId)), nil
 }
 
 // UpdateDocumentContentById 管理员更新特定Id的文档内容
-func (h *DocumentContentHandler) UpdateDocumentContentById(c *gin.Context, dto UpdateDocumentContentRequest) *apiwrap.Response[any] {
+func (h *DocumentContentHandler) UpdateDocumentContentById(c *gin.Context, dto UpdateDocumentContentRequest) (*apiwrap.Response[any], error) {
 	objId, _ := bson.ObjectIDFromHex(dto.Id)
 	documentId, _ := bson.ObjectIDFromHex(dto.DocumentId)
 
@@ -205,19 +206,19 @@ func (h *DocumentContentHandler) UpdateDocumentContentById(c *gin.Context, dto U
 		Sort:        dto.Sort,
 	})
 	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
-	return apiwrap.SuccessWithMsg(fmt.Sprintf("更新文档内容成功, 文档Id:%s", dto.Id))
+	return apiwrap.SuccessWithMsg(fmt.Sprintf("更新文档内容成功, 文档Id:%s", dto.Id)), nil
 }
 
 // GetDocumentContentList 管理员获取文档内容列表
-func (h *DocumentContentHandler) GetDocumentContentList(c *gin.Context, page apiwrap.Page) *apiwrap.Response[any] {
+func (h *DocumentContentHandler) GetDocumentContentList(c *gin.Context, page apiwrap.Page) (*apiwrap.Response[any], error) {
 	docs, count, err := h.serv.GetDocumentContentList(c, &domain.Page{
 		PageNo:   page.PageNo,
 		PageSize: page.PageSize,
 	})
 	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
 
 	docsVO := h.DocumentContentDomainToVOList(docs)
@@ -227,112 +228,96 @@ func (h *DocumentContentHandler) GetDocumentContentList(c *gin.Context, page api
 		docsVOPtr[i] = &docsVO[i]
 	}
 
-	return apiwrap.SuccessWithDetail[any](apiwrap.ToPageVO(page.PageNo, page.PageSize, count, docsVOPtr), "获取文档内容列表成功")
+	return apiwrap.SuccessWithDetail[any](apiwrap.ToPageVO(page.PageNo, page.PageSize, count, docsVOPtr), "获取文档内容列表成功"), nil
 }
 
 // SearchDocumentContent 管理员搜索文档内容
-func (h *DocumentContentHandler) SearchDocumentContent(c *gin.Context) *apiwrap.Response[any] {
+func (h *DocumentContentHandler) SearchDocumentContent(c *gin.Context) (*apiwrap.Response[any], error) {
 	keyword := c.Query("keyword")
 	if keyword == "" {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "keyword不能为空")
+		return apiwrap.FailWithMsg(400, "keyword不能为空"), errors.New("keyword不能为空")
 	}
 
 	docs, err := h.serv.SearchDocumentContent(c, keyword)
 	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
-	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVOList(docs), "搜索文档内容成功")
+	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVOList(docs), "搜索文档内容成功"), nil
 }
 
 // FindPublicDocumentContentById 公开查询特定Id的文档内容
-func (h *DocumentContentHandler) FindPublicDocumentContentById(c *gin.Context) *apiwrap.Response[any] {
+func (h *DocumentContentHandler) FindPublicDocumentContentById(c *gin.Context) (*apiwrap.Response[any], error) {
 	documentId := c.Param("id")
 	if documentId == "" {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "id不能为空")
+		return apiwrap.FailWithMsg(400, "id不能为空"), errors.New("id不能为空")
 	}
 
 	objId, err := bson.ObjectIDFromHex(documentId)
 	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "id格式错误")
+		return apiwrap.FailWithMsg(400, "id格式错误"), err
 	}
 
 	doc, err := h.serv.FindPublicDocumentContentById(c, objId)
 	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
-	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVO(doc), fmt.Sprintf("查询文档内容成功, 文档Id:%s", documentId))
+	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVO(doc), fmt.Sprintf("查询文档内容成功, 文档Id:%s", documentId)), nil
 }
 
 // FindPublicDocumentContentByParentId 公开根据父级Id查询所有子文档内容
-func (h *DocumentContentHandler) FindPublicDocumentContentByParentId(c *gin.Context) *apiwrap.Response[any] {
+func (h *DocumentContentHandler) FindPublicDocumentContentByParentId(c *gin.Context) (*apiwrap.Response[any], error) {
 	parentId := c.Query("parent_id")
 	if parentId == "" {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "parent_id不能为空")
+		return apiwrap.FailWithMsg(400, "parent_id不能为空"), errors.New("parent_id不能为空")
 	}
 	objId, err := bson.ObjectIDFromHex(parentId)
 	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "parentId格式错误")
+		return apiwrap.FailWithMsg(400, "parentId格式错误"), err
 	}
 	docs, err := h.serv.FindPublicDocumentContentByParentId(c, objId)
 	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
-	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVOList(docs), fmt.Sprintf("查询文档内容成功, 父级Id:%s", parentId))
+	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVOList(docs), fmt.Sprintf("查询文档内容成功, 父级Id:%s", parentId)), nil
 }
 
 // FindPublicDocumentContentByDocumentId 公开根据文档Id查询所有子文档内容
-func (h *DocumentContentHandler) FindPublicDocumentContentByDocumentId(c *gin.Context) *apiwrap.Response[any] {
+func (h *DocumentContentHandler) FindPublicDocumentContentByDocumentId(c *gin.Context) (*apiwrap.Response[any], error) {
 	documentId := c.Query("document_id")
 	if documentId == "" {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "document_id不能为空")
+		return apiwrap.FailWithMsg(400, "document_id不能为空"), errors.New("document_id不能为空")
 	}
 	objId, err := bson.ObjectIDFromHex(documentId)
 	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "documentId格式错误")
+		return apiwrap.FailWithMsg(400, "documentId格式错误"), err
 	}
 	docs, err := h.serv.FindPublicDocumentContentByDocumentId(c, objId)
 	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
-	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVOList(docs), fmt.Sprintf("查询文档内容成功, 文档Id:%s", documentId))
+	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVOList(docs), fmt.Sprintf("查询文档内容成功, 文档Id:%s", documentId)), nil
 }
 
-// // SearchPublicDocumentContent 公开搜索文档内容
-// func (h *DocumentContentHandler) SearchPublicDocumentContent(c *gin.Context) *apiwrap.Response[any] {
-// 	keyword := c.Query("keyword")
-// 	if keyword == "" {
-// 		return apiwrap.FailWithMsg(http.StatusBadRequest, "keyword不能为空")
-// 	}
-
-// 	docs, err := h.serv.SearchPublicDocumentContent(c, keyword)
-// 	if err != nil {
-// 		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
-// 	}
-// 	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVOList(docs), "搜索文档内容成功")
-// }
-
 // FindPublicDocumentContentByRootIdAndAlias 公开根据根文档ID和别名查询文档内容
-func (h *DocumentContentHandler) FindPublicDocumentContentByRootIdAndAlias(c *gin.Context) *apiwrap.Response[any] {
+func (h *DocumentContentHandler) FindPublicDocumentContentByRootIdAndAlias(c *gin.Context) (*apiwrap.Response[any], error) {
 	documentId := c.Query("document_id")
 	if documentId == "" {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "document_id不能为空")
+		return apiwrap.FailWithMsg(400, "document_id不能为空"), errors.New("document_id不能为空")
 	}
 
 	alias := c.Query("alias")
 	if alias == "" {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "alias不能为空")
+		return apiwrap.FailWithMsg(400, "alias不能为空"), errors.New("alias不能为空")
 	}
 
 	objId, err := bson.ObjectIDFromHex(documentId)
 	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "document_id格式错误")
+		return apiwrap.FailWithMsg(400, "document_id格式错误"), err
 	}
 
-	// 由于我们还没有实现FindPublicDocumentContentByRootIdAndAlias方法
-	// 我们可以使用现有的方法来模拟这个功能
 	docs, err := h.serv.FindPublicDocumentContentByDocumentId(c, objId)
 	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
 
 	// 在获取的文档列表中查找匹配别名的文档
@@ -347,10 +332,10 @@ func (h *DocumentContentHandler) FindPublicDocumentContentByRootIdAndAlias(c *gi
 	}
 
 	if !found {
-		return apiwrap.FailWithMsg(http.StatusNotFound, "未找到指定别名的文档")
+		return apiwrap.FailWithMsg(404, "未找到指定别名的文档"), errors.New("未找到指定别名的文档")
 	}
 
-	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVO(targetDoc), fmt.Sprintf("查询文档内容成功, 根文档ID:%s, 别名:%s", documentId, alias))
+	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVO(targetDoc), fmt.Sprintf("查询文档内容成功, 根文档ID:%s, 别名:%s", documentId, alias)), nil
 }
 
 // DocumentContentDomainToVO 将domain对象转换为VO
@@ -380,18 +365,18 @@ func (h *DocumentContentHandler) DocumentContentDomainToVOList(docs []domain.Doc
 }
 
 // DeleteDocumentContentList 批量删除文档内容
-func (h *DocumentContentHandler) DeleteDocumentContentList(c *gin.Context) *apiwrap.Response[any] {
+func (h *DocumentContentHandler) DeleteDocumentContentList(c *gin.Context) (*apiwrap.Response[any], error) {
 	var req struct {
 		DocumentIdList []string `json:"document_id_list"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "参数错误")
+		return apiwrap.FailWithMsg(400, "参数错误"), err
 	}
 	if len(req.DocumentIdList) == 0 {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "document_id_list不能为空")
+		return apiwrap.FailWithMsg(400, "document_id_list不能为空"), errors.New("document_id_list不能为空")
 	}
 	if err := h.serv.DeleteDocumentContentList(c, req.DocumentIdList); err != nil {
-		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
-	return apiwrap.SuccessWithMsg("批量删除成功")
+	return apiwrap.SuccessWithMsg("批量删除成功"), nil
 }

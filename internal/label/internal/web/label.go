@@ -1,6 +1,8 @@
 package web
 
 import (
+	"errors"
+
 	"github.com/codepzj/stellux/server/internal/label/internal/domain"
 	"github.com/codepzj/stellux/server/internal/label/internal/service"
 	"github.com/codepzj/stellux/server/internal/pkg/apiwrap"
@@ -36,93 +38,93 @@ func (h *LabelHandler) RegisterGinRoutes(engine *gin.Engine) {
 }
 
 // AdminCreate 创建标签
-func (h *LabelHandler) AdminCreate(c *gin.Context, label *LabelRequest) *apiwrap.Response[any] {
+func (h *LabelHandler) AdminCreate(c *gin.Context, label *LabelRequest) (*apiwrap.Response[any], error) {
 	err := h.serv.CreateLabel(c, &domain.Label{
 		LabelType: label.LabelType,
 		Name:      label.Name,
 	})
 	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
-	return apiwrap.SuccessWithMsg("标签创建成功")
+	return apiwrap.SuccessWithMsg("标签创建成功"), nil
 }
 
 // AdminUpdate 更新标签
-func (h *LabelHandler) AdminUpdate(c *gin.Context, label *LabelRequest) *apiwrap.Response[any] {
+func (h *LabelHandler) AdminUpdate(c *gin.Context, label *LabelRequest) (*apiwrap.Response[any], error) {
 	err := h.serv.UpdateLabel(c, label.ID, &domain.Label{
 		Id:        apiwrap.ConvertBsonID(label.ID).ToObjectID(),
 		LabelType: label.LabelType,
 		Name:      label.Name,
 	})
 	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
-	return apiwrap.SuccessWithMsg("标签更新成功")
+	return apiwrap.SuccessWithMsg("标签更新成功"), nil
 }
 
 // AdminDelete 删除标签
-func (h *LabelHandler) AdminDelete(c *gin.Context) *apiwrap.Response[any] {
+func (h *LabelHandler) AdminDelete(c *gin.Context) (*apiwrap.Response[any], error) {
 	id := c.Param("id")
 	err := h.serv.DeleteLabel(c, id)
 	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
-	return apiwrap.SuccessWithMsg("标签删除成功")
+	return apiwrap.SuccessWithMsg("标签删除成功"), nil
 }
 
 // GetByID 根据id获取标签
-func (h *LabelHandler) GetByID(c *gin.Context) *apiwrap.Response[any] {
+func (h *LabelHandler) GetByID(c *gin.Context) (*apiwrap.Response[any], error) {
 	id := c.Param("id")
 	label, err := h.serv.GetLabelById(c, id)
 	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
-	return apiwrap.SuccessWithDetail[any](h.LabelDomainToVO(label), "标签获取成功")
+	return apiwrap.SuccessWithDetail[any](h.LabelDomainToVO(label), "标签获取成功"), nil
 }
 
 // QueryLabelList 分页查询标签
-func (h *LabelHandler) QueryLabelList(c *gin.Context, page *Page) *apiwrap.Response[any] {
+func (h *LabelHandler) QueryLabelList(c *gin.Context, page *Page) (*apiwrap.Response[any], error) {
 	labels, count, err := h.serv.QueryLabelList(c, page.LabelType, page.PageNo, page.PageSize)
 	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
 	labelVOList := h.DomainToVOList(labels)
 	pageVO := apiwrap.ToPageVO(page.PageNo, page.PageSize, count, labelVOList)
-	return apiwrap.SuccessWithDetail[any](pageVO, "标签列表获取成功")
+	return apiwrap.SuccessWithDetail[any](pageVO, "标签列表获取成功"), nil
 }
 
 // QueryAllByType 获取所有标签
-func (h *LabelHandler) QueryAllByType(c *gin.Context) *apiwrap.Response[any] {
+func (h *LabelHandler) QueryAllByType(c *gin.Context) (*apiwrap.Response[any], error) {
 	labelType := c.Query("label_type")
 	if labelType == "" {
-		return apiwrap.FailWithMsg(apiwrap.RuquestBadRequest, "标签类型不能为空")
+		return apiwrap.FailWithMsg(400, "标签类型不能为空"), errors.New("标签类型不能为空")
 	}
 	labels, err := h.serv.GetAllLabelsByType(c, labelType)
 	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
-	return apiwrap.SuccessWithDetail[any](h.DomainToVOList(labels), "标签列表获取成功")
+	return apiwrap.SuccessWithDetail[any](h.DomainToVOList(labels), "标签列表获取成功"), nil
 }
 
 // QueryCategoryLabelWithCount 获取分类标签及其文章数量
-func (h *LabelHandler) QueryCategoryLabelWithCount(c *gin.Context) *apiwrap.Response[any] {
+func (h *LabelHandler) QueryCategoryLabelWithCount(c *gin.Context) (*apiwrap.Response[any], error) {
 
 	labels, err := h.serv.GetAllLabelsWithCount(c)
 	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
 	labelVOList := h.LabelWithCountDomainToVOList(labels)
-	return apiwrap.SuccessWithDetail[any](labelVOList, "分类标签列表获取成功")
+	return apiwrap.SuccessWithDetail[any](labelVOList, "分类标签列表获取成功"), nil
 }
 
 // QueryTagsLabelWithCount 获取标签及其文章数量
-func (h *LabelHandler) QueryTagsLabelWithCount(c *gin.Context) *apiwrap.Response[any] {
+func (h *LabelHandler) QueryTagsLabelWithCount(c *gin.Context) (*apiwrap.Response[any], error) {
 	labels, err := h.serv.GetAllTagsLabelWithCount(c)
 	if err != nil {
-		return apiwrap.FailWithMsg(apiwrap.RuquestInternalServerError, err.Error())
+		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
 	labelVOList := h.LabelWithCountDomainToVOList(labels)
-	return apiwrap.SuccessWithDetail[any](labelVOList, "标签列表获取成功")
+	return apiwrap.SuccessWithDetail[any](labelVOList, "标签列表获取成功"), nil
 }
 
 func (h *LabelHandler) LabelDTOToDomain(label *LabelRequest) *domain.Label {
