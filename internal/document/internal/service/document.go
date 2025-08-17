@@ -19,6 +19,7 @@ type IDocumentService interface {
 	RestoreDocumentById(ctx context.Context, id bson.ObjectID) error
 	FindDocumentByAlias(ctx context.Context, alias string) (*domain.Document, error)
 	GetDocumentList(ctx context.Context, page *domain.Page) ([]*domain.Document, int64, error)
+	GetDocumentBinList(ctx context.Context, page *domain.Page) ([]*domain.Document, int64, error)
 	GetPublicDocumentList(ctx context.Context, page *domain.Page) ([]*domain.Document, int64, error)
 	GetAllPublicDocuments(ctx context.Context) ([]*domain.Document, error)
 }
@@ -79,6 +80,10 @@ func (s *DocumentService) FindDocumentByAlias(ctx context.Context, alias string)
 
 func (s *DocumentService) GetDocumentList(ctx context.Context, page *domain.Page) ([]*domain.Document, int64, error) {
 	return s.repo.GetDocumentList(ctx, page)
+}
+
+func (s *DocumentService) GetDocumentBinList(ctx context.Context, page *domain.Page) ([]*domain.Document, int64, error) {
+	return s.repo.GetDocumentBinList(ctx, page)
 }
 
 func (s *DocumentService) GetPublicDocumentList(ctx context.Context, page *domain.Page) ([]*domain.Document, int64, error) {

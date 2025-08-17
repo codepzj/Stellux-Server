@@ -34,6 +34,7 @@ func (h *DocumentHandler) RegisterGinRoutes(engine *gin.Engine) {
 		adminDocumentGroup.PUT("/restore/:id", apiwrap.Wrap(h.AdminRestoreDocument))        // 管理员恢复文档
 		adminDocumentGroup.GET("/find-by-alias", apiwrap.Wrap(h.AdminFindDocumentByAlias))  // 管理员根据别名查询文档
 		adminDocumentGroup.GET("/list", apiwrap.WrapWithQuery(h.AdminGetDocumentList))      // 管理员获取文档列表
+		adminDocumentGroup.GET("/bin-list", apiwrap.WrapWithQuery(h.AdminGetDocumentBinList)) // 管理员获取文档回收箱列表
 	}
 
 	// 公开API
@@ -170,6 +171,9 @@ func (h *DocumentHandler) AdminFindDocumentByAlias(c *gin.Context) (*apiwrap.Res
 	}
 	docVO := DocumentVO{
 		Id:          doc.Id.Hex(),
+		CreatedAt:   doc.CreatedAt,
+		UpdatedAt:   doc.UpdatedAt,
+		DeletedAt:   doc.DeletedAt,
 		Title:       doc.Title,
 		Description: doc.Description,
 		Thumbnail:   doc.Thumbnail,
@@ -177,8 +181,6 @@ func (h *DocumentHandler) AdminFindDocumentByAlias(c *gin.Context) (*apiwrap.Res
 		Sort:        doc.Sort,
 		IsPublic:    doc.IsPublic,
 		IsDeleted:   doc.IsDeleted,
-		CreatedAt:   doc.CreatedAt,
-		UpdatedAt:   doc.UpdatedAt,
 	}
 	return apiwrap.SuccessWithDetail[any](docVO, "查询文档成功"), nil
 }
@@ -203,6 +205,27 @@ func (h *DocumentHandler) AdminGetDocumentList(c *gin.Context, page apiwrap.Page
 	return apiwrap.SuccessWithDetail[any](apiwrap.ToPageVO(page.PageNo, page.PageSize, count, docsVOPtr), "获取文档列表成功"), nil
 }
 
+// AdminGetDocumentBinList 管理员获取文档回收箱列表
+func (h *DocumentHandler) AdminGetDocumentBinList(c *gin.Context, page apiwrap.Page) (*apiwrap.Response[any], error) {
+	docs, count, err := h.serv.GetDocumentBinList(c, &domain.Page{
+		PageNo:   page.PageNo,
+		PageSize: page.PageSize,
+	})
+
+	if err != nil {
+		return apiwrap.FailWithMsg(500, err.Error()), err
+	}
+
+	docsVO := h.DocumentDomainToVOList(docs)
+
+	docsVOPtr := make([]*DocumentVO, len(docsVO))
+	for i := range docsVO {
+		docsVOPtr[i] = &docsVO[i]
+	}
+
+	return apiwrap.SuccessWithDetail[any](apiwrap.ToPageVO(page.PageNo, page.PageSize, count, docsVOPtr), "获取文档回收箱列表成功"), nil
+}
+
 // FindDocument 公开查询特定Id的文档
 func (h *DocumentHandler) FindDocument(c *gin.Context) (*apiwrap.Response[any], error) {
 	id := c.Query("id")
@@ -224,14 +247,15 @@ func (h *DocumentHandler) FindDocument(c *gin.Context) (*apiwrap.Response[any], 
 
 	docVO := DocumentVO{
 		Id:          doc.Id.Hex(),
+		CreatedAt:   doc.CreatedAt,
+		UpdatedAt:   doc.UpdatedAt,
+		DeletedAt:   doc.DeletedAt,
 		Title:       doc.Title,
 		Description: doc.Description,
 		Alias:       doc.Alias,
 		Sort:        doc.Sort,
 		IsPublic:    doc.IsPublic,
 		IsDeleted:   doc.IsDeleted,
-		CreatedAt:   doc.CreatedAt,
-		UpdatedAt:   doc.UpdatedAt,
 	}
 	return apiwrap.SuccessWithDetail[any](docVO, "查询文档成功"), nil
 }
@@ -295,13 +319,14 @@ func (h *DocumentHandler) GetAllPublicDocument(c *gin.Context) (*apiwrap.Respons
 	for i, doc := range docs {
 		docsVO[i] = DocumentVO{
 			Id:          doc.Id.Hex(),
+			CreatedAt:   doc.CreatedAt,
+			UpdatedAt:   doc.UpdatedAt,
+			DeletedAt:   doc.DeletedAt,
 			Title:       doc.Title,
 			Description: doc.Description,
 			Thumbnail:   doc.Thumbnail,
 			Alias:       doc.Alias,
 			IsPublic:    doc.IsPublic,
-			CreatedAt:   doc.CreatedAt,
-			UpdatedAt:   doc.UpdatedAt,
 		}
 	}
 
@@ -340,6 +365,7 @@ func (h *DocumentHandler) GetDocument(c *gin.Context) (*apiwrap.Response[any], e
 		IsPublic:    doc.IsPublic,
 		CreatedAt:   doc.CreatedAt,
 		UpdatedAt:   doc.UpdatedAt,
+		DeletedAt:   doc.DeletedAt,
 	}
 
 	return apiwrap.SuccessWithDetail[any](docVO, "获取文档成功"), nil
@@ -351,15 +377,16 @@ func (h *DocumentHandler) DocumentDomainToVOList(docs []*domain.Document) []Docu
 	for i, doc := range docs {
 		docsVO[i] = DocumentVO{
 			Id:          doc.Id.Hex(),
+			CreatedAt:   doc.CreatedAt,
+			UpdatedAt:   doc.UpdatedAt,
+			DeletedAt:   doc.DeletedAt,
 			Title:       doc.Title,
 			Description: doc.Description,
 			Thumbnail:   doc.Thumbnail,
 			Alias:       doc.Alias,
-			Sort:        doc.Sort,
-			IsPublic:    doc.IsPublic,
-			IsDeleted:   doc.IsDeleted,
-			CreatedAt:   doc.CreatedAt,
-			UpdatedAt:   doc.UpdatedAt,
+			Sort:          doc.Sort,
+			IsPublic:      doc.IsPublic,
+			IsDeleted:     doc.IsDeleted,
 		}
 	}
 	return docsVO

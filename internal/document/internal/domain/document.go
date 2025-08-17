@@ -10,6 +10,7 @@ type Document struct {
 	Id          bson.ObjectID // 文档id
 	CreatedAt   time.Time     // 创建时间
 	UpdatedAt   time.Time     // 更新时间
+	DeletedAt   time.Time     // 删除时间
 	Title       string        // 文档标题
 	Description string        // 文档描述
 	Thumbnail   string        // 文档缩略图

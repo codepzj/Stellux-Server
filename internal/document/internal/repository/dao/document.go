@@ -30,8 +30,7 @@ type IDocumentDao interface {
 	SoftDeleteDocumentById(ctx context.Context, id bson.ObjectID) error
 	RestoreDocumentById(ctx context.Context, id bson.ObjectID) error
 	FindDocumentByAlias(ctx context.Context, alias string) (*Document, error)
-	GetDocumentList(ctx context.Context, page *Page) ([]*Document, int64, error)
-	GetPublicDocumentList(ctx context.Context, page *Page) ([]*Document, int64, error)
+	GetDocumentListByFilter(ctx context.Context, filter bson.D, page *Page) ([]*Document, int64, error)
 	GetAllPublicDocuments(ctx context.Context) ([]*Document, error)
 }
 
@@ -132,41 +131,17 @@ func (d *DocumentDao) FindDocumentByAlias(ctx context.Context, alias string) (*D
 	return document, nil
 }
 
-func (d *DocumentDao) GetDocumentList(ctx context.Context, page *Page) ([]*Document, int64, error) {
+// GetDocumentListByFilter 根据过滤条件获取文档列表
+func (d *DocumentDao) GetDocumentListByFilter(ctx context.Context, filter bson.D, page *Page) ([]*Document, int64, error) {
 	skip := (page.PageNo - 1) * page.PageSize
 
-	// 获取总数
-	count, err := d.coll.Finder().Filter(query.Eq("is_deleted", false)).Count(ctx)
+	count, err := d.coll.Finder().Filter(filter).Count(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	// 获取列表
 	documents, err := d.coll.Finder().
-		Filter(query.Eq("is_deleted", false)).
-		Sort(bson.D{{Key: "sort", Value: 1}, {Key: "created_at", Value: -1}}).
-		Skip(skip).
-		Limit(page.PageSize).
-		Find(ctx)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return documents, count, nil
-}
-
-func (d *DocumentDao) GetPublicDocumentList(ctx context.Context, page *Page) ([]*Document, int64, error) {
-	skip := (page.PageNo - 1) * page.PageSize
-
-	// 获取总数
-	count, err := d.coll.Finder().Filter(query.And(query.Eq("is_public", true), query.Eq("is_deleted", false))).Count(ctx)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	// 获取列表
-	documents, err := d.coll.Finder().
-		Filter(query.And(query.Eq("is_public", true), query.Eq("is_deleted", false))).
+		Filter(filter).
 		Sort(bson.D{{Key: "sort", Value: 1}, {Key: "created_at", Value: -1}}).
 		Skip(skip).
 		Limit(page.PageSize).

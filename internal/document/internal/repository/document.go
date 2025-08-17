@@ -17,6 +17,7 @@ type IDocumentRepository interface {
 	RestoreDocumentById(ctx context.Context, id bson.ObjectID) error
 	FindDocumentByAlias(ctx context.Context, alias string) (*domain.Document, error)
 	GetDocumentList(ctx context.Context, page *domain.Page) ([]*domain.Document, int64, error)
+	GetDocumentBinList(ctx context.Context, page *domain.Page) ([]*domain.Document, int64, error)
 	GetPublicDocumentList(ctx context.Context, page *domain.Page) ([]*domain.Document, int64, error)
 	GetAllPublicDocuments(ctx context.Context) ([]*domain.Document, error)
 }
@@ -53,6 +54,7 @@ func (r *DocumentRepository) FindDocumentById(ctx context.Context, id bson.Objec
 		Id:          doc.ID,
 		CreatedAt:   doc.CreatedAt,
 		UpdatedAt:   doc.UpdatedAt,
+		DeletedAt:   doc.DeletedAt,
 		Title:       doc.Title,
 		Description: doc.Description,
 		Thumbnail:   doc.Thumbnail,
@@ -101,6 +103,7 @@ func (r *DocumentRepository) FindDocumentByAlias(ctx context.Context, alias stri
 		Id:          doc.ID,
 		CreatedAt:   doc.CreatedAt,
 		UpdatedAt:   doc.UpdatedAt,
+		DeletedAt:   doc.DeletedAt,
 		Title:       doc.Title,
 		Description: doc.Description,
 		Thumbnail:   doc.Thumbnail,
@@ -113,7 +116,7 @@ func (r *DocumentRepository) FindDocumentByAlias(ctx context.Context, alias stri
 
 // GetDocumentList 获取文档列表
 func (r *DocumentRepository) GetDocumentList(ctx context.Context, page *domain.Page) ([]*domain.Document, int64, error) {
-	docs, count, err := r.dao.GetDocumentList(ctx, &dao.Page{
+	docs, count, err := r.dao.GetDocumentListByFilter(ctx, bson.D{{Key: "is_deleted", Value: false}}, &dao.Page{
 		PageNo:   page.PageNo,
 		PageSize: page.PageSize,
 	})
@@ -127,6 +130,36 @@ func (r *DocumentRepository) GetDocumentList(ctx context.Context, page *domain.P
 			Id:          doc.ID,
 			CreatedAt:   doc.CreatedAt,
 			UpdatedAt:   doc.UpdatedAt,
+			DeletedAt:   doc.DeletedAt,
+			Title:       doc.Title,
+			Description: doc.Description,
+			Thumbnail:   doc.Thumbnail,
+			Alias:       doc.Alias,
+			Sort:        doc.Sort,
+			IsPublic:    doc.IsPublic,
+			IsDeleted:   doc.IsDeleted,
+		}
+	}
+	return results, count, nil
+}
+
+// GetDocumentBinList 获取文档回收箱列表
+func (r *DocumentRepository) GetDocumentBinList(ctx context.Context, page *domain.Page) ([]*domain.Document, int64, error) {
+	docs, count, err := r.dao.GetDocumentListByFilter(ctx, bson.D{{Key: "is_deleted", Value: true}}, &dao.Page{
+		PageNo:   page.PageNo,
+		PageSize: page.PageSize,
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	results := make([]*domain.Document, len(docs))
+	for i, doc := range docs {
+		results[i] = &domain.Document{
+			Id:          doc.ID,
+			CreatedAt:   doc.CreatedAt,
+			UpdatedAt:   doc.UpdatedAt,
+			DeletedAt:   doc.DeletedAt,
 			Title:       doc.Title,
 			Description: doc.Description,
 			Thumbnail:   doc.Thumbnail,
@@ -141,7 +174,7 @@ func (r *DocumentRepository) GetDocumentList(ctx context.Context, page *domain.P
 
 // GetPublicDocumentList 获取公开文档列表
 func (r *DocumentRepository) GetPublicDocumentList(ctx context.Context, page *domain.Page) ([]*domain.Document, int64, error) {
-	docs, count, err := r.dao.GetPublicDocumentList(ctx, &dao.Page{
+	docs, count, err := r.dao.GetDocumentListByFilter(ctx, bson.D{{Key: "is_public", Value: true}, {Key: "is_deleted", Value: false}}, &dao.Page{
 		PageNo:   page.PageNo,
 		PageSize: page.PageSize,
 	})
@@ -155,6 +188,7 @@ func (r *DocumentRepository) GetPublicDocumentList(ctx context.Context, page *do
 			Id:          doc.ID,
 			CreatedAt:   doc.CreatedAt,
 			UpdatedAt:   doc.UpdatedAt,
+			DeletedAt:   doc.DeletedAt,
 			Title:       doc.Title,
 			Description: doc.Description,
 			Thumbnail:   doc.Thumbnail,
@@ -180,6 +214,7 @@ func (r *DocumentRepository) GetAllPublicDocuments(ctx context.Context) ([]*doma
 			Id:          doc.ID,
 			CreatedAt:   doc.CreatedAt,
 			UpdatedAt:   doc.UpdatedAt,
+			DeletedAt:   doc.DeletedAt,
 			Title:       doc.Title,
 			Description: doc.Description,
 			Thumbnail:   doc.Thumbnail,
