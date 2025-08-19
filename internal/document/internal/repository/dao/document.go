@@ -50,6 +50,7 @@ type DocumentDao struct {
 	coll *mongox.Collection[Document]
 }
 
+// CreateDocument 创建文档
 func (d *DocumentDao) CreateDocument(ctx context.Context, doc *Document) (bson.ObjectID, error) {
 	result, err := d.coll.Creator().InsertOne(ctx, doc)
 	if err != nil {
@@ -58,6 +59,7 @@ func (d *DocumentDao) CreateDocument(ctx context.Context, doc *Document) (bson.O
 	return result.InsertedID.(bson.ObjectID), nil
 }
 
+// FindDocumentById 根据ID查询文档
 func (d *DocumentDao) FindDocumentById(ctx context.Context, id bson.ObjectID) (*Document, error) {
 	document, err := d.coll.Finder().Filter(query.Id(id)).FindOne(ctx)
 	if err != nil {
@@ -66,6 +68,7 @@ func (d *DocumentDao) FindDocumentById(ctx context.Context, id bson.ObjectID) (*
 	return document, nil
 }
 
+// UpdateDocumentById 更新文档
 func (d *DocumentDao) UpdateDocumentById(ctx context.Context, id bson.ObjectID, doc *Document) error {
 	result, err := d.coll.Updater().Filter(query.Id(id)).Updates(update.SetFields(bson.D{
 		{Key: "title", Value: doc.Title},
@@ -84,6 +87,7 @@ func (d *DocumentDao) UpdateDocumentById(ctx context.Context, id bson.ObjectID, 
 	return nil
 }
 
+// DeleteDocumentById 根据ID删除文档
 func (d *DocumentDao) DeleteDocumentById(ctx context.Context, id bson.ObjectID) error {
 	result, err := d.coll.Deleter().Filter(query.Id(id)).DeleteOne(ctx)
 	if err != nil {
@@ -95,6 +99,7 @@ func (d *DocumentDao) DeleteDocumentById(ctx context.Context, id bson.ObjectID) 
 	return nil
 }
 
+// SoftDeleteDocumentById 根据ID软删除文档
 func (d *DocumentDao) SoftDeleteDocumentById(ctx context.Context, id bson.ObjectID) error {
 	result, err := d.coll.Updater().Filter(query.Id(id)).Updates(update.SetFields(bson.D{
 		{Key: "deleted_at", Value: time.Now()},
@@ -109,6 +114,7 @@ func (d *DocumentDao) SoftDeleteDocumentById(ctx context.Context, id bson.Object
 	return nil
 }
 
+// RestoreDocumentById 根据ID恢复文档
 func (d *DocumentDao) RestoreDocumentById(ctx context.Context, id bson.ObjectID) error {
 	result, err := d.coll.Updater().Filter(query.Id(id)).Updates(update.SetFields(bson.D{
 		{Key: "deleted_at", Value: nil},
@@ -123,6 +129,7 @@ func (d *DocumentDao) RestoreDocumentById(ctx context.Context, id bson.ObjectID)
 	return nil
 }
 
+// FindDocumentByAlias 根据别名查询文档
 func (d *DocumentDao) FindDocumentByAlias(ctx context.Context, alias string) (*Document, error) {
 	document, err := d.coll.Finder().Filter(query.Eq("alias", alias)).FindOne(ctx)
 	if err != nil {
