@@ -53,13 +53,9 @@ func (h *DocumentContentHandler) RegisterGinRoutes(engine *gin.Engine) {
 // CreateDocumentContent 管理员创建文档内容
 func (h *DocumentContentHandler) CreateDocumentContent(c *gin.Context, dto CreateDocumentContentRequest) (*apiwrap.Response[any], error) {
 	documentId, _ := bson.ObjectIDFromHex(dto.DocumentId)
-
-	// 处理ParentId，如果为空则使用documentId作为父级ID
-	var parentId bson.ObjectID
-	if dto.ParentId == "" {
-		parentId = documentId // 根目录的父级ID就是documentId
-	} else {
-		parentId, _ = bson.ObjectIDFromHex(dto.ParentId)
+	parentId, _ := bson.ObjectIDFromHex(dto.ParentId)
+	if !dto.IsDir && dto.Alias == "" {
+		return apiwrap.FailWithMsg(400, "alias不能为空"), errors.New("alias不能为空")
 	}
 
 	id, err := h.serv.CreateDocumentContent(c, domain.DocumentContent{
@@ -186,6 +182,10 @@ func (h *DocumentContentHandler) FindDocumentContentByDocumentId(c *gin.Context)
 func (h *DocumentContentHandler) UpdateDocumentContentById(c *gin.Context, dto UpdateDocumentContentRequest) (*apiwrap.Response[any], error) {
 	objId, _ := bson.ObjectIDFromHex(dto.Id)
 	documentId, _ := bson.ObjectIDFromHex(dto.DocumentId)
+
+	if !dto.IsDir && dto.Alias == "" {
+		return apiwrap.FailWithMsg(400, "alias不能为空"), errors.New("alias不能为空")
+	}
 
 	// 处理ParentId，如果为空则使用documentId作为父级ID
 	var parentId bson.ObjectID
@@ -367,15 +367,15 @@ func (h *DocumentContentHandler) DocumentContentDomainToVOList(docs []domain.Doc
 // DeleteDocumentContentList 批量删除文档内容
 func (h *DocumentContentHandler) DeleteDocumentContentList(c *gin.Context) (*apiwrap.Response[any], error) {
 	var req struct {
-		DocumentIdList []string `json:"document_id_list"`
+		IdList []string `json:"id_list"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		return apiwrap.FailWithMsg(400, "参数错误"), err
 	}
-	if len(req.DocumentIdList) == 0 {
-		return apiwrap.FailWithMsg(400, "document_id_list不能为空"), errors.New("document_id_list不能为空")
+	if len(req.IdList) == 0 {
+		return apiwrap.FailWithMsg(400, "id_list不能为空"), errors.New("id_list不能为空")
 	}
-	if err := h.serv.DeleteDocumentContentList(c, req.DocumentIdList); err != nil {
+	if err := h.serv.DeleteDocumentContentList(c, req.IdList); err != nil {
 		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
 	return apiwrap.SuccessWithMsg("批量删除成功"), nil
