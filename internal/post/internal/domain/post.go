@@ -42,11 +42,11 @@ type PostDetail struct {
 	Thumbnail   string          // 缩略图
 }
 
-// Page 分页
 type Page struct {
-	PageNo   int64  // 页码
-	PageSize int64  // 每页条数
-	Keyword  string // 关键词
-	Field    string // 排序字段
-	Order    string // 排序方向
+	PageNo    int64
+	PageSize  int64
+	Field     string
+	Order     string
+	Keyword   string
+	LabelName string // 标签名称，用于过滤LabelType为"tag"的标签
 }

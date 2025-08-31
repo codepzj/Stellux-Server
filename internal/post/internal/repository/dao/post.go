@@ -197,10 +197,26 @@ func (d *PostDao) GetList(ctx context.Context, pagePipeline mongo.Pipeline, cond
 	if err != nil {
 		return nil, 0, err
 	}
-	count, err := d.coll.Finder().Filter(cond).Count(ctx)
+
+	// 如果聚合管道包含标签过滤，需要使用聚合管道来计算总数
+	// 创建一个只用于计数的管道（不包含Skip和Limit）
+	countPipeline := aggregation.NewStageBuilder().Match(cond).Lookup("label", "category", &aggregation.LookUpOptions{
+		LocalField:   "category_id",
+		ForeignField: "_id",
+	}).Unwind("$category", &aggregation.UnWindOptions{
+		PreserveNullAndEmptyArrays: true,
+	}).Lookup("label", "tags", &aggregation.LookUpOptions{
+		LocalField:   "tags_id",
+		ForeignField: "_id",
+	}).Build()
+
+	var countResult []bson.M
+	err = d.coll.Aggregator().Pipeline(countPipeline).AggregateWithParse(ctx, &countResult)
 	if err != nil {
 		return nil, 0, err
 	}
+
+	count := int64(len(countResult))
 	return utils.ValToPtrList(postResult), count, err
 }
 

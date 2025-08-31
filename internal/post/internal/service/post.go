@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/codepzj/stellux/server/internal/pkg/apiwrap"
 	"github.com/codepzj/stellux/server/internal/post/internal/domain"
 	"github.com/codepzj/stellux/server/internal/post/internal/repository"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -24,7 +23,7 @@ type IPostService interface {
 	GetPostById(ctx context.Context, id bson.ObjectID) (*domain.Post, error)
 	GetPostByKeyWord(ctx context.Context, keyWord string) ([]*domain.Post, error)
 	GetPostDetailById(ctx context.Context, id bson.ObjectID) (*domain.PostDetail, error)
-	GetPostList(ctx context.Context, page *apiwrap.Page, postType string) ([]*domain.PostDetail, int64, error)
+	GetPostList(ctx context.Context, page *domain.Page, postType string) ([]*domain.PostDetail, int64, error)
 	GetAllPublishPost(ctx context.Context) ([]*domain.PostDetail, error)
 	FindByAlias(ctx context.Context, alias string) (*domain.Post, error)
 }
@@ -99,7 +98,7 @@ func (s *PostService) GetPostDetailById(ctx context.Context, id bson.ObjectID) (
 	return s.repo.GetDetailByID(ctx, id)
 }
 
-func (s *PostService) GetPostList(ctx context.Context, page *apiwrap.Page, postType string) ([]*domain.PostDetail, int64, error) {
+func (s *PostService) GetPostList(ctx context.Context, page *domain.Page, postType string) ([]*domain.PostDetail, int64, error) {
 	switch postType {
 	case "publish":
 		return s.repo.GetList(ctx, page, "publish")

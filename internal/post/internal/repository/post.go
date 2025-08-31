@@ -7,7 +7,6 @@ import (
 	"github.com/chenmingyong0423/go-mongox/v2/bsonx"
 	"github.com/chenmingyong0423/go-mongox/v2/builder/aggregation"
 	"github.com/chenmingyong0423/go-mongox/v2/builder/query"
-	"github.com/codepzj/stellux/server/internal/pkg/apiwrap"
 	"github.com/codepzj/stellux/server/internal/post/internal/domain"
 	"github.com/codepzj/stellux/server/internal/post/internal/repository/dao"
 	"github.com/samber/lo"
@@ -27,7 +26,7 @@ type IPostRepository interface {
 	GetByID(ctx context.Context, id bson.ObjectID) (*domain.Post, error)
 	GetByKeyWord(ctx context.Context, keyWord string) ([]*domain.Post, error)
 	GetDetailByID(ctx context.Context, id bson.ObjectID) (*domain.PostDetail, error)
-	GetList(ctx context.Context, page *apiwrap.Page, postType string) ([]*domain.PostDetail, int64, error)
+	GetList(ctx context.Context, page *domain.Page, postType string) ([]*domain.PostDetail, int64, error)
 	GetAllPublishPost(ctx context.Context) ([]*domain.PostDetail, error)
 	FindByAlias(ctx context.Context, alias string) (*domain.Post, error)
 }
@@ -114,7 +113,7 @@ func (r *PostRepository) GetByKeyWord(ctx context.Context, keyWord string) ([]*d
 }
 
 // GetList 获取文章列表
-func (r *PostRepository) GetList(ctx context.Context, page *apiwrap.Page, postType string) ([]*domain.PostDetail, int64, error) {
+func (r *PostRepository) GetList(ctx context.Context, page *domain.Page, postType string) ([]*domain.PostDetail, int64, error) {
 	var cond bson.D
 	builder := query.NewBuilder().
 		Or(
@@ -127,6 +126,7 @@ func (r *PostRepository) GetList(ctx context.Context, page *apiwrap.Page, postTy
 	case "draft":
 		builder = builder.And(query.Eq("is_publish", false))
 	}
+
 	cond = builder.Build()
 	skip := (page.PageNo - 1) * page.PageSize
 	limit := page.PageSize
@@ -134,7 +134,7 @@ func (r *PostRepository) GetList(ctx context.Context, page *apiwrap.Page, postTy
 	if page.Field != "" {
 		sortBuilder.Add(page.Field, r.OrderConvertToInt(page.Order))
 	}
-	pagePipeline := aggregation.NewStageBuilder().Match(cond).
+	stageBuilder := aggregation.NewStageBuilder().Match(cond).
 		Lookup("label", "category", &aggregation.LookUpOptions{
 			LocalField:   "category_id",
 			ForeignField: "_id",
@@ -145,8 +145,17 @@ func (r *PostRepository) GetList(ctx context.Context, page *apiwrap.Page, postTy
 		Lookup("label", "tags", &aggregation.LookUpOptions{
 			LocalField:   "tags_id",
 			ForeignField: "_id",
-		}).
-		Sort(sortBuilder.Build()).Skip(skip).Limit(limit).Build()
+		})
+
+	// 如果指定了标签名称，添加标签过滤条件
+	if page.LabelName != "" {
+		stageBuilder = stageBuilder.Match(query.ElemMatch("tags", query.And(
+			query.Eq("type", "tag"),
+			query.Eq("name", page.LabelName),
+		)))
+	}
+
+	pagePipeline := stageBuilder.Sort(sortBuilder.Build()).Skip(skip).Limit(limit).Build()
 
 	posts, count, err := r.dao.GetList(ctx, pagePipeline, cond)
 	if err != nil {

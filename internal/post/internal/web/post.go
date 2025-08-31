@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/codepzj/stellux/server/internal/pkg/apiwrap"
+	"github.com/codepzj/stellux/server/internal/post/internal/domain"
 	"github.com/codepzj/stellux/server/internal/post/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -119,8 +120,15 @@ func (h *PostHandler) AdminDeletePostBatch(c *gin.Context, postIDListRequest Pos
 }
 
 // GetPublishPostList 获取发布文章列表
-func (h *PostHandler) GetPublishPostList(c *gin.Context, pageReq apiwrap.Page) (*apiwrap.Response[any], error) {
-	postDetailList, total, err := h.serv.GetPostList(c, &pageReq, "publish")
+func (h *PostHandler) GetPublishPostList(c *gin.Context, pageReq Page) (*apiwrap.Response[any], error) {
+	postDetailList, total, err := h.serv.GetPostList(c, &domain.Page{
+		PageNo:    pageReq.PageNo,
+		PageSize:  pageReq.PageSize,
+		Field:     pageReq.Field,
+		Order:     pageReq.Order,
+		Keyword:   pageReq.Keyword,
+		LabelName: pageReq.LabelName,
+	}, "publish")
 	if err != nil {
 		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
@@ -131,8 +139,15 @@ func (h *PostHandler) GetPublishPostList(c *gin.Context, pageReq apiwrap.Page) (
 }
 
 // AdminGetDraftDetailPostList 获取草稿箱文章列表
-func (h *PostHandler) AdminGetDraftDetailPostList(c *gin.Context, pageReq apiwrap.Page) (*apiwrap.Response[any], error) {
-	postDetailList, total, err := h.serv.GetPostList(c, &pageReq, "draft")
+func (h *PostHandler) AdminGetDraftDetailPostList(c *gin.Context, pageReq Page) (*apiwrap.Response[any], error) {
+	postDetailList, total, err := h.serv.GetPostList(c, &domain.Page{
+		PageNo:    pageReq.PageNo,
+		PageSize:  pageReq.PageSize,
+		Field:     pageReq.Field,
+		Order:     pageReq.Order,
+		Keyword:   pageReq.Keyword,
+		LabelName: pageReq.LabelName,
+	}, "draft")
 	if err != nil {
 		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
@@ -142,8 +157,15 @@ func (h *PostHandler) AdminGetDraftDetailPostList(c *gin.Context, pageReq apiwra
 	return apiwrap.SuccessWithDetail[any](pageVo, "获取草稿箱文章列表成功"), nil
 }
 
-func (h *PostHandler) AdminGetBinDetailPostList(c *gin.Context, pageReq apiwrap.Page) (*apiwrap.Response[any], error) {
-	postDetailList, total, err := h.serv.GetPostList(c, &pageReq, "bin")
+func (h *PostHandler) AdminGetBinDetailPostList(c *gin.Context, pageReq Page) (*apiwrap.Response[any], error) {
+	postDetailList, total, err := h.serv.GetPostList(c, &domain.Page{
+		PageNo:    pageReq.PageNo,
+		PageSize:  pageReq.PageSize,
+		Field:     pageReq.Field,
+		Order:     pageReq.Order,
+		Keyword:   pageReq.Keyword,
+		LabelName: pageReq.LabelName,
+	}, "bin")
 	if err != nil {
 		return apiwrap.FailWithMsg(500, err.Error()), err
 	}
