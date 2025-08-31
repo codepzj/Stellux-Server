@@ -87,6 +87,7 @@ type IPostDao interface {
 	GetByKeyWord(ctx context.Context, keyWord string) ([]*Post, error)
 	GetDetailByID(ctx context.Context, id bson.ObjectID) (*PostCategoryTags, error)
 	GetList(ctx context.Context, pagePipeline mongo.Pipeline, cond bson.D) ([]*PostCategoryTags, int64, error)
+	GetListWithTagFilter(ctx context.Context, pagePipeline mongo.Pipeline, cond bson.D, hasTagFilter bool, labelName string) ([]*PostCategoryTags, int64, error)
 	GetAllPublishPost(ctx context.Context) ([]*Post, error)
 	FindByAlias(ctx context.Context, alias string) (*Post, error)
 }
@@ -198,25 +199,69 @@ func (d *PostDao) GetList(ctx context.Context, pagePipeline mongo.Pipeline, cond
 		return nil, 0, err
 	}
 
-	// 如果聚合管道包含标签过滤，需要使用聚合管道来计算总数
-	// 创建一个只用于计数的管道（不包含Skip和Limit）
-	countPipeline := aggregation.NewStageBuilder().Match(cond).Lookup("label", "category", &aggregation.LookUpOptions{
-		LocalField:   "category_id",
-		ForeignField: "_id",
-	}).Unwind("$category", &aggregation.UnWindOptions{
-		PreserveNullAndEmptyArrays: true,
-	}).Lookup("label", "tags", &aggregation.LookUpOptions{
-		LocalField:   "tags_id",
-		ForeignField: "_id",
-	}).Build()
-
-	var countResult []bson.M
-	err = d.coll.Aggregator().Pipeline(countPipeline).AggregateWithParse(ctx, &countResult)
+	// 使用简单的计数
+	count, err := d.coll.Finder().Filter(cond).Count(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	count := int64(len(countResult))
+	return utils.ValToPtrList(postResult), count, err
+}
+
+// buildCountPipeline 构建计数管道
+func (d *PostDao) buildCountPipeline(cond bson.D, labelName string) mongo.Pipeline {
+	stageBuilder := aggregation.NewStageBuilder().Match(cond).
+		Lookup("label", "category", &aggregation.LookUpOptions{
+			LocalField:   "category_id",
+			ForeignField: "_id",
+		}).
+		Unwind("$category", &aggregation.UnWindOptions{
+			PreserveNullAndEmptyArrays: true,
+		}).
+		Lookup("label", "tags", &aggregation.LookUpOptions{
+			LocalField:   "tags_id",
+			ForeignField: "_id",
+		})
+
+	// 添加标签过滤条件
+	if labelName != "" {
+		stageBuilder = stageBuilder.Match(query.ElemMatch("tags", query.And(
+			query.Eq("type", "tag"),
+			query.Eq("name", labelName),
+		)))
+	}
+
+	return stageBuilder.Build()
+}
+
+// GetListWithTagFilter 获取文章列表（带标签过滤）
+func (d *PostDao) GetListWithTagFilter(ctx context.Context, pagePipeline mongo.Pipeline, cond bson.D, hasTagFilter bool, labelName string) ([]*PostCategoryTags, int64, error) {
+	// 执行分页查询
+	var postResult []PostCategoryTags
+	err := d.coll.Aggregator().Pipeline(pagePipeline).AggregateWithParse(ctx, &postResult)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// 计算总数
+	var count int64
+	if hasTagFilter {
+		// 有标签过滤时，使用聚合管道计数
+		countPipeline := d.buildCountPipeline(cond, labelName)
+		var countResult []bson.M
+		err = d.coll.Aggregator().Pipeline(countPipeline).AggregateWithParse(ctx, &countResult)
+		if err != nil {
+			return nil, 0, err
+		}
+		count = int64(len(countResult))
+	} else {
+		// 无标签过滤时，使用简单计数
+		count, err = d.coll.Finder().Filter(cond).Count(ctx)
+		if err != nil {
+			return nil, 0, err
+		}
+	}
+
 	return utils.ValToPtrList(postResult), count, err
 }
 

@@ -11,6 +11,7 @@ import (
 	"github.com/codepzj/stellux/server/internal/post/internal/repository/dao"
 	"github.com/samber/lo"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type IPostRepository interface {
@@ -112,14 +113,14 @@ func (r *PostRepository) GetByKeyWord(ctx context.Context, keyWord string) ([]*d
 	}), nil
 }
 
-// GetList 获取文章列表
-func (r *PostRepository) GetList(ctx context.Context, page *domain.Page, postType string) ([]*domain.PostDetail, int64, error) {
-	var cond bson.D
+// buildPostQueryCondition 构建文章查询条件
+func (r *PostRepository) buildPostQueryCondition(page *domain.Page, postType string) bson.D {
 	builder := query.NewBuilder().
 		Or(
 			query.RegexOptions("title", page.Keyword, "i"),
 			query.RegexOptions("description", page.Keyword, "i"),
 		).And(query.Eq("deleted_at", nil))
+
 	switch postType {
 	case "publish":
 		builder = builder.And(query.Eq("is_publish", true))
@@ -127,13 +128,16 @@ func (r *PostRepository) GetList(ctx context.Context, page *domain.Page, postTyp
 		builder = builder.And(query.Eq("is_publish", false))
 	}
 
-	cond = builder.Build()
-	skip := (page.PageNo - 1) * page.PageSize
-	limit := page.PageSize
+	return builder.Build()
+}
+
+// buildPostAggregationPipeline 构建文章聚合管道
+func (r *PostRepository) buildPostAggregationPipeline(cond bson.D, page *domain.Page, skip, limit int64) mongo.Pipeline {
 	sortBuilder := bsonx.NewD().Add("is_top", -1).Add("created_at", -1)
 	if page.Field != "" {
 		sortBuilder.Add(page.Field, r.OrderConvertToInt(page.Order))
 	}
+
 	stageBuilder := aggregation.NewStageBuilder().Match(cond).
 		Lookup("label", "category", &aggregation.LookUpOptions{
 			LocalField:   "category_id",
@@ -147,7 +151,7 @@ func (r *PostRepository) GetList(ctx context.Context, page *domain.Page, postTyp
 			ForeignField: "_id",
 		})
 
-	// 如果指定了标签名称，添加标签过滤条件
+	// 添加标签过滤条件
 	if page.LabelName != "" {
 		stageBuilder = stageBuilder.Match(query.ElemMatch("tags", query.And(
 			query.Eq("type", "tag"),
@@ -155,12 +159,28 @@ func (r *PostRepository) GetList(ctx context.Context, page *domain.Page, postTyp
 		)))
 	}
 
-	pagePipeline := stageBuilder.Sort(sortBuilder.Build()).Skip(skip).Limit(limit).Build()
+	return stageBuilder.Sort(sortBuilder.Build()).Skip(skip).Limit(limit).Build()
+}
 
-	posts, count, err := r.dao.GetList(ctx, pagePipeline, cond)
+// GetList 获取文章列表
+func (r *PostRepository) GetList(ctx context.Context, page *domain.Page, postType string) ([]*domain.PostDetail, int64, error) {
+	// 构建查询条件
+	cond := r.buildPostQueryCondition(page, postType)
+
+	// 计算分页参数
+	skip := (page.PageNo - 1) * page.PageSize
+	limit := page.PageSize
+
+	// 构建聚合管道
+	pagePipeline := r.buildPostAggregationPipeline(cond, page, skip, limit)
+
+	// 执行查询
+	hasTagFilter := page.LabelName != ""
+	posts, count, err := r.dao.GetListWithTagFilter(ctx, pagePipeline, cond, hasTagFilter, page.LabelName)
 	if err != nil {
 		return nil, 0, err
 	}
+
 	return r.PostCategoryTagsDOToPostDetailList(posts), count, nil
 }
 
