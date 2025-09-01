@@ -18,6 +18,7 @@ type ILabelRepository interface {
 	GetAllLabelsByType(ctx context.Context, labelType string) ([]*domain.Label, error)
 	GetCategoryLabelWithCount(ctx context.Context) ([]*domain.LabelPostCount, error)
 	GetTagsLabelWithCount(ctx context.Context) ([]*domain.LabelPostCount, error)
+	GetLabelByName(ctx context.Context, name string) (*domain.Label, error)
 }
 
 var _ ILabelRepository = (*LabelRepository)(nil)
@@ -93,6 +94,14 @@ func (r *LabelRepository) GetTagsLabelWithCount(ctx context.Context) ([]*domain.
 		return nil, err
 	}
 	return r.LabelPostCountDoToDomainList(labelWithCount), nil
+}
+
+func (r *LabelRepository) GetLabelByName(ctx context.Context, name string) (*domain.Label, error) {
+	label, err := r.dao.GetLabelByName(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	return r.LabelDoToDomain(label), nil
 }
 
 func (r *LabelRepository) LabelDomainToLabelDO(label *domain.Label) *dao.Label {

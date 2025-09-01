@@ -2,9 +2,11 @@ package service
 
 import (
 	"context"
+	"errors"
 
 	"github.com/codepzj/stellux/server/internal/label/internal/domain"
 	"github.com/codepzj/stellux/server/internal/label/internal/repository"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type ILabelService interface {
@@ -32,11 +34,39 @@ type LabelService struct {
 
 // CreateLabel 创建标签
 func (s *LabelService) CreateLabel(ctx context.Context, label *domain.Label) error {
+	// 检查标签是否存在
+	existLabel, err := s.repo.GetLabelByName(ctx, label.Name)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return s.repo.CreateLabel(ctx, label)
+		}
+		return err
+	}
+	if existLabel != nil {
+		if existLabel.Id.Hex() == label.Id.Hex() {
+			return nil
+		}
+		return errors.New("标签已存在")
+	}
 	return s.repo.CreateLabel(ctx, label)
 }
 
 // UpdateLabel 更新标签
 func (s *LabelService) UpdateLabel(ctx context.Context, id string, label *domain.Label) error {
+	// 检查标签是否存在
+	existLabel, err := s.repo.GetLabelByName(ctx, label.Name)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return s.repo.UpdateLabel(ctx, id, label)
+		}
+		return err
+	}
+	if existLabel != nil {
+		if existLabel.Id.Hex() == label.Id.Hex() {
+			return nil
+		}
+		return errors.New("标签已存在")
+	}
 	return s.repo.UpdateLabel(ctx, id, label)
 }
 

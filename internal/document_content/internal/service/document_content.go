@@ -42,12 +42,15 @@ type DocumentContentService struct {
 }
 
 func (s *DocumentContentService) CreateDocumentContent(ctx context.Context, doc domain.DocumentContent) (bson.ObjectID, error) {
-	docContentList, err := s.repo.GetDocumentContentListByAlias(ctx, doc.Alias, doc.DocumentId)
-	if err != nil {
-		return bson.ObjectID{}, err
-	}
-	if len(docContentList) > 0 {
-		return bson.ObjectID{}, errors.New("别名已存在")
+	// 如果非目录，则检查别名是否存在
+	if !doc.IsDir {
+		docContentList, err := s.repo.GetDocumentContentListByAlias(ctx, doc.Alias, doc.DocumentId)
+		if err != nil {
+			return bson.ObjectID{}, err
+		}
+		if len(docContentList) > 0 {
+			return bson.ObjectID{}, errors.New("别名已存在")
+		}
 	}
 	return s.repo.CreateDocumentContent(ctx, doc)
 }
@@ -81,8 +84,8 @@ func (s *DocumentContentService) UpdateDocumentContentById(ctx context.Context, 
 	if err != nil {
 		return err
 	}
-	// 如果别名不存在,或者别名存在且是当前文档的别名,则更新
-	if len(docContentList) == 0 || (len(docContentList) == 1 && docContentList[0].Id.Hex() == id.Hex()) {
+	// 如果别名不存在,或者别名存在且是当前文档的别名,则更新或者当前文档是目录
+	if len(docContentList) == 0 || (len(docContentList) == 1 && docContentList[0].Id.Hex() == id.Hex()) || doc.IsDir {
 		return s.repo.UpdateDocumentContentById(ctx, id, doc)
 	}
 	return errors.New("别名已存在")

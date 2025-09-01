@@ -33,6 +33,7 @@ type ILabelDao interface {
 	GetAllLabelsByType(ctx context.Context, labelType string) ([]*Label, error)
 	GetCategoryLabelWithCount(ctx context.Context) ([]*LabelPostCount, error)
 	GetTagsLabelWithCount(ctx context.Context) ([]*LabelPostCount, error)
+	GetLabelByName(ctx context.Context, name string) (*Label, error)
 }
 
 var _ ILabelDao = (*LabelDao)(nil)
@@ -149,4 +150,9 @@ func (d *LabelDao) GetTagsLabelWithCount(ctx context.Context) ([]*LabelPostCount
 		return nil, err
 	}
 	return labelPostCount, nil
+}
+
+// GetLabelByName 根据名称获取标签
+func (d *LabelDao) GetLabelByName(ctx context.Context, name string) (*Label, error) {
+	return d.coll.Finder().Filter(query.Eq("name", name)).FindOne(ctx)
 }
