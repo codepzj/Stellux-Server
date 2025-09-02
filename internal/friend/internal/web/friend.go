@@ -5,6 +5,7 @@ import (
 	"github.com/codepzj/Stellux-Server/internal/friend/internal/service"
 	"github.com/codepzj/Stellux-Server/internal/pkg/apiwrap"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func NewFriendHandler(serv service.IFriendService) *FriendHandler {
@@ -50,6 +51,7 @@ func (h *FriendHandler) CreateFriend(c *gin.Context, friend *FriendRequest) (*ap
 		AvatarUrl:   friend.AvatarUrl,
 		WebsiteType: friend.WebsiteType,
 	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +69,11 @@ func (h *FriendHandler) FindAllFriends(c *gin.Context) (*apiwrap.Response[any], 
 
 // UpdateFriend 更新友链
 func (h *FriendHandler) UpdateFriend(c *gin.Context, friend *FriendUpdateRequest) (*apiwrap.Response[any], error) {
-	err := h.serv.UpdateFriend(c, apiwrap.ConvertBsonID(friend.ID).ToObjectID(), &domain.Friend{
+	objId, err := bson.ObjectIDFromHex(friend.ID)
+	if err != nil {
+		return nil, apiwrap.NewBadRequest("id格式错误")
+	}
+	err = h.serv.UpdateFriend(c, objId, &domain.Friend{
 		Name:        friend.Name,
 		Description: friend.Description,
 		SiteUrl:     friend.SiteUrl,
@@ -83,7 +89,11 @@ func (h *FriendHandler) UpdateFriend(c *gin.Context, friend *FriendUpdateRequest
 
 // DeleteFriend 删除友链
 func (h *FriendHandler) DeleteFriend(c *gin.Context) (*apiwrap.Response[any], error) {
-	err := h.serv.DeleteFriend(c, apiwrap.ConvertBsonID(c.Param("id")).ToObjectID())
+	objId, err := bson.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		return nil, apiwrap.NewBadRequest("id格式错误")
+	}
+	err = h.serv.DeleteFriend(c, objId)
 	if err != nil {
 		return nil, err
 	}

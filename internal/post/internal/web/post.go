@@ -1,12 +1,11 @@
 package web
 
 import (
-	"errors"
-
 	"github.com/codepzj/Stellux-Server/internal/pkg/apiwrap"
 	"github.com/codepzj/Stellux-Server/internal/post/internal/domain"
 	"github.com/codepzj/Stellux-Server/internal/post/internal/service"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func NewPostHandler(serv service.IPostService) *PostHandler {
@@ -49,7 +48,7 @@ func (h *PostHandler) AdminCreatePost(c *gin.Context, postReq PostDto) (*apiwrap
 	post := h.PostDTOToDomain(postReq)
 	err := h.serv.AdminCreatePost(c, post)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithMsg("创建文章成功"), nil
 }
@@ -58,63 +57,107 @@ func (h *PostHandler) AdminUpdatePost(c *gin.Context, postUpdateReq PostUpdateDt
 	postUpdate := h.PostUpdateDTOToDomain(postUpdateReq)
 	err := h.serv.AdminUpdatePost(c, postUpdate)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithMsg("更新文章成功"), nil
 }
 
 func (h *PostHandler) AdminUpdatePostPublishStatus(c *gin.Context, postPublishStatusRequest PostPublishStatusRequest) (*apiwrap.Response[any], error) {
-	err := h.serv.AdminUpdatePostPublishStatus(c, apiwrap.ConvertBsonID(postPublishStatusRequest.ID).ToObjectID(), *postPublishStatusRequest.IsPublish)
+	objId, err := bson.ObjectIDFromHex(postPublishStatusRequest.ID)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewBadRequest("id格式错误")
+	}
+	err = h.serv.AdminUpdatePostPublishStatus(c, objId, *postPublishStatusRequest.IsPublish)
+	if err != nil {
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithMsg("更新文章发布状态成功"), nil
 }
 
 func (h *PostHandler) AdminRestorePost(c *gin.Context, postIDRequest PostIdRequest) (*apiwrap.Response[any], error) {
-	err := h.serv.AdminRestorePost(c, apiwrap.ConvertBsonID(postIDRequest.Id).ToObjectID())
+	objId, err := bson.ObjectIDFromHex(postIDRequest.Id)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewBadRequest("id格式错误")
+	}
+	err = h.serv.AdminRestorePost(c, objId)
+	if err != nil {
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithMsg("恢复文章成功"), nil
 }
 
-func (h *PostHandler) AdminRestorePostBatch(c *gin.Context, postIDListRequest PostIDListRequest) (*apiwrap.Response[any], error) {
-	err := h.serv.AdminRestorePostBatch(c, apiwrap.ToObjectIDList(apiwrap.ConvertBsonIDList(postIDListRequest.IDList)))
+func (h *PostHandler) AdminRestorePostBatch(c *gin.Context, postIDListRequest PostIDListRequest) (*apiwrap.Response[any], error) {	
+	var objIdList []bson.ObjectID
+	var err error
+	for _, id := range postIDListRequest.IDList {
+		objId, err := bson.ObjectIDFromHex(id)
+		if err != nil {
+			return nil, apiwrap.NewBadRequest("id格式错误")
+		}
+		objIdList = append(objIdList, objId)
+	}
+		
+	err = h.serv.AdminRestorePostBatch(c, objIdList)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithMsg("批量恢复文章成功"), nil
 }
 
 func (h *PostHandler) AdminSoftDeletePost(c *gin.Context, postIDRequest PostIdRequest) (*apiwrap.Response[any], error) {
-	err := h.serv.AdminSoftDeletePost(c, apiwrap.ConvertBsonID(postIDRequest.Id).ToObjectID())
+	objId, err := bson.ObjectIDFromHex(postIDRequest.Id)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewBadRequest("id格式错误")
+	}
+	err = h.serv.AdminSoftDeletePost(c, objId)
+	if err != nil {
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithMsg("软删除文章成功"), nil
 }
 
 func (h *PostHandler) AdminSoftDeletePostBatch(c *gin.Context, postIDListRequest PostIDListRequest) (*apiwrap.Response[any], error) {
-	err := h.serv.AdminSoftDeletePostBatch(c, apiwrap.ToObjectIDList(apiwrap.ConvertBsonIDList(postIDListRequest.IDList)))
+	var objIdList []bson.ObjectID
+	var err error
+	for _, id := range postIDListRequest.IDList {
+		objId, err := bson.ObjectIDFromHex(id)
+		if err != nil {
+			return nil, apiwrap.NewBadRequest("id格式错误")
+		}
+		objIdList = append(objIdList, objId)
+	}
+	err = h.serv.AdminSoftDeletePostBatch(c, objIdList)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithMsg("批量软删除文章成功"), nil
 }
 
 func (h *PostHandler) AdminDeletePost(c *gin.Context, postIDRequest PostIdRequest) (*apiwrap.Response[any], error) {
-	err := h.serv.AdminDeletePost(c, apiwrap.ConvertBsonID(postIDRequest.Id).ToObjectID())
+	objId, err := bson.ObjectIDFromHex(postIDRequest.Id)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewBadRequest("id格式错误")
+	}
+	err = h.serv.AdminDeletePost(c, objId)
+	if err != nil {
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithMsg("删除文章成功"), nil
 }
 
 func (h *PostHandler) AdminDeletePostBatch(c *gin.Context, postIDListRequest PostIDListRequest) (*apiwrap.Response[any], error) {
-	err := h.serv.AdminDeletePostBatch(c, apiwrap.ToObjectIDList(apiwrap.ConvertBsonIDList(postIDListRequest.IDList)))
+	var objIdList []bson.ObjectID
+	var err error
+	for _, id := range postIDListRequest.IDList {
+		objId, err := bson.ObjectIDFromHex(id)
+		if err != nil {
+			return nil, apiwrap.NewBadRequest("id格式错误")
+		}
+		objIdList = append(objIdList, objId)
+	}
+	err = h.serv.AdminDeletePostBatch(c, objIdList)
 	if err != nil {
-		return apiwrap.Fail(500), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithMsg("批量删除文章成功"), nil
 }
@@ -130,7 +173,7 @@ func (h *PostHandler) GetPublishPostList(c *gin.Context, pageReq Page) (*apiwrap
 		LabelName: pageReq.LabelName,
 	}, "publish")
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	postVos := h.PostDetailListToVOList(postDetailList)
 
@@ -149,7 +192,7 @@ func (h *PostHandler) AdminGetDraftDetailPostList(c *gin.Context, pageReq Page) 
 		LabelName: pageReq.LabelName,
 	}, "draft")
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	postVos := h.PostDetailListToVOList(postDetailList)
 
@@ -167,7 +210,7 @@ func (h *PostHandler) AdminGetBinDetailPostList(c *gin.Context, pageReq Page) (*
 		LabelName: pageReq.LabelName,
 	}, "bin")
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	postVos := h.PostDetailListToVOList(postDetailList)
 
@@ -177,18 +220,26 @@ func (h *PostHandler) AdminGetBinDetailPostList(c *gin.Context, pageReq Page) (*
 
 // GetPostDetailById 获取文章详情
 func (h *PostHandler) GetPostDetailById(c *gin.Context, postIDRequest PostIdRequest) (*apiwrap.Response[any], error) {
-	postDetail, err := h.serv.GetPostDetailById(c, apiwrap.ConvertBsonID(postIDRequest.Id).ToObjectID())
+	objId, err := bson.ObjectIDFromHex(postIDRequest.Id)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewBadRequest("id格式错误")
+	}
+	postDetail, err := h.serv.GetPostDetailById(c, objId)
+	if err != nil {
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithDetail[any](h.PostDetailToVO(postDetail), "获取文章详情成功"), nil
 }
 
 // GetPostById 获取文章详情
 func (h *PostHandler) GetPostById(c *gin.Context, postIDRequest PostIdRequest) (*apiwrap.Response[any], error) {
-	post, err := h.serv.GetPostById(c, apiwrap.ConvertBsonID(postIDRequest.Id).ToObjectID())
+	objId, err := bson.ObjectIDFromHex(postIDRequest.Id)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewBadRequest("id格式错误")
+	}
+	post, err := h.serv.GetPostById(c, objId)
+	if err != nil {
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithDetail[any](h.PostToVO(post), "获取文章详情成功"), nil
 }
@@ -197,11 +248,11 @@ func (h *PostHandler) GetPostById(c *gin.Context, postIDRequest PostIdRequest) (
 func (h *PostHandler) FindByAlias(c *gin.Context) (*apiwrap.Response[any], error) {
 	alias := c.Param("alias")
 	if alias == "" {
-		return apiwrap.Fail(400), errors.New("别名不能为空")
+		return nil, apiwrap.NewBadRequest("别名不能为空")
 	}
 	post, err := h.serv.FindByAlias(c, alias)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithDetail[any](h.PostToVO(post), "获取文章详情成功"), nil
 }
@@ -210,7 +261,7 @@ func (h *PostHandler) GetPostByKeyWord(c *gin.Context) (*apiwrap.Response[any], 
 	keyword := c.Query("keyword")
 	postList, err := h.serv.GetPostByKeyWord(c, keyword)
 	if err != nil {
-		return apiwrap.Fail(500), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithDetail[any](h.PostListToVOList(postList), "获取文章成功"), nil
 }
@@ -218,7 +269,7 @@ func (h *PostHandler) GetPostByKeyWord(c *gin.Context) (*apiwrap.Response[any], 
 func (h *PostHandler) GetAllPublishPost(c *gin.Context) (*apiwrap.Response[any], error) {
 	postDetailList, err := h.serv.GetAllPublishPost(c)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithDetail[any](h.PostDetailListToVOList(postDetailList), "获取所有发布文章成功"), nil
 }

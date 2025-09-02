@@ -1,14 +1,13 @@
 package web
 
 import (
-	"errors"
-
 	"github.com/codepzj/Stellux-Server/internal/pkg/apiwrap"
 	"github.com/codepzj/Stellux-Server/internal/pkg/middleware"
 	"github.com/codepzj/Stellux-Server/internal/pkg/utils"
 	"github.com/codepzj/Stellux-Server/internal/user/internal/domain"
 	"github.com/codepzj/Stellux-Server/internal/user/internal/service"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func NewUserHandler(serv service.IUserService) *UserHandler {
@@ -45,11 +44,11 @@ func (h *UserHandler) Login(c *gin.Context, userRequest LoginRequest) (*apiwrap.
 	}
 	exist, id := h.serv.CheckUserExist(c, &user)
 	if !exist {
-		return apiwrap.FailWithMsg(400, "用户名或密码错误"), errors.New("用户名或密码错误")
+		return nil, apiwrap.NewInternalError("用户名或密码错误")
 	}
 	accessToken, err := utils.GenerateAccessToken(id)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	loginVO := LoginVO{
 		AccessToken: accessToken,
@@ -68,21 +67,25 @@ func (h *UserHandler) AdminCreateUser(c *gin.Context, createUserRequest CreateUs
 	}
 	err := h.serv.AdminCreate(c, &user)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithMsg("创建用户成功"), nil
 }
 
 func (h *UserHandler) AdminUpdateUser(c *gin.Context, updateUserRequest UpdateUserRequest) (*apiwrap.Response[any], error) {
+	objId, err := bson.ObjectIDFromHex(updateUserRequest.ID)
+	if err != nil {
+		return nil, apiwrap.NewInternalError(err.Error())
+	}
 	user := domain.User{
-		ID:       apiwrap.ConvertBsonID(updateUserRequest.ID).ToObjectID(),
+		ID:       objId,
 		Nickname: updateUserRequest.Nickname,
 		Avatar:   updateUserRequest.Avatar,
 		Email:    updateUserRequest.Email,
 	}
-	err := h.serv.AdminUpdate(c, &user)
+	err = h.serv.AdminUpdate(c, &user)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithMsg("更新用户成功"), nil
 }
@@ -90,7 +93,7 @@ func (h *UserHandler) AdminUpdateUser(c *gin.Context, updateUserRequest UpdateUs
 func (h *UserHandler) AdminUpdatePassword(c *gin.Context, updatePasswordRequest UpdatePasswordRequest) (*apiwrap.Response[any], error) {
 	err := h.serv.AdminUpdatePassword(c, updatePasswordRequest.ID, updatePasswordRequest.OldPassword, updatePasswordRequest.NewPassword)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithMsg("更新密码成功"), nil
 }
@@ -99,7 +102,7 @@ func (h *UserHandler) AdminDeleteUser(c *gin.Context) (*apiwrap.Response[any], e
 	id := c.Param("id")
 	err := h.serv.AdminDelete(c, id)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithMsg("删除用户成功"), nil
 }
@@ -110,7 +113,7 @@ func (h *UserHandler) AdminGetUserList(c *gin.Context, page apiwrap.Page) (*apiw
 		PageSize: page.PageSize,
 	})
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithDetail[any](apiwrap.ToPageVO(page.PageNo, page.PageSize, count, h.UserDomainToVOList(users)), "获取用户列表成功"), nil
 }
@@ -119,7 +122,7 @@ func (h *UserHandler) AdminGetUserInfo(c *gin.Context) (*apiwrap.Response[any], 
 	id := c.GetString("userId")
 	user, err := h.serv.GetUserInfo(c, id)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithDetail[any](h.UserDomainToVO(user), "获取用户信息成功"), nil
 }

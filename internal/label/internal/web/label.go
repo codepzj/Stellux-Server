@@ -1,13 +1,12 @@
 package web
 
 import (
-	"errors"
-
 	"github.com/codepzj/Stellux-Server/internal/label/internal/domain"
 	"github.com/codepzj/Stellux-Server/internal/label/internal/service"
 	"github.com/codepzj/Stellux-Server/internal/pkg/apiwrap"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/lo"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func NewLabelHandler(serv service.ILabelService) *LabelHandler {
@@ -44,20 +43,24 @@ func (h *LabelHandler) AdminCreate(c *gin.Context, label *LabelRequest) (*apiwra
 		Name:      label.Name,
 	})
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithMsg("标签创建成功"), nil
 }
 
 // AdminUpdate 更新标签
 func (h *LabelHandler) AdminUpdate(c *gin.Context, label *LabelRequest) (*apiwrap.Response[any], error) {
-	err := h.serv.UpdateLabel(c, label.ID, &domain.Label{
-		Id:        apiwrap.ConvertBsonID(label.ID).ToObjectID(),
+	objId, err := bson.ObjectIDFromHex(label.ID)
+	if err != nil {
+		return nil, apiwrap.NewBadRequest("id格式错误")
+	}
+	err = h.serv.UpdateLabel(c, label.ID, &domain.Label{
+		Id:        objId,
 		LabelType: label.LabelType,
 		Name:      label.Name,
 	})
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithMsg("标签更新成功"), nil
 }
@@ -67,7 +70,7 @@ func (h *LabelHandler) AdminDelete(c *gin.Context) (*apiwrap.Response[any], erro
 	id := c.Param("id")
 	err := h.serv.DeleteLabel(c, id)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithMsg("标签删除成功"), nil
 }
@@ -77,7 +80,7 @@ func (h *LabelHandler) GetByID(c *gin.Context) (*apiwrap.Response[any], error) {
 	id := c.Param("id")
 	label, err := h.serv.GetLabelById(c, id)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithDetail[any](h.LabelDomainToVO(label), "标签获取成功"), nil
 }
@@ -86,7 +89,7 @@ func (h *LabelHandler) GetByID(c *gin.Context) (*apiwrap.Response[any], error) {
 func (h *LabelHandler) QueryLabelList(c *gin.Context, page *Page) (*apiwrap.Response[any], error) {
 	labels, count, err := h.serv.QueryLabelList(c, page.LabelType, page.PageNo, page.PageSize)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	labelVOList := h.DomainToVOList(labels)
 	pageVO := apiwrap.ToPageVO(page.PageNo, page.PageSize, count, labelVOList)
@@ -97,11 +100,11 @@ func (h *LabelHandler) QueryLabelList(c *gin.Context, page *Page) (*apiwrap.Resp
 func (h *LabelHandler) QueryAllByType(c *gin.Context) (*apiwrap.Response[any], error) {
 	labelType := c.Query("label_type")
 	if labelType == "" {
-		return apiwrap.FailWithMsg(400, "标签类型不能为空"), errors.New("标签类型不能为空")
+		return nil, apiwrap.NewBadRequest("标签类型不能为空")
 	}
 	labels, err := h.serv.GetAllLabelsByType(c, labelType)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithDetail[any](h.DomainToVOList(labels), "标签列表获取成功"), nil
 }
@@ -111,7 +114,7 @@ func (h *LabelHandler) QueryCategoryLabelWithCount(c *gin.Context) (*apiwrap.Res
 
 	labels, err := h.serv.GetAllLabelsWithCount(c)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	labelVOList := h.LabelWithCountDomainToVOList(labels)
 	return apiwrap.SuccessWithDetail[any](labelVOList, "分类标签列表获取成功"), nil
@@ -121,15 +124,16 @@ func (h *LabelHandler) QueryCategoryLabelWithCount(c *gin.Context) (*apiwrap.Res
 func (h *LabelHandler) QueryTagsLabelWithCount(c *gin.Context) (*apiwrap.Response[any], error) {
 	labels, err := h.serv.GetAllTagsLabelWithCount(c)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	labelVOList := h.LabelWithCountDomainToVOList(labels)
 	return apiwrap.SuccessWithDetail[any](labelVOList, "标签列表获取成功"), nil
 }
 
 func (h *LabelHandler) LabelDTOToDomain(label *LabelRequest) *domain.Label {
+	objId, _ := bson.ObjectIDFromHex(label.ID)
 	return &domain.Label{
-		Id:        apiwrap.ConvertBsonID(label.ID).ToObjectID(),
+		Id:        objId,
 		LabelType: label.LabelType,
 		Name:      label.Name,
 	}

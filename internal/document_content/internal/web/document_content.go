@@ -1,9 +1,7 @@
 package web
 
 import (
-	"errors"
 	"fmt"
-	"net/http"
 
 	"github.com/codepzj/Stellux-Server/internal/document_content/internal/domain"
 	"github.com/codepzj/Stellux-Server/internal/document_content/internal/service"
@@ -55,7 +53,7 @@ func (h *DocumentContentHandler) CreateDocumentContent(c *gin.Context, dto Creat
 	documentId, _ := bson.ObjectIDFromHex(dto.DocumentId)
 	parentId, _ := bson.ObjectIDFromHex(dto.ParentId)
 	if !dto.IsDir && dto.Alias == "" {
-		return apiwrap.FailWithMsg(400, "alias不能为空"), errors.New("alias不能为空")
+		return nil, apiwrap.NewBadRequest("alias不能为空")
 	}
 
 	id, err := h.serv.CreateDocumentContent(c, domain.DocumentContent{
@@ -69,7 +67,7 @@ func (h *DocumentContentHandler) CreateDocumentContent(c *gin.Context, dto Creat
 		Sort:        dto.Sort,
 	})
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithMsg(fmt.Sprintf("创建文档内容成功, 文档Id:%s", id.Hex())), nil
 }
@@ -78,17 +76,17 @@ func (h *DocumentContentHandler) CreateDocumentContent(c *gin.Context, dto Creat
 func (h *DocumentContentHandler) FindDocumentContentById(c *gin.Context) (*apiwrap.Response[any], error) {
 	documentId := c.Param("id")
 	if documentId == "" {
-		return apiwrap.FailWithMsg(400, "id不能为空"), errors.New("id不能为空")
+		return nil, apiwrap.NewBadRequest("id不能为空")
 	}
 
 	objId, err := bson.ObjectIDFromHex(documentId)
 	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusBadRequest, "id格式错误"), err
+		return nil, apiwrap.NewBadRequest("id格式错误")
 	}
 
 	doc, err := h.serv.FindDocumentContentById(c, objId)
 	if err != nil {
-		return apiwrap.FailWithMsg(http.StatusInternalServerError, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVO(doc), fmt.Sprintf("查询文档内容成功, 文档Id:%s", documentId)), nil
 }
@@ -97,15 +95,15 @@ func (h *DocumentContentHandler) FindDocumentContentById(c *gin.Context) (*apiwr
 func (h *DocumentContentHandler) DeleteDocumentContentById(c *gin.Context) (*apiwrap.Response[any], error) {
 	documentId := c.Param("id")
 	if documentId == "" {
-		return apiwrap.FailWithMsg(400, "id不能为空"), errors.New("id不能为空")
+		return nil, apiwrap.NewBadRequest("id不能为空")
 	}
 	objId, err := bson.ObjectIDFromHex(documentId)
 	if err != nil {
-		return apiwrap.FailWithMsg(400, "id格式错误"), err
+		return nil, apiwrap.NewBadRequest("id格式错误")
 	}
 	err = h.serv.DeleteDocumentContentById(c, objId)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithMsg(fmt.Sprintf("删除文档内容成功, 文档Id:%s", documentId)), nil
 }
@@ -114,15 +112,15 @@ func (h *DocumentContentHandler) DeleteDocumentContentById(c *gin.Context) (*api
 func (h *DocumentContentHandler) SoftDeleteDocumentContentById(c *gin.Context) (*apiwrap.Response[any], error) {
 	documentId := c.Param("id")
 	if documentId == "" {
-		return apiwrap.FailWithMsg(400, "id不能为空"), errors.New("id不能为空")
+		return nil, apiwrap.NewBadRequest("id不能为空")
 	}
 	objId, err := bson.ObjectIDFromHex(documentId)
 	if err != nil {
-		return apiwrap.FailWithMsg(400, "id格式错误"), err
+		return nil, apiwrap.NewBadRequest("id格式错误")
 	}
 	err = h.serv.SoftDeleteDocumentContentById(c, objId)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithMsg(fmt.Sprintf("软删除文档内容成功, 文档Id:%s", documentId)), nil
 }
@@ -131,15 +129,15 @@ func (h *DocumentContentHandler) SoftDeleteDocumentContentById(c *gin.Context) (
 func (h *DocumentContentHandler) RestoreDocumentContentById(c *gin.Context) (*apiwrap.Response[any], error) {
 	documentId := c.Param("id")
 	if documentId == "" {
-		return apiwrap.FailWithMsg(400, "id不能为空"), errors.New("id不能为空")
+		return nil, apiwrap.NewBadRequest("id不能为空")
 	}
 	objId, err := bson.ObjectIDFromHex(documentId)
 	if err != nil {
-		return apiwrap.FailWithMsg(400, "id格式错误"), err
+		return nil, apiwrap.NewBadRequest("id格式错误")
 	}
 	err = h.serv.RestoreDocumentContentById(c, objId)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithMsg(fmt.Sprintf("恢复文档内容成功, 文档Id:%s", documentId)), nil
 }
@@ -148,15 +146,15 @@ func (h *DocumentContentHandler) RestoreDocumentContentById(c *gin.Context) (*ap
 func (h *DocumentContentHandler) FindDocumentContentByParentId(c *gin.Context) (*apiwrap.Response[any], error) {
 	parentId := c.Query("parent_id")
 	if parentId == "" {
-		return apiwrap.FailWithMsg(400, "parent_id不能为空"), errors.New("parent_id不能为空")
+		return nil, apiwrap.NewBadRequest("parent_id不能为空")
 	}
 	objId, err := bson.ObjectIDFromHex(parentId)
 	if err != nil {
-		return apiwrap.FailWithMsg(400, "parentId格式错误"), err
+		return nil, apiwrap.NewBadRequest("parentId格式错误")
 	}
 	docs, err := h.serv.FindDocumentContentByParentId(c, objId)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVOList(docs), fmt.Sprintf("查询文档内容成功, 父级Id:%s", parentId)), nil
 }
@@ -165,15 +163,15 @@ func (h *DocumentContentHandler) FindDocumentContentByParentId(c *gin.Context) (
 func (h *DocumentContentHandler) FindDocumentContentByDocumentId(c *gin.Context) (*apiwrap.Response[any], error) {
 	documentId := c.Query("document_id")
 	if documentId == "" {
-		return apiwrap.FailWithMsg(400, "document_id不能为空"), errors.New("document_id不能为空")
+		return nil, apiwrap.NewBadRequest("document_id不能为空")
 	}
 	objId, err := bson.ObjectIDFromHex(documentId)
 	if err != nil {
-		return apiwrap.FailWithMsg(400, "documentId格式错误"), err
+		return nil, apiwrap.NewBadRequest("documentId格式错误")
 	}
 	docs, err := h.serv.FindDocumentContentByDocumentId(c, objId)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVOList(docs), fmt.Sprintf("查询文档内容成功, 文档Id:%s", documentId)), nil
 }
@@ -184,7 +182,7 @@ func (h *DocumentContentHandler) UpdateDocumentContentById(c *gin.Context, dto U
 	documentId, _ := bson.ObjectIDFromHex(dto.DocumentId)
 
 	if !dto.IsDir && dto.Alias == "" {
-		return apiwrap.FailWithMsg(400, "alias不能为空"), errors.New("alias不能为空")
+		return nil, apiwrap.NewBadRequest("alias不能为空")
 	}
 
 	// 处理ParentId，如果为空则使用documentId作为父级ID
@@ -206,7 +204,7 @@ func (h *DocumentContentHandler) UpdateDocumentContentById(c *gin.Context, dto U
 		Sort:        dto.Sort,
 	})
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithMsg(fmt.Sprintf("更新文档内容成功, 文档Id:%s", dto.Id)), nil
 }
@@ -218,7 +216,7 @@ func (h *DocumentContentHandler) GetDocumentContentList(c *gin.Context, page api
 		PageSize: page.PageSize,
 	})
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 
 	docsVO := h.DocumentContentDomainToVOList(docs)
@@ -235,12 +233,12 @@ func (h *DocumentContentHandler) GetDocumentContentList(c *gin.Context, page api
 func (h *DocumentContentHandler) SearchDocumentContent(c *gin.Context) (*apiwrap.Response[any], error) {
 	keyword := c.Query("keyword")
 	if keyword == "" {
-		return apiwrap.FailWithMsg(400, "keyword不能为空"), errors.New("keyword不能为空")
+		return nil, apiwrap.NewBadRequest("keyword不能为空")
 	}
 
 	docs, err := h.serv.SearchDocumentContent(c, keyword)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVOList(docs), "搜索文档内容成功"), nil
 }
@@ -249,17 +247,17 @@ func (h *DocumentContentHandler) SearchDocumentContent(c *gin.Context) (*apiwrap
 func (h *DocumentContentHandler) FindPublicDocumentContentById(c *gin.Context) (*apiwrap.Response[any], error) {
 	documentId := c.Param("id")
 	if documentId == "" {
-		return apiwrap.FailWithMsg(400, "id不能为空"), errors.New("id不能为空")
+		return nil, apiwrap.NewBadRequest("id不能为空")
 	}
 
 	objId, err := bson.ObjectIDFromHex(documentId)
 	if err != nil {
-		return apiwrap.FailWithMsg(400, "id格式错误"), err
+		return nil, apiwrap.NewBadRequest("id格式错误")
 	}
 
 	doc, err := h.serv.FindPublicDocumentContentById(c, objId)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVO(doc), fmt.Sprintf("查询文档内容成功, 文档Id:%s", documentId)), nil
 }
@@ -268,15 +266,15 @@ func (h *DocumentContentHandler) FindPublicDocumentContentById(c *gin.Context) (
 func (h *DocumentContentHandler) FindPublicDocumentContentByParentId(c *gin.Context) (*apiwrap.Response[any], error) {
 	parentId := c.Query("parent_id")
 	if parentId == "" {
-		return apiwrap.FailWithMsg(400, "parent_id不能为空"), errors.New("parent_id不能为空")
+		return nil, apiwrap.NewBadRequest("parent_id不能为空")
 	}
 	objId, err := bson.ObjectIDFromHex(parentId)
 	if err != nil {
-		return apiwrap.FailWithMsg(400, "parentId格式错误"), err
+		return nil, apiwrap.NewBadRequest("parentId格式错误")
 	}
 	docs, err := h.serv.FindPublicDocumentContentByParentId(c, objId)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVOList(docs), fmt.Sprintf("查询文档内容成功, 父级Id:%s", parentId)), nil
 }
@@ -285,15 +283,15 @@ func (h *DocumentContentHandler) FindPublicDocumentContentByParentId(c *gin.Cont
 func (h *DocumentContentHandler) FindPublicDocumentContentByDocumentId(c *gin.Context) (*apiwrap.Response[any], error) {
 	documentId := c.Query("document_id")
 	if documentId == "" {
-		return apiwrap.FailWithMsg(400, "document_id不能为空"), errors.New("document_id不能为空")
+		return nil, apiwrap.NewBadRequest("document_id不能为空")
 	}
 	objId, err := bson.ObjectIDFromHex(documentId)
 	if err != nil {
-		return apiwrap.FailWithMsg(400, "documentId格式错误"), err
+		return nil, apiwrap.NewBadRequest("documentId格式错误")
 	}
 	docs, err := h.serv.FindPublicDocumentContentByDocumentId(c, objId)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVOList(docs), fmt.Sprintf("查询文档内容成功, 文档Id:%s", documentId)), nil
 }
@@ -302,22 +300,22 @@ func (h *DocumentContentHandler) FindPublicDocumentContentByDocumentId(c *gin.Co
 func (h *DocumentContentHandler) FindPublicDocumentContentByRootIdAndAlias(c *gin.Context) (*apiwrap.Response[any], error) {
 	documentId := c.Query("document_id")
 	if documentId == "" {
-		return apiwrap.FailWithMsg(400, "document_id不能为空"), errors.New("document_id不能为空")
+		return nil, apiwrap.NewBadRequest("document_id不能为空")
 	}
 
 	alias := c.Query("alias")
 	if alias == "" {
-		return apiwrap.FailWithMsg(400, "alias不能为空"), errors.New("alias不能为空")
+		return nil, apiwrap.NewBadRequest("alias不能为空")
 	}
 
 	objId, err := bson.ObjectIDFromHex(documentId)
 	if err != nil {
-		return apiwrap.FailWithMsg(400, "document_id格式错误"), err
+		return nil, apiwrap.NewBadRequest("document_id格式错误")
 	}
 
 	docs, err := h.serv.FindPublicDocumentContentByDocumentId(c, objId)
 	if err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 
 	// 在获取的文档列表中查找匹配别名的文档
@@ -332,7 +330,7 @@ func (h *DocumentContentHandler) FindPublicDocumentContentByRootIdAndAlias(c *gi
 	}
 
 	if !found {
-		return apiwrap.FailWithMsg(404, "未找到指定别名的文档"), errors.New("未找到指定别名的文档")
+		return nil, apiwrap.NewBadRequest("未找到指定别名的文档")
 	}
 
 	return apiwrap.SuccessWithDetail[any](h.DocumentContentDomainToVO(targetDoc), fmt.Sprintf("查询文档内容成功, 根文档ID:%s, 别名:%s", documentId, alias)), nil
@@ -370,13 +368,13 @@ func (h *DocumentContentHandler) DeleteDocumentContentList(c *gin.Context) (*api
 		IdList []string `json:"id_list"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		return apiwrap.FailWithMsg(400, "参数错误"), err
+		return nil, apiwrap.NewBadRequest("参数错误")
 	}
 	if len(req.IdList) == 0 {
-		return apiwrap.FailWithMsg(400, "id_list不能为空"), errors.New("id_list不能为空")
+		return nil, apiwrap.NewBadRequest("id_list不能为空")
 	}
 	if err := h.serv.DeleteDocumentContentList(c, req.IdList); err != nil {
-		return apiwrap.FailWithMsg(500, err.Error()), err
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
 	return apiwrap.SuccessWithMsg("批量删除成功"), nil
 }

@@ -16,8 +16,8 @@ db.user.insertMany([
     {
         _id: ObjectId("67c453eda04b00c407b431fd"),
         username: "admin",
-        password: "$2a\$10\$EPbYKMyDA5RN9AaEEL7RqePI4BotBGCDvZ/ny/YHasEoU4vhU5n4e",
-        nickname: "codezj",
+        password: "\$2a\$10\$EPbYKMyDA5RN9AaEEL7RqePI4BotBGCDvZ/ny/YHasEoU4vhU5n4e",
+        nickname: "codepzj",
         role_id: Int32("0"),
         created_at: ISODate("2025-07-13T02:19:26.865Z"),
         updated_at: ISODate("2025-07-13T02:19:26.865Z"),

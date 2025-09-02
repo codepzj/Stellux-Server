@@ -25,6 +25,8 @@ type IFriendDao interface {
 	Create(ctx context.Context, friend *Friend) error
 	FindAll(ctx context.Context) ([]*Friend, error)
 	FindAllActive(ctx context.Context) ([]*Friend, error)
+	ExistsBySiteUrl(ctx context.Context, siteUrl string) (bool, error)
+	ExistsBySiteUrlExceptID(ctx context.Context, siteUrl string, excludeID bson.ObjectID) (bool, error)
 	Update(ctx context.Context, id bson.ObjectID, friend *Friend) error
 	Delete(ctx context.Context, id bson.ObjectID) error
 }
@@ -57,6 +59,24 @@ func (d *FriendDao) FindAll(ctx context.Context) ([]*Friend, error) {
 // FindAllActive 查询所有活跃的友链
 func (d *FriendDao) FindAllActive(ctx context.Context) ([]*Friend, error) {
 	return d.coll.Finder().Filter(query.Eq("is_active", true)).Find(ctx)
+}
+
+// ExistsBySiteUrl 判断指定 site_url 是否已存在
+func (d *FriendDao) ExistsBySiteUrl(ctx context.Context, siteUrl string) (bool, error) {
+	friends, err := d.coll.Finder().Filter(query.Eq("site_url", siteUrl)).Find(ctx)
+	if err != nil {
+		return false, err
+	}
+	return len(friends) > 0, nil
+}
+
+// ExistsBySiteUrlExceptID 判断指定 site_url 是否已存在（排除指定ID）
+func (d *FriendDao) ExistsBySiteUrlExceptID(ctx context.Context, siteUrl string, excludeID bson.ObjectID) (bool, error) {
+	friends, err := d.coll.Finder().Filter(query.And(query.Eq("site_url", siteUrl), query.Ne("_id", excludeID))).Find(ctx)
+	if err != nil {
+		return false, err
+	}
+	return len(friends) > 0, nil
 }
 
 func (d *FriendDao) Update(ctx context.Context, id bson.ObjectID, friend *Friend) error {

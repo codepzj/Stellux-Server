@@ -119,13 +119,15 @@ func (r *PostRepository) buildPostQueryCondition(page *domain.Page, postType str
 		Or(
 			query.RegexOptions("title", page.Keyword, "i"),
 			query.RegexOptions("description", page.Keyword, "i"),
-		).And(query.Eq("deleted_at", nil))
+		)
 
 	switch postType {
 	case "publish":
-		builder = builder.And(query.Eq("is_publish", true))
+		builder = builder.And(query.Eq("deleted_at", nil)).And(query.Eq("is_publish", true))
 	case "draft":
-		builder = builder.And(query.Eq("is_publish", false))
+		builder = builder.And(query.Eq("deleted_at", nil)).And(query.Eq("is_publish", false))
+	case "bin":
+		builder = builder.And(query.Ne("deleted_at", nil))
 	}
 
 	return builder.Build()

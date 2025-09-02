@@ -11,6 +11,8 @@ import (
 
 type IFriendRepository interface {
 	Create(ctx context.Context, friend *domain.Friend) error
+	ExistsBySiteUrl(ctx context.Context, siteUrl string) (bool, error)
+	ExistsBySiteUrlExceptID(ctx context.Context, siteUrl string, excludeID bson.ObjectID) (bool, error)
 	FindAllActive(ctx context.Context) ([]*domain.Friend, error)
 	FindAll(ctx context.Context) ([]*domain.Friend, error)
 	Update(ctx context.Context, id bson.ObjectID, friend *domain.Friend) error
@@ -29,6 +31,14 @@ type FriendRepository struct {
 
 func (r *FriendRepository) Create(ctx context.Context, friend *domain.Friend) error {
 	return r.dao.Create(ctx, r.FriendDomainToDao(friend))
+}
+
+func (r *FriendRepository) ExistsBySiteUrl(ctx context.Context, siteUrl string) (bool, error) {
+	return r.dao.ExistsBySiteUrl(ctx, siteUrl)
+}
+
+func (r *FriendRepository) ExistsBySiteUrlExceptID(ctx context.Context, siteUrl string, excludeID bson.ObjectID) (bool, error) {
+	return r.dao.ExistsBySiteUrlExceptID(ctx, siteUrl, excludeID)
 }
 
 // FindAllActive 查询所有活跃的友链

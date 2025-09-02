@@ -1,124 +1,144 @@
 package apiwrap
 
 import (
-	"bytes"
-	"io"
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
+// 通用返回结构
 type Response[T any] struct {
 	Code int    `json:"code"`
 	Data T      `json:"data,omitempty"`
 	Msg  string `json:"msg,omitempty"`
 }
 
-type ErrorResponse struct {
-	Code int    `json:"code"`          // 错误码
-	Msg  string `json:"msg,omitempty"` // 错误信息
+/* -------- 错误模型 -------- */
+// 业务错误（返回 200，但 code != 0）
+type BizError struct {
+	Code int
+	Msg  string
 }
 
-func respond[T any](code int, data T, msg string) *Response[T] {
-	return &Response[T]{Code: code, Data: data, Msg: msg}
+func (e *BizError) Error() string { return e.Msg }
+func NewBizError(code int, msg string) *BizError {
+	return &BizError{Code: code, Msg: msg}
 }
+
+// 客户端请求错误（返回 400）
+type BadRequest struct {
+	Code int
+	Msg  string
+}
+
+func (e *BadRequest) Error() string { return e.Msg }
+func NewBadRequest(msg string) *BadRequest {
+	return &BadRequest{Code: -1, Msg: msg}
+}
+
+// 服务端内部错误（返回 500）
+type InternalError struct {
+	Code int
+	Msg  string
+}
+
+func (e *InternalError) Error() string { return e.Msg }
+func NewInternalError(msg string) *InternalError {
+	return &InternalError{Code: -1, Msg: msg}
+}
+
+// -------- 成功返回 --------
 
 func Success() *Response[any] {
-	return respond[any](0, nil, "操作成功")
+	return &Response[any]{Code: 0, Msg: "操作成功"}
 }
 
 func SuccessWithMsg(msg string) *Response[any] {
-	return respond[any](0, nil, msg)
+	return &Response[any]{Code: 0, Msg: msg}
 }
 
 func SuccessWithDetail[T any](data T, msg string) *Response[T] {
-	return respond(0, data, msg)
+	return &Response[T]{Code: 0, Data: data, Msg: msg}
 }
 
-// 请求失败可以指定code业务状态码
-func Fail(code int) *Response[any] {
-	return respond[any](code, nil, "操作失败")
+/* -------- 错误返回 -------- */
+
+func FailWithMsg(msg string) *Response[any] {
+	return &Response[any]{Code: -1, Msg: msg}
 }
 
-func FailWithMsg(code int, msg string) *Response[any] {
-	return respond[any](code, nil, msg)
-}
-
-// 通用包装器
+/* -------- 包装器 -------- */
 func Wrap[T any](fn func(ctx *gin.Context) (*Response[T], error)) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		resp, err := fn(ctx)
 		if err != nil {
-			ctx.JSON(resp.Code, resp)
+			handleError(ctx, err)
 			return
 		}
 		ctx.JSON(200, resp)
 	}
 }
 
-// 绑定uri请求体[PATCH, PUT, DELETE]
 func WrapWithUri[R any, T any](fn func(ctx *gin.Context, req R) (*Response[T], error)) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var req R
 		if err := ctx.ShouldBindUri(&req); err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			ctx.JSON(400, FailWithMsg(err.Error()))
 			return
 		}
 		resp, err := fn(ctx, req)
 		if err != nil {
-			ctx.JSON(resp.Code, resp)
+			handleError(ctx, err)
 			return
 		}
 		ctx.JSON(200, resp)
 	}
 }
 
-// 绑定query请求体[GET]
 func WrapWithQuery[R any, T any](fn func(ctx *gin.Context, req R) (*Response[T], error)) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var req R
 		if err := ctx.ShouldBindQuery(&req); err != nil {
-			ctx.JSON(400, FailWithMsg(400, err.Error()))
+			ctx.JSON(400, FailWithMsg(err.Error()))
 			return
 		}
 		resp, err := fn(ctx, req)
 		if err != nil {
-			ctx.JSON(resp.Code, resp)
+			handleError(ctx, err)
 			return
 		}
 		ctx.JSON(200, resp)
 	}
 }
 
-// 绑定json请求体[POST]
 func WrapWithJson[R any, T any](fn func(ctx *gin.Context, req R) (*Response[T], error)) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var req R
-
-		bodyBytes, err := io.ReadAll(ctx.Request.Body)
-		if err != nil {
-			ctx.JSON(http.StatusBadRequest, FailWithMsg(400, err.Error()))
+		if ctx.Request.ContentLength == 0 {
+			ctx.JSON(400, FailWithMsg("请求体为空"))
 			return
 		}
-
-		if len(bodyBytes) == 0 {
-			ctx.JSON(http.StatusBadRequest, FailWithMsg(400, "请求体为空"))
-			return
-		}
-
-		// 恢复body内容, 供后续绑定
-		ctx.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-
 		if err := ctx.ShouldBindJSON(&req); err != nil {
-			ctx.JSON(http.StatusBadRequest, FailWithMsg(400, err.Error()))
+			ctx.JSON(400, FailWithMsg(err.Error()))
 			return
 		}
-
 		resp, err := fn(ctx, req)
 		if err != nil {
-			ctx.JSON(resp.Code, resp)
+			handleError(ctx, err)
 			return
 		}
 		ctx.JSON(200, resp)
+	}
+}
+
+// handleError 错误处理
+func handleError(ctx *gin.Context, err error) {
+	switch e := err.(type) {
+	case *BadRequest:
+		ctx.JSON(400, &Response[any]{Code: e.Code, Msg: e.Msg})
+	case *BizError:
+		ctx.JSON(200, &Response[any]{Code: e.Code, Msg: e.Msg})
+	case *InternalError:
+		ctx.JSON(500, &Response[any]{Code: e.Code, Msg: e.Msg})
+	default:
+		ctx.JSON(500, FailWithMsg(e.Error()))
 	}
 }

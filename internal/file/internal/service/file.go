@@ -13,6 +13,7 @@ import (
 	"github.com/codepzj/Stellux-Server/internal/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type IFileService interface {
@@ -74,7 +75,15 @@ func (s *FileService) QueryFileList(ctx *gin.Context, page *apiwrap.Page) ([]*do
 }
 
 func (s *FileService) DeleteFiles(ctx *gin.Context, idList []string) error {
-	files, err := s.repo.GetListByIDList(ctx, apiwrap.ToObjectIDList(apiwrap.ConvertBsonIDList(idList)))
+	var objIdList []bson.ObjectID
+	for _, id := range idList {
+		objId, err := bson.ObjectIDFromHex(id)
+		if err != nil {
+			return err
+		}
+		objIdList = append(objIdList, objId)
+	}
+	files, err := s.repo.GetListByIDList(ctx, objIdList)
 	if err != nil {
 		return err
 	}
@@ -82,5 +91,5 @@ func (s *FileService) DeleteFiles(ctx *gin.Context, idList []string) error {
 		_ = os.Remove(file.Dst)
 	}
 
-	return s.repo.DeleteMany(ctx, apiwrap.ToObjectIDList(apiwrap.ConvertBsonIDList(idList)))
+	return s.repo.DeleteMany(ctx, objIdList)
 }

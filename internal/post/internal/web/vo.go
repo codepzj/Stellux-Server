@@ -4,9 +4,9 @@ import (
 	"time"
 
 	"github.com/codepzj/Stellux-Server/internal/label"
-	"github.com/codepzj/Stellux-Server/internal/pkg/apiwrap"
 	"github.com/codepzj/Stellux-Server/internal/post/internal/domain"
 	"github.com/samber/lo"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type PostVO struct {
@@ -52,6 +52,12 @@ func GetTagNamesFromLabels(labels []label.Domain) []string {
 }
 
 func (h *PostHandler) PostDTOToDomain(postReq PostDto) *domain.Post {
+	categoryId, _ := bson.ObjectIDFromHex(postReq.CategoryID)
+	var tagsId []bson.ObjectID
+	for _, tagId := range postReq.TagsID {
+		objId, _ := bson.ObjectIDFromHex(tagId)
+		tagsId = append(tagsId, objId)
+	}
 	return &domain.Post{
 		CreatedAt:   postReq.CreatedAt,
 		Title:       postReq.Title,
@@ -59,8 +65,8 @@ func (h *PostHandler) PostDTOToDomain(postReq PostDto) *domain.Post {
 		Description: postReq.Description,
 		Author:      postReq.Author,
 		Alias:       postReq.Alias,
-		CategoryId:  apiwrap.ConvertBsonID(postReq.CategoryID).ToObjectID(),
-		TagsId:      apiwrap.ToObjectIDList(apiwrap.ConvertBsonIDList(postReq.TagsID)),
+		CategoryId:  categoryId,
+		TagsId:      tagsId,
 		IsPublish:   postReq.IsPublish,
 		IsTop:       postReq.IsTop,
 		Thumbnail:   postReq.Thumbnail,
@@ -68,16 +74,23 @@ func (h *PostHandler) PostDTOToDomain(postReq PostDto) *domain.Post {
 }
 
 func (h *PostHandler) PostUpdateDTOToDomain(postUpdateReq PostUpdateDto) *domain.Post {
+	objId, _ := bson.ObjectIDFromHex(postUpdateReq.Id)
+	categoryId, _ := bson.ObjectIDFromHex(postUpdateReq.CategoryID)
+	var tagsId []bson.ObjectID
+	for _, tagId := range postUpdateReq.TagsID {
+		tagsObjId, _ := bson.ObjectIDFromHex(tagId)
+		tagsId = append(tagsId, tagsObjId)
+	}
 	return &domain.Post{
-		Id:          apiwrap.ConvertBsonID(postUpdateReq.Id).ToObjectID(),
+		Id:          objId,
 		CreatedAt:   postUpdateReq.CreatedAt,
 		Title:       postUpdateReq.Title,
 		Content:     postUpdateReq.Content,
 		Description: postUpdateReq.Description,
 		Author:      postUpdateReq.Author,
 		Alias:       postUpdateReq.Alias,
-		CategoryId:  apiwrap.ConvertBsonID(postUpdateReq.CategoryID).ToObjectID(),
-		TagsId:      apiwrap.ToObjectIDList(apiwrap.ConvertBsonIDList(postUpdateReq.TagsID)),
+		CategoryId:  categoryId,
+		TagsId:      tagsId,
 		IsPublish:   postUpdateReq.IsPublish,
 		IsTop:       postUpdateReq.IsTop,
 		Thumbnail:   postUpdateReq.Thumbnail,
