@@ -41,4 +41,4 @@ RUN apk --no-cache add ca-certificates
 EXPOSE 9001
 
 # 运行应用
-CMD ["./main", "--cfg", "conf/prod.yaml"]
+CMD ["./main", "--cfg_path", "conf/prod.yaml"]
