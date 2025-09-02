@@ -1,7 +1,7 @@
 package web
 
 import (
-	"github.com/codepzj/stellux/server/internal/file/internal/domain"
+	"github.com/codepzj/Stellux-Server/internal/file/internal/domain"
 	"github.com/samber/lo"
 )
 

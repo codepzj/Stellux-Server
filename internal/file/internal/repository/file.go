@@ -3,9 +3,9 @@ package repository
 import (
 	"context"
 
-	"github.com/codepzj/stellux/server/internal/file/internal/domain"
-	"github.com/codepzj/stellux/server/internal/file/internal/repository/dao"
-	"github.com/codepzj/stellux/server/internal/pkg/apiwrap"
+	"github.com/codepzj/Stellux-Server/internal/file/internal/domain"
+	"github.com/codepzj/Stellux-Server/internal/file/internal/repository/dao"
+	"github.com/codepzj/Stellux-Server/internal/pkg/apiwrap"
 	"github.com/samber/lo"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )

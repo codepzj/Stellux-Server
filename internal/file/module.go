@@ -1,8 +1,8 @@
 package file
 
 import (
-	"github.com/codepzj/stellux/server/internal/file/internal/service"
-	"github.com/codepzj/stellux/server/internal/file/internal/web"
+	"github.com/codepzj/Stellux-Server/internal/file/internal/service"
+	"github.com/codepzj/Stellux-Server/internal/file/internal/web"
 )
 
 type (

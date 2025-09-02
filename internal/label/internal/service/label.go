@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/codepzj/stellux/server/internal/label/internal/domain"
-	"github.com/codepzj/stellux/server/internal/label/internal/repository"
+	"github.com/codepzj/Stellux-Server/internal/label/internal/domain"
+	"github.com/codepzj/Stellux-Server/internal/label/internal/repository"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 

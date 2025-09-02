@@ -7,10 +7,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/codepzj/stellux/server/internal/file/internal/domain"
-	"github.com/codepzj/stellux/server/internal/file/internal/repository"
-	"github.com/codepzj/stellux/server/internal/pkg/apiwrap"
-	"github.com/codepzj/stellux/server/internal/pkg/utils"
+	"github.com/codepzj/Stellux-Server/internal/file/internal/domain"
+	"github.com/codepzj/Stellux-Server/internal/file/internal/repository"
+	"github.com/codepzj/Stellux-Server/internal/pkg/apiwrap"
+	"github.com/codepzj/Stellux-Server/internal/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )

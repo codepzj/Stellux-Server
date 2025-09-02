@@ -3,9 +3,9 @@ package web
 import (
 	"time"
 
-	"github.com/codepzj/stellux/server/internal/label"
-	"github.com/codepzj/stellux/server/internal/pkg/apiwrap"
-	"github.com/codepzj/stellux/server/internal/post/internal/domain"
+	"github.com/codepzj/Stellux-Server/internal/label"
+	"github.com/codepzj/Stellux-Server/internal/pkg/apiwrap"
+	"github.com/codepzj/Stellux-Server/internal/post/internal/domain"
 	"github.com/samber/lo"
 )
 

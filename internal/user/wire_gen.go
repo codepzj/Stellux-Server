@@ -8,10 +8,10 @@ package user
 
 import (
 	"github.com/chenmingyong0423/go-mongox/v2"
-	"github.com/codepzj/stellux/server/internal/user/internal/repository"
-	"github.com/codepzj/stellux/server/internal/user/internal/repository/dao"
-	"github.com/codepzj/stellux/server/internal/user/internal/service"
-	"github.com/codepzj/stellux/server/internal/user/internal/web"
+	"github.com/codepzj/Stellux-Server/internal/user/internal/repository"
+	"github.com/codepzj/Stellux-Server/internal/user/internal/repository/dao"
+	"github.com/codepzj/Stellux-Server/internal/user/internal/service"
+	"github.com/codepzj/Stellux-Server/internal/user/internal/web"
 	"github.com/google/wire"
 )
 

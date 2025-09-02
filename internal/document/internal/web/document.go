@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/codepzj/stellux/server/internal/document/internal/domain"
-	docService "github.com/codepzj/stellux/server/internal/document/internal/service"
-	"github.com/codepzj/stellux/server/internal/pkg/apiwrap"
-	"github.com/codepzj/stellux/server/internal/pkg/middleware"
+	"github.com/codepzj/Stellux-Server/internal/document/internal/domain"
+	docService "github.com/codepzj/Stellux-Server/internal/document/internal/service"
+	"github.com/codepzj/Stellux-Server/internal/pkg/apiwrap"
+	"github.com/codepzj/Stellux-Server/internal/pkg/middleware"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -26,14 +26,14 @@ func (h *DocumentHandler) RegisterGinRoutes(engine *gin.Engine) {
 	adminDocumentGroup := engine.Group("/admin-api/document")
 	{
 		adminDocumentGroup.Use(middleware.JWT())
-		adminDocumentGroup.POST("/create", apiwrap.WrapWithJson(h.AdminCreateDocument))     // 管理员创建文档
-		adminDocumentGroup.GET("/find", apiwrap.Wrap(h.AdminFindDocument))                  // 管理员查询特定Id的文档
-		adminDocumentGroup.PUT("/update", apiwrap.WrapWithJson(h.AdminUpdateDocument))      // 管理员更新文档
-		adminDocumentGroup.DELETE("/delete/:id", apiwrap.Wrap(h.AdminDeleteDocument))       // 管理员删除文档
-		adminDocumentGroup.PUT("/soft-delete/:id", apiwrap.Wrap(h.AdminSoftDeleteDocument)) // 管理员软删除文档
-		adminDocumentGroup.PUT("/restore/:id", apiwrap.Wrap(h.AdminRestoreDocument))        // 管理员恢复文档
-		adminDocumentGroup.GET("/find-by-alias", apiwrap.Wrap(h.AdminFindDocumentByAlias))  // 管理员根据别名查询文档
-		adminDocumentGroup.GET("/list", apiwrap.WrapWithQuery(h.AdminGetDocumentList))      // 管理员获取文档列表
+		adminDocumentGroup.POST("/create", apiwrap.WrapWithJson(h.AdminCreateDocument))       // 管理员创建文档
+		adminDocumentGroup.GET("/find", apiwrap.Wrap(h.AdminFindDocument))                    // 管理员查询特定Id的文档
+		adminDocumentGroup.PUT("/update", apiwrap.WrapWithJson(h.AdminUpdateDocument))        // 管理员更新文档
+		adminDocumentGroup.DELETE("/delete/:id", apiwrap.Wrap(h.AdminDeleteDocument))         // 管理员删除文档
+		adminDocumentGroup.PUT("/soft-delete/:id", apiwrap.Wrap(h.AdminSoftDeleteDocument))   // 管理员软删除文档
+		adminDocumentGroup.PUT("/restore/:id", apiwrap.Wrap(h.AdminRestoreDocument))          // 管理员恢复文档
+		adminDocumentGroup.GET("/find-by-alias", apiwrap.Wrap(h.AdminFindDocumentByAlias))    // 管理员根据别名查询文档
+		adminDocumentGroup.GET("/list", apiwrap.WrapWithQuery(h.AdminGetDocumentList))        // 管理员获取文档列表
 		adminDocumentGroup.GET("/bin-list", apiwrap.WrapWithQuery(h.AdminGetDocumentBinList)) // 管理员获取文档回收箱列表
 	}
 
@@ -384,9 +384,9 @@ func (h *DocumentHandler) DocumentDomainToVOList(docs []*domain.Document) []Docu
 			Description: doc.Description,
 			Thumbnail:   doc.Thumbnail,
 			Alias:       doc.Alias,
-			Sort:          doc.Sort,
-			IsPublic:      doc.IsPublic,
-			IsDeleted:     doc.IsDeleted,
+			Sort:        doc.Sort,
+			IsPublic:    doc.IsPublic,
+			IsDeleted:   doc.IsDeleted,
 		}
 	}
 	return docsVO

@@ -1,4 +1,4 @@
-mongodb:
+MongoDB:
   HOST: "localhost" # 数据库地址
   PORT: 27017 # 数据库端口
   MONGO_INITDB_ROOT_USERNAME: "admin" # 数据库管理员用户名
@@ -7,6 +7,9 @@ mongodb:
   MONGO_USERNAME: "stellux" # 数据库用户名
   MONGO_PASSWORD: "123456" # 数据库密码
 
-server:
+Server:
   PORT: 9001 # 服务端口
   JWT_SECRET: "stellux" # JWT密钥
+  Log:
+    FILE: "log/server_dev.log" # 日志文件
+    LEVEL: "debug" # 日志级别

@@ -3,8 +3,8 @@ package web
 import (
 	"errors"
 
-	"github.com/codepzj/stellux/server/internal/file/internal/service"
-	"github.com/codepzj/stellux/server/internal/pkg/apiwrap"
+	"github.com/codepzj/Stellux-Server/internal/file/internal/service"
+	"github.com/codepzj/Stellux-Server/internal/pkg/apiwrap"
 	"github.com/gin-gonic/gin"
 )
 

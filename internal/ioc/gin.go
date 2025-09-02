@@ -1,28 +1,20 @@
 package ioc
 
 import (
-	"github.com/codepzj/stellux/server/internal/document"
-	"github.com/codepzj/stellux/server/internal/document_content"
-	"github.com/codepzj/stellux/server/internal/file"
-	"github.com/codepzj/stellux/server/internal/label"
-	"github.com/codepzj/stellux/server/internal/pkg/apiwrap"
-	"github.com/codepzj/stellux/server/internal/post"
-	"github.com/codepzj/stellux/server/internal/user"
+	"github.com/codepzj/Stellux-Server/internal/document"
+	"github.com/codepzj/Stellux-Server/internal/document_content"
+	"github.com/codepzj/Stellux-Server/internal/file"
+	"github.com/codepzj/Stellux-Server/internal/friend"
+	"github.com/codepzj/Stellux-Server/internal/label"
+	"github.com/codepzj/Stellux-Server/internal/post"
+	"github.com/codepzj/Stellux-Server/internal/user"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
-	"github.com/go-playground/validator/v10"
 )
 
 // NewGin 初始化gin服务器
-func NewGin(userHdl *user.Handler, postHdl *post.Handler, labelHdl *label.Handler, fileHdl *file.Handler, documentHdl *document.Handler, documentContentHdl *document_content.Handler, middleware []gin.HandlerFunc) *gin.Engine {
+func NewGin(userHdl *user.Handler, postHdl *post.Handler, labelHdl *label.Handler, fileHdl *file.Handler, documentHdl *document.Handler, documentContentHdl *document_content.Handler, friendHdl *friend.Handler, middleware []gin.HandlerFunc) *gin.Engine {
 	router := gin.Default()
-
-	// 验证器
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		v.RegisterValidation("version", apiwrap.ValidateVersion)
-		v.RegisterValidation("bson_id", apiwrap.ValidateBsonId)
-	}
 
 	// 中间件
 	router.Use(middleware...)
@@ -40,6 +32,7 @@ func NewGin(userHdl *user.Handler, postHdl *post.Handler, labelHdl *label.Handle
 		fileHdl.RegisterGinRoutes(router)
 		documentHdl.RegisterGinRoutes(router)
 		documentContentHdl.RegisterGinRoutes(router)
+		friendHdl.RegisterGinRoutes(router)
 	}
 
 	return router

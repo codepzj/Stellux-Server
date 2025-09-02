@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"github.com/codepzj/stellux/server/internal/pkg/utils"
-	"github.com/codepzj/stellux/server/internal/user/internal/domain"
-	"github.com/codepzj/stellux/server/internal/user/internal/repository"
+	"github.com/codepzj/Stellux-Server/internal/pkg/utils"
+	"github.com/codepzj/Stellux-Server/internal/user/internal/domain"
+	"github.com/codepzj/Stellux-Server/internal/user/internal/repository"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 

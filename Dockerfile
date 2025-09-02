@@ -41,4 +41,4 @@ RUN apk --no-cache add ca-certificates
 EXPOSE 9001
 
 # 运行应用
-CMD ["./main", "--mode", "production", "--config", "/app/config/stellux.production.yaml"]
+CMD ["./main", "--cfg", "conf/prod.yaml"]

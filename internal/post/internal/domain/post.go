@@ -3,7 +3,7 @@ package domain
 import (
 	"time"
 
-	"github.com/codepzj/stellux/server/internal/label"
+	"github.com/codepzj/Stellux-Server/internal/label"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 

@@ -8,10 +8,10 @@ package label
 
 import (
 	"github.com/chenmingyong0423/go-mongox/v2"
-	"github.com/codepzj/stellux/server/internal/label/internal/repository"
-	"github.com/codepzj/stellux/server/internal/label/internal/repository/dao"
-	"github.com/codepzj/stellux/server/internal/label/internal/service"
-	"github.com/codepzj/stellux/server/internal/label/internal/web"
+	"github.com/codepzj/Stellux-Server/internal/label/internal/repository"
+	"github.com/codepzj/Stellux-Server/internal/label/internal/repository/dao"
+	"github.com/codepzj/Stellux-Server/internal/label/internal/service"
+	"github.com/codepzj/Stellux-Server/internal/label/internal/web"
 	"github.com/google/wire"
 )
 

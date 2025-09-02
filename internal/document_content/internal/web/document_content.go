@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/codepzj/stellux/server/internal/document_content/internal/domain"
-	"github.com/codepzj/stellux/server/internal/document_content/internal/service"
-	"github.com/codepzj/stellux/server/internal/pkg/apiwrap"
-	"github.com/codepzj/stellux/server/internal/pkg/middleware"
+	"github.com/codepzj/Stellux-Server/internal/document_content/internal/domain"
+	"github.com/codepzj/Stellux-Server/internal/document_content/internal/service"
+	"github.com/codepzj/Stellux-Server/internal/pkg/apiwrap"
+	"github.com/codepzj/Stellux-Server/internal/pkg/middleware"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )

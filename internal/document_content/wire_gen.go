@@ -8,10 +8,10 @@ package document_content
 
 import (
 	"github.com/chenmingyong0423/go-mongox/v2"
-	"github.com/codepzj/stellux/server/internal/document_content/internal/repository"
-	"github.com/codepzj/stellux/server/internal/document_content/internal/repository/dao"
-	"github.com/codepzj/stellux/server/internal/document_content/internal/service"
-	"github.com/codepzj/stellux/server/internal/document_content/internal/web"
+	"github.com/codepzj/Stellux-Server/internal/document_content/internal/repository"
+	"github.com/codepzj/Stellux-Server/internal/document_content/internal/repository/dao"
+	"github.com/codepzj/Stellux-Server/internal/document_content/internal/service"
+	"github.com/codepzj/Stellux-Server/internal/document_content/internal/web"
 	"github.com/google/wire"
 )
 

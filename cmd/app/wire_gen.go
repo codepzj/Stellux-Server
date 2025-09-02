@@ -7,19 +7,23 @@
 package app
 
 import (
-	"github.com/codepzj/stellux/server/internal/document"
-	"github.com/codepzj/stellux/server/internal/document_content"
-	"github.com/codepzj/stellux/server/internal/file"
-	"github.com/codepzj/stellux/server/internal/ioc"
-	"github.com/codepzj/stellux/server/internal/label"
-	"github.com/codepzj/stellux/server/internal/post"
-	"github.com/codepzj/stellux/server/internal/user"
+	"github.com/codepzj/Stellux-Server/conf"
+	"github.com/codepzj/Stellux-Server/internal/document"
+	"github.com/codepzj/Stellux-Server/internal/document_content"
+	"github.com/codepzj/Stellux-Server/internal/file"
+	"github.com/codepzj/Stellux-Server/internal/friend"
+	"github.com/codepzj/Stellux-Server/internal/infra"
+	"github.com/codepzj/Stellux-Server/internal/ioc"
+	"github.com/codepzj/Stellux-Server/internal/label"
+	"github.com/codepzj/Stellux-Server/internal/post"
+	"github.com/codepzj/Stellux-Server/internal/user"
+	"github.com/google/wire"
 )
 
 // Injectors from wire.go:
 
-func InitApp() *HttpServer {
-	database := ioc.NewMongoDB()
+func InitApp(cfg *conf.Config) *HttpServer {
+	database := infra.NewMongoDB(cfg)
 	module := user.InitUserModule(database)
 	userHandler := module.Hdl
 	postModule := post.InitPostModule(database)
@@ -32,8 +36,18 @@ func InitApp() *HttpServer {
 	documentHandler := documentModule.Hdl
 	document_contentModule := document_content.InitDocumentContentModule(database)
 	documentContentHandler := document_contentModule.Hdl
+	friendModule := friend.InitFriendModule(database)
+	friendHandler := friendModule.Hdl
 	v := ioc.InitMiddleWare()
-	engine := ioc.NewGin(userHandler, postHandler, labelHandler, fileHandler, documentHandler, documentContentHandler, v)
-	httpServer := NewHttpServer(engine)
+	engine := ioc.NewGin(userHandler, postHandler, labelHandler, fileHandler, documentHandler, documentContentHandler, friendHandler, v)
+	httpServer := NewHttpServer(engine, cfg)
 	return httpServer
 }
+
+// wire.go:
+
+// 基础设施
+var InfraProvider = wire.NewSet(infra.NewMongoDB)
+
+// 控制反转
+var IocProvider = wire.NewSet(ioc.InitMiddleWare, ioc.NewGin)

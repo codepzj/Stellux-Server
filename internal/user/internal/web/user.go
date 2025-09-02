@@ -3,11 +3,11 @@ package web
 import (
 	"errors"
 
-	"github.com/codepzj/stellux/server/internal/pkg/apiwrap"
-	"github.com/codepzj/stellux/server/internal/pkg/middleware"
-	"github.com/codepzj/stellux/server/internal/pkg/utils"
-	"github.com/codepzj/stellux/server/internal/user/internal/domain"
-	"github.com/codepzj/stellux/server/internal/user/internal/service"
+	"github.com/codepzj/Stellux-Server/internal/pkg/apiwrap"
+	"github.com/codepzj/Stellux-Server/internal/pkg/middleware"
+	"github.com/codepzj/Stellux-Server/internal/pkg/utils"
+	"github.com/codepzj/Stellux-Server/internal/user/internal/domain"
+	"github.com/codepzj/Stellux-Server/internal/user/internal/service"
 	"github.com/gin-gonic/gin"
 )
 

@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/codepzj/stellux/server/internal/pkg/utils"
+	"github.com/codepzj/Stellux-Server/internal/pkg/utils"
 
 	"github.com/gin-gonic/gin"
 )

@@ -1,9 +1,9 @@
 package label
 
 import (
-	"github.com/codepzj/stellux/server/internal/label/internal/domain"
-	"github.com/codepzj/stellux/server/internal/label/internal/service"
-	"github.com/codepzj/stellux/server/internal/label/internal/web"
+	"github.com/codepzj/Stellux-Server/internal/label/internal/domain"
+	"github.com/codepzj/Stellux-Server/internal/label/internal/service"
+	"github.com/codepzj/Stellux-Server/internal/label/internal/web"
 )
 
 type (

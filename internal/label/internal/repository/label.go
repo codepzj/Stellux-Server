@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 
-	"github.com/codepzj/stellux/server/internal/label/internal/domain"
-	"github.com/codepzj/stellux/server/internal/label/internal/repository/dao"
+	"github.com/codepzj/Stellux-Server/internal/label/internal/domain"
+	"github.com/codepzj/Stellux-Server/internal/label/internal/repository/dao"
 	"github.com/samber/lo"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )

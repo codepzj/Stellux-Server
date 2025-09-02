@@ -1,8 +1,8 @@
 package document
 
 import (
-	"github.com/codepzj/stellux/server/internal/document/internal/service"
-	"github.com/codepzj/stellux/server/internal/document/internal/web"
+	"github.com/codepzj/Stellux-Server/internal/document/internal/service"
+	"github.com/codepzj/Stellux-Server/internal/document/internal/web"
 )
 
 type (
