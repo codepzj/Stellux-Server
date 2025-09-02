@@ -1,3 +1,5 @@
+.PHONY: start rebuild stop wire fmt
+
 start:
 	docker compose -f docker-compose.development.yaml up -d
 
@@ -9,3 +11,9 @@ rebuild:
 
 stop:
 	docker compose -f docker-compose.development.yaml down
+
+wire:
+	wire ./...
+
+fmt:
+	go fmt ./...
