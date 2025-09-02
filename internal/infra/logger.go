@@ -25,8 +25,8 @@ func InitLogger(cfg *conf.Config) {
 		Compress:   true, // 是否压缩
 	}
 
-	// 北京时区
-	cst, _ := time.LoadLocation("Asia/Shanghai")
+	// 固定东八区（CST）
+	cst := time.FixedZone("CST", 8*3600)
 
 	opts := &slog.HandlerOptions{
 		AddSource: false,
