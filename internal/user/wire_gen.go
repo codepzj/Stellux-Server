@@ -7,18 +7,18 @@
 package user
 
 import (
-	"github.com/chenmingyong0423/go-mongox/v2"
 	"github.com/codepzj/Stellux-Server/internal/user/internal/repository"
 	"github.com/codepzj/Stellux-Server/internal/user/internal/repository/dao"
 	"github.com/codepzj/Stellux-Server/internal/user/internal/service"
 	"github.com/codepzj/Stellux-Server/internal/user/internal/web"
 	"github.com/google/wire"
+	"gorm.io/gorm"
 )
 
 // Injectors from wire.go:
 
-func InitUserModule(mongoDB *mongox.Database) *Module {
-	userDao := dao.NewUserDao(mongoDB)
+func InitUserModule(db *gorm.DB) *Module {
+	userDao := dao.NewUserDao(db)
 	userRepository := repository.NewUserRepository(userDao)
 	userService := service.NewUserService(userRepository)
 	userHandler := web.NewUserHandler(userService)

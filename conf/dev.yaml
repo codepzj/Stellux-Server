@@ -7,9 +7,21 @@ MongoDB:
   MONGO_USERNAME: "stellux" # 数据库用户名
   MONGO_PASSWORD: "123456" # 数据库密码
 
+pgsql:
+  dsn: "user=postgres password=123456 dbname=stellux host=localhost port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+  logType: 1 # 0 控制台，1 文件
+  logFile: ./logs/pgsql.log
+  slowSqlThreshold: 1 # 慢查询日志，单位s
+  logLevel: info # silent/error/warn/info
+
+log:
+  level: debug # debug/info/warn/error 日志级别
+  filename: ./logs/server_dev.log # 日志文件名
+  maxSize: 100 # 单个日志文件最大尺寸，单位MB
+  maxBackups: 10 # 最大保留日志文件数量
+  maxAge: 30 # 最大保留天数
+  compress: true # 是否压缩日志文件
+
 Server:
   PORT: 9001 # 服务端口
   JWT_SECRET: "stellux" # JWT密钥
-  Log:
-    FILE: "log/server_dev.log" # 日志文件
-    LEVEL: "debug" # 日志级别

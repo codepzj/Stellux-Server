@@ -9,9 +9,12 @@ import (
 
 type Config struct {
 	MongoDB MongoDB `mapstructure:"MongoDB"`
+	Pgsql   Pgsql   `mapstructure:"pgsql"`
+	Log     Log     `mapstructure:"log"`
 	Server  Server  `mapstructure:"Server"`
 }
 
+// MongoDB配置
 type MongoDB struct {
 	Host                    string `mapstructure:"HOST"`
 	Port                    int    `mapstructure:"PORT"`
@@ -22,17 +25,32 @@ type MongoDB struct {
 	MongoPassword           string `mapstructure:"MONGO_PASSWORD"`
 }
 
+// Pgsql配置
+type Pgsql struct {
+	Dsn              string `mapstructure:"dsn"`              // 数据库连接字符串
+	LogType          int    `mapstructure:"logType"`          // 0 控制台 1 文件
+	LogFile          string `mapstructure:"logFile"`          // 日志文件路径
+	SlowSqlThreshold int    `mapstructure:"slowSqlThreshold"` // 慢查询阈值，单位秒
+	LogLevel         string `mapstructure:"logLevel"`         // 日志级别 silent info warn error
+}
+
+// Log日志配置
+type Log struct {
+	Level      string `mapstructure:"level"`      // 日志级别
+	Filename   string `mapstructure:"filename"`   // 日志文件名
+	MaxSize    int    `mapstructure:"maxSize"`    // 单个日志文件最大尺寸，单位MB
+	MaxBackups int    `mapstructure:"maxBackups"` // 最大保留日志文件数量
+	MaxAge     int    `mapstructure:"maxAge"`     // 最大保留天数
+	Compress   bool   `mapstructure:"compress"`   // 是否压缩日志文件
+}
+
+// Server配置
 type Server struct {
 	Port      int    `mapstructure:"PORT"`
 	JwtSecret string `mapstructure:"JWT_SECRET"`
-	Log       Log    `mapstructure:"Log"`
 }
 
-type Log struct {
-	File  string `mapstructure:"FILE"`
-	Level string `mapstructure:"LEVEL"`
-}
-
+// 获取配置
 func GetConfig(cfgPath string) *Config {
 	v := viper.New()
 

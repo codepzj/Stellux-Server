@@ -3,118 +3,129 @@ package dao
 import (
 	"context"
 
-	"github.com/chenmingyong0423/go-mongox/v2"
-	"github.com/chenmingyong0423/go-mongox/v2/builder/query"
-	"github.com/chenmingyong0423/go-mongox/v2/builder/update"
 	"github.com/pkg/errors"
-	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"gorm.io/gorm"
 )
 
 type User struct {
-	mongox.Model `bson:",inline"`
-	Username     string `bson:"username"`
-	Password     string `bson:"password"`
-	Nickname     string `bson:"nickname"`
-	RoleId       int    `bson:"role_id"`
-	Avatar       string `bson:"avatar"`
-	Email        string `bson:"email"`
+	gorm.Model
+	Username string `gorm:"username;type:varchar(20);uniqueIndex;not null"`
+	Password string `gorm:"password"`
+	Nickname string `gorm:"nickname"`
+	RoleId   int    `gorm:"role_id"`
+	Avatar   string `gorm:"avatar"`
+	Email    string `gorm:"email"`
+}
+
+func (User) TableName() string {
+	return "user"
 }
 
 type UserUpdate struct {
-	Nickname string `bson:"nickname,omitempty"`
-	Avatar   string `bson:"avatar,omitempty"`
-	Email    string `bson:"email,omitempty"`
+	Nickname string `gorm:"nickname"`
+	Avatar   string `gorm:"avatar"`
+	Email    string `gorm:"email"`
+}
+
+func (UserUpdate) TableName() string {
+	return "user"
 }
 
 type IUserDao interface {
-	Create(ctx context.Context, user *User) (bson.ObjectID, error)
+	Create(ctx context.Context, user *User) error
+	Find(ctx context.Context, filter func(db *gorm.DB) *gorm.DB) ([]*User, error)
+	GetAllCount(ctx context.Context) (int64, error)
 	GetByUsername(ctx context.Context, username string) (*User, error)
-	Update(ctx context.Context, id bson.ObjectID, user *User) error
-	UpdatePassword(ctx context.Context, id bson.ObjectID, password string) error
-	Delete(ctx context.Context, id bson.ObjectID) error
-	FindByCondition(ctx context.Context, findOptions *options.FindOptionsBuilder) ([]*User, int64, error)
-	GetByID(ctx context.Context, id bson.ObjectID) (*User, error)
+	Update(ctx context.Context, id uint, user *User) error
+	UpdatePassword(ctx context.Context, id uint, password string) error
+	Delete(ctx context.Context, id uint) error
+	GetByID(ctx context.Context, id uint) (*User, error)
 }
 
 var _ IUserDao = (*UserDao)(nil)
 
-func NewUserDao(db *mongox.Database) *UserDao {
-	return &UserDao{coll: mongox.NewCollection[User](db, "user")}
+func NewUserDao(db *gorm.DB) *UserDao {
+	db.AutoMigrate(&User{})
+	return &UserDao{db: db}
 }
 
 type UserDao struct {
-	coll *mongox.Collection[User]
+	db *gorm.DB
 }
 
-func (d *UserDao) Create(ctx context.Context, user *User) (bson.ObjectID, error) {
-	res, err := d.coll.Creator().InsertOne(ctx, user)
-	if err != nil {
-		return bson.ObjectID{}, err
-	}
-	if res.InsertedID == nil {
-		return bson.ObjectID{}, errors.Wrap(err, "新增用户失败")
-	}
-	return res.InsertedID.(bson.ObjectID), nil
-}
-
-func (d *UserDao) GetByUsername(ctx context.Context, username string) (*User, error) {
-	return d.coll.Finder().Filter(bson.M{"username": username}).FindOne(ctx)
-}
-
-func (d *UserDao) Update(ctx context.Context, id bson.ObjectID, user *User) error {
-	res, err := d.coll.Updater().Filter(query.Id(id)).Updates(update.SetFields(d.UserToUpdate(user))).UpdateOne(ctx)
+func (d *UserDao) Create(ctx context.Context, user *User) error {
+	err := d.db.Model(&User{}).Create(user).Error
 	if err != nil {
 		return err
 	}
-	if res.ModifiedCount == 0 {
+	return nil
+}
+
+func (d *UserDao) Find(ctx context.Context, filter func(db *gorm.DB) *gorm.DB) ([]*User, error) {
+	var users []*User
+	err := d.db.Model(&User{}).Scopes(filter).Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
+func (d *UserDao) GetAllCount(ctx context.Context) (int64, error) {
+	var count int64
+	err := d.db.Model(&User{}).Count(&count).Error
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (d *UserDao) GetByUsername(ctx context.Context, username string) (*User, error) {
+	var user User
+	err := d.db.Model(&User{}).Where("username = ?", username).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (d *UserDao) Update(ctx context.Context, id uint, user *User) error {
+	res := d.db.Model(&User{}).Where("id = ?", id).Updates(user)
+	if err := res.Error; err != nil {
+		return err
+	}
+	if res.RowsAffected == 0 {
 		return errors.New("更新用户失败")
 	}
 	return nil
 }
 
-func (d *UserDao) UpdatePassword(ctx context.Context, id bson.ObjectID, password string) error {
-	res, err := d.coll.Updater().Filter(query.Id(id)).Updates(update.Set("password", password)).UpdateOne(ctx)
-	if err != nil {
+func (d *UserDao) UpdatePassword(ctx context.Context, id uint, password string) error {
+	res := d.db.Model(&User{}).Where("id = ?", id).Update("password", password)
+	if err := res.Error; err != nil {
 		return err
 	}
-	if res.ModifiedCount == 0 {
-		return errors.New("更新密码失败")
+	if res.RowsAffected == 0 {
+		return errors.New("更新用户密码失败")
 	}
 	return nil
 }
 
-func (d *UserDao) Delete(ctx context.Context, id bson.ObjectID) error {
-	res, err := d.coll.Deleter().Filter(query.Id(id)).DeleteOne(ctx)
-	if err != nil {
+func (d *UserDao) Delete(ctx context.Context, id uint) error {
+	res := d.db.Model(&User{}).Where("id = ?", id).Delete(&User{})
+	if err := res.Error; err != nil {
 		return err
 	}
-	if res.DeletedCount == 0 {
+	if res.RowsAffected == 0 {
 		return errors.New("删除用户失败")
 	}
 	return nil
 }
 
-func (d *UserDao) FindByCondition(ctx context.Context, findOptions *options.FindOptionsBuilder) ([]*User, int64, error) {
-	count, err := d.coll.Finder().Count(ctx)
+func (d *UserDao) GetByID(ctx context.Context, id uint) (*User, error) {
+	var user User
+	err := d.db.Model(&User{}).Where("id = ?", id).First(&user).Error
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
-	users, err := d.coll.Finder().Find(ctx, findOptions)
-	if err != nil {
-		return nil, 0, err
-	}
-	return users, count, nil
-}
-
-func (d *UserDao) GetByID(ctx context.Context, id bson.ObjectID) (*User, error) {
-	return d.coll.Finder().Filter(query.Id(id)).FindOne(ctx)
-}
-
-func (d *UserDao) UserToUpdate(user *User) *UserUpdate {
-	return &UserUpdate{
-		Nickname: user.Nickname,
-		Avatar:   user.Avatar,
-		Email:    user.Email,
-	}
+	return &user, nil
 }

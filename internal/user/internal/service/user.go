@@ -3,21 +3,22 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/codepzj/Stellux-Server/internal/pkg/utils"
 	"github.com/codepzj/Stellux-Server/internal/user/internal/domain"
 	"github.com/codepzj/Stellux-Server/internal/user/internal/repository"
-	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gorm.io/gorm"
 )
 
 type IUserService interface {
-	CheckUserExist(ctx context.Context, user *domain.User) (bool, string)
+	VerifyUser(ctx context.Context, user *domain.User) (*domain.User, error)
 	AdminCreate(ctx context.Context, user *domain.User) error
-	AdminUpdatePassword(ctx context.Context, id string, oldPassword string, newPassword string) error
+	AdminUpdatePassword(ctx context.Context, id uint, oldPassword string, newPassword string) error
 	AdminUpdate(ctx context.Context, user *domain.User) error
-	AdminDelete(ctx context.Context, id string) error
+	AdminDelete(ctx context.Context, id uint) error
 	GetUserList(ctx context.Context, page *domain.Page) ([]*domain.User, int64, error)
-	GetUserInfo(ctx context.Context, id string) (*domain.User, error)
+	GetUserInfo(ctx context.Context, id uint) (*domain.User, error)
 }
 
 var _ IUserService = (*UserService)(nil)
@@ -32,41 +33,38 @@ type UserService struct {
 	repo repository.IUserRepository
 }
 
-func (s *UserService) CheckUserExist(ctx context.Context, user *domain.User) (bool, string) {
+func (s *UserService) VerifyUser(ctx context.Context, user *domain.User) (*domain.User, error) {
 	u, err := s.repo.GetByUsername(ctx, user.Username)
-	if err != nil && err != mongo.ErrNoDocuments {
-		return false, ""
+	if err != nil {
+		return nil, err
 	}
 	if u == nil {
-		return false, ""
+		return nil, errors.New("用户不存在")
 	}
-	return utils.CompareHashAndPassword(u.Password, user.Password), u.ID.Hex()
+	has := utils.CompareHashAndPassword(u.Password, user.Password)
+	if !has {
+		return nil, errors.New("用户名或密码错误")
+	}
+	return u, nil
 }
 
 // 管理员创建用户
 func (s *UserService) AdminCreate(ctx context.Context, user *domain.User) error {
-	u, err := s.repo.GetByUsername(ctx, user.Username)
-	if err != nil && err != mongo.ErrNoDocuments {
+	_, err := s.repo.GetByUsername(ctx, user.Username)
+	// 如果err不是记录不存在，则返回err
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
-	}
-	if u != nil {
-		return errors.New("用户已存在")
 	}
 	// 使用bcrypt生成hash密码
 	user.Password, err = utils.GenerateHashPassword(user.Password)
 	if err != nil {
 		return err
 	}
-	_, err = s.repo.Create(ctx, user)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return s.repo.Create(ctx, user)
 }
 
 // 管理员更新用户密码
-func (s *UserService) AdminUpdatePassword(ctx context.Context, id string, oldPassword string, newPassword string) error {
+func (s *UserService) AdminUpdatePassword(ctx context.Context, id uint, oldPassword string, newPassword string) error {
 	u, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return err
@@ -87,7 +85,7 @@ func (s *UserService) AdminUpdate(ctx context.Context, user *domain.User) error 
 }
 
 // 管理员删除用户
-func (s *UserService) AdminDelete(ctx context.Context, id string) error {
+func (s *UserService) AdminDelete(ctx context.Context, id uint) error {
 	return s.repo.Delete(ctx, id)
 }
 
@@ -97,6 +95,7 @@ func (s *UserService) GetUserList(ctx context.Context, page *domain.Page) ([]*do
 }
 
 // 获取用户信息
-func (s *UserService) GetUserInfo(ctx context.Context, id string) (*domain.User, error) {
+func (s *UserService) GetUserInfo(ctx context.Context, id uint) (*domain.User, error) {
+	fmt.Println("id", id)
 	return s.repo.GetByID(ctx, id)
 }

@@ -2,12 +2,10 @@ package domain
 
 import (
 	"time"
-
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type User struct {
-	ID        bson.ObjectID
+	ID        uint
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Username  string

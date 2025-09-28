@@ -5,19 +5,19 @@ import (
 
 	"github.com/codepzj/Stellux-Server/internal/user/internal/domain"
 	"github.com/codepzj/Stellux-Server/internal/user/internal/repository/dao"
-	"github.com/samber/lo"
-	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"github.com/codepzj/gokit/slice"
+
+	"gorm.io/gorm"
 )
 
 type IUserRepository interface {
-	Create(ctx context.Context, user *domain.User) (bson.ObjectID, error)
+	Create(ctx context.Context, user *domain.User) error
 	GetByUsername(ctx context.Context, username string) (*domain.User, error)
 	Update(ctx context.Context, user *domain.User) error
-	UpdatePassword(ctx context.Context, id string, password string) error
-	Delete(ctx context.Context, id string) error
+	UpdatePassword(ctx context.Context, id uint, password string) error
+	Delete(ctx context.Context, id uint) error
 	FindByPage(ctx context.Context, page *domain.Page) ([]*domain.User, int64, error)
-	GetByID(ctx context.Context, id string) (*domain.User, error)
+	GetByID(ctx context.Context, id uint) (*domain.User, error)
 }
 
 var _ IUserRepository = (*UserRepository)(nil)
@@ -30,7 +30,7 @@ type UserRepository struct {
 	dao dao.IUserDao
 }
 
-func (r *UserRepository) Create(ctx context.Context, user *domain.User) (bson.ObjectID, error) {
+func (r *UserRepository) Create(ctx context.Context, user *domain.User) error {
 	return r.dao.Create(ctx, r.UserDomainToUserDO(user))
 }
 
@@ -50,37 +50,31 @@ func (r *UserRepository) Update(ctx context.Context, user *domain.User) error {
 	})
 }
 
-func (r *UserRepository) UpdatePassword(ctx context.Context, id string, password string) error {
-	bid, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return err
-	}
-	return r.dao.UpdatePassword(ctx, bid, password)
+func (r *UserRepository) UpdatePassword(ctx context.Context, id uint, password string) error {
+	return r.dao.UpdatePassword(ctx, id, password)
 }
 
-func (r *UserRepository) Delete(ctx context.Context, id string) error {
-	bid, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return err
-	}
-	return r.dao.Delete(ctx, bid)
+func (r *UserRepository) Delete(ctx context.Context, id uint) error {
+	return r.dao.Delete(ctx, id)
 }
 
+// 分页查询用户
 func (r *UserRepository) FindByPage(ctx context.Context, page *domain.Page) ([]*domain.User, int64, error) {
-	findOptions := options.Find().SetSkip((page.PageNo - 1) * page.PageSize).SetLimit(page.PageSize).SetSort(bson.M{"role_id": 1})
-	users, count, err := r.dao.FindByCondition(ctx, findOptions)
+	users, err := r.dao.Find(ctx, func(db *gorm.DB) *gorm.DB {
+		return db.Offset(int((page.PageNo - 1) * page.PageSize)).Limit(int(page.PageSize))
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+	count, err := r.dao.GetAllCount(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
 	return r.UserDoToUserDomainList(users), count, nil
 }
 
-func (r *UserRepository) GetByID(ctx context.Context, id string) (*domain.User, error) {
-	bid, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, err
-	}
-	user, err := r.dao.GetByID(ctx, bid)
+func (r *UserRepository) GetByID(ctx context.Context, id uint) (*domain.User, error) {
+	user, err := r.dao.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +105,7 @@ func (r *UserRepository) UserDoToUserDomain(user *dao.User) *domain.User {
 }
 
 func (r *UserRepository) UserDoToUserDomainList(users []*dao.User) []*domain.User {
-	return lo.Map(users, func(user *dao.User, _ int) *domain.User {
+	return slice.Map(users, func(user *dao.User) *domain.User {
 		return r.UserDoToUserDomain(user)
 	})
 }

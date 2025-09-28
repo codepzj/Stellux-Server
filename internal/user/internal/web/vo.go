@@ -6,7 +6,7 @@ import (
 )
 
 type UserVO struct {
-	ID       string `json:"id"`
+	ID       uint   `json:"id"`
 	Username string `json:"username"`
 	Nickname string `json:"nickname"`
 	RoleId   int    `json:"role_id"`
@@ -20,7 +20,7 @@ type LoginVO struct {
 
 func (h *UserHandler) UserDomainToVO(user *domain.User) *UserVO {
 	return &UserVO{
-		ID:       user.ID.Hex(),
+		ID:       user.ID,
 		Username: user.Username,
 		Nickname: user.Nickname,
 		RoleId:   user.RoleId,

@@ -23,6 +23,8 @@ func main() {
 	// 日志
 	infra.InitLogger(config)
 
+	infra.NewPgsql(config)
+
 	// 启动服务
 	app.InitApp(config).Start()
 }

@@ -11,11 +11,11 @@ import (
 var jwtKey = []byte(viper.GetString("JWT_SECRET"))
 
 type JwtCustomClaims struct {
-	ID string
+	ID uint
 	jwt.RegisteredClaims
 }
 
-func GenerateAccessToken(id string) (string, error) {
+func GenerateAccessToken(id uint) (string, error) {
 	now := time.Now().Local()
 	claims := JwtCustomClaims{
 		ID: id,

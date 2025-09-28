@@ -3,7 +3,7 @@
 package user
 
 import (
-	"github.com/chenmingyong0423/go-mongox/v2"
+	"gorm.io/gorm"
 	"github.com/codepzj/Stellux-Server/internal/user/internal/repository"
 	"github.com/codepzj/Stellux-Server/internal/user/internal/repository/dao"
 	"github.com/codepzj/Stellux-Server/internal/user/internal/service"
@@ -16,7 +16,7 @@ var UserProviders = wire.NewSet(web.NewUserHandler, service.NewUserService, repo
 	wire.Bind(new(repository.IUserRepository), new(*repository.UserRepository)),
 	wire.Bind(new(dao.IUserDao), new(*dao.UserDao)))
 
-func InitUserModule(mongoDB *mongox.Database) *Module {
+func InitUserModule(db *gorm.DB) *Module {
 	panic(wire.Build(
 		UserProviders,
 		wire.Struct(new(Module), "Svc", "Hdl"),

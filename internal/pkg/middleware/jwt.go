@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"log/slog"
 	"strings"
 
@@ -23,6 +24,7 @@ func JWT() gin.HandlerFunc {
 			ctx.AbortWithStatusJSON(401, gin.H{"code": 401, "msg": "access_token已过期"})
 			return
 		}
+		fmt.Println("claims", claims)
 		ctx.Set("userId", claims.ID)
 		ctx.Next()
 	}

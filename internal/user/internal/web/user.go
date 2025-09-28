@@ -6,8 +6,8 @@ import (
 	"github.com/codepzj/Stellux-Server/internal/pkg/utils"
 	"github.com/codepzj/Stellux-Server/internal/user/internal/domain"
 	"github.com/codepzj/Stellux-Server/internal/user/internal/service"
+	"github.com/codepzj/gokit/str"
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func NewUserHandler(serv service.IUserService) *UserHandler {
@@ -24,6 +24,7 @@ func (h *UserHandler) RegisterGinRoutes(engine *gin.Engine) {
 	userGroup := engine.Group("/user")
 	{
 		userGroup.POST("/login", apiwrap.WrapWithJson(h.Login))
+		userGroup.GET("/mockCreate", apiwrap.Wrap(h.MockCreateUser))
 	}
 	adminGroup := engine.Group("/admin-api/user")
 	{
@@ -37,16 +38,30 @@ func (h *UserHandler) RegisterGinRoutes(engine *gin.Engine) {
 	}
 }
 
+func (h *UserHandler) MockCreateUser(c *gin.Context) (*apiwrap.Response[any], error) {
+	err := h.serv.AdminCreate(c, &domain.User{
+		Username: "admin",
+		Password: "admin",
+		Nickname: "admin",
+		RoleId:   1,
+		Avatar:   "https://avatars.githubusercontent.com/u/22550712?v=4",
+		Email:    "admin@admin.com",
+	})
+	if err != nil {
+		return nil, apiwrap.NewInternalError(err.Error())
+	}
+	return apiwrap.SuccessWithMsg("创建用户成功"), nil
+}
+
 func (h *UserHandler) Login(c *gin.Context, userRequest LoginRequest) (*apiwrap.Response[any], error) {
-	user := domain.User{
+	user, err := h.serv.VerifyUser(c, &domain.User{
 		Username: userRequest.Username,
 		Password: userRequest.Password,
+	})
+	if err != nil {
+		return nil, apiwrap.NewInternalError(err.Error())
 	}
-	exist, id := h.serv.CheckUserExist(c, &user)
-	if !exist {
-		return nil, apiwrap.NewInternalError("用户名或密码错误")
-	}
-	accessToken, err := utils.GenerateAccessToken(id)
+	accessToken, err := utils.GenerateAccessToken(user.ID)
 	if err != nil {
 		return nil, apiwrap.NewInternalError(err.Error())
 	}
@@ -73,17 +88,13 @@ func (h *UserHandler) AdminCreateUser(c *gin.Context, createUserRequest CreateUs
 }
 
 func (h *UserHandler) AdminUpdateUser(c *gin.Context, updateUserRequest UpdateUserRequest) (*apiwrap.Response[any], error) {
-	objId, err := bson.ObjectIDFromHex(updateUserRequest.ID)
-	if err != nil {
-		return nil, apiwrap.NewInternalError(err.Error())
-	}
 	user := domain.User{
-		ID:       objId,
+		ID:       updateUserRequest.ID,
 		Nickname: updateUserRequest.Nickname,
 		Avatar:   updateUserRequest.Avatar,
 		Email:    updateUserRequest.Email,
 	}
-	err = h.serv.AdminUpdate(c, &user)
+	err := h.serv.AdminUpdate(c, &user)
 	if err != nil {
 		return nil, apiwrap.NewInternalError(err.Error())
 	}
@@ -99,8 +110,11 @@ func (h *UserHandler) AdminUpdatePassword(c *gin.Context, updatePasswordRequest 
 }
 
 func (h *UserHandler) AdminDeleteUser(c *gin.Context) (*apiwrap.Response[any], error) {
-	id := c.Param("id")
-	err := h.serv.AdminDelete(c, id)
+	id, err := str.ToUint(c.Param("id"))
+	if err != nil {
+		return nil, apiwrap.NewInternalError(err.Error())
+	}
+	err = h.serv.AdminDelete(c, id)
 	if err != nil {
 		return nil, apiwrap.NewInternalError(err.Error())
 	}
@@ -119,7 +133,7 @@ func (h *UserHandler) AdminGetUserList(c *gin.Context, page apiwrap.Page) (*apiw
 }
 
 func (h *UserHandler) AdminGetUserInfo(c *gin.Context) (*apiwrap.Response[any], error) {
-	id := c.GetString("userId")
+	id := c.GetUint("userId")
 	user, err := h.serv.GetUserInfo(c, id)
 	if err != nil {
 		return nil, apiwrap.NewInternalError(err.Error())

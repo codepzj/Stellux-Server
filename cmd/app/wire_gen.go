@@ -23,9 +23,10 @@ import (
 // Injectors from wire.go:
 
 func InitApp(cfg *conf.Config) *HttpServer {
-	database := infra.NewMongoDB(cfg)
-	module := user.InitUserModule(database)
+	db := infra.NewPgsql(cfg)
+	module := user.InitUserModule(db)
 	userHandler := module.Hdl
+	database := infra.NewMongoDB(cfg)
 	postModule := post.InitPostModule(database)
 	postHandler := postModule.Hdl
 	labelModule := label.InitLabelModule(database)
@@ -47,7 +48,7 @@ func InitApp(cfg *conf.Config) *HttpServer {
 // wire.go:
 
 // 基础设施
-var InfraProvider = wire.NewSet(infra.NewMongoDB)
+var InfraProvider = wire.NewSet(infra.NewMongoDB, infra.NewPgsql)
 
 // 控制反转
 var IocProvider = wire.NewSet(ioc.InitMiddleWare, ioc.NewGin)

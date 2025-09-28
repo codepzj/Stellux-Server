@@ -21,6 +21,7 @@ import (
 // 基础设施
 var InfraProvider = wire.NewSet(
 	infra.NewMongoDB,
+	infra.NewPgsql,
 )
 
 // 控制反转
