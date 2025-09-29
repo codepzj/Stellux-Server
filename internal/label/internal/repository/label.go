@@ -6,18 +6,15 @@ import (
 	"github.com/codepzj/Stellux-Server/internal/label/internal/domain"
 	"github.com/codepzj/Stellux-Server/internal/label/internal/repository/dao"
 	"github.com/samber/lo"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type ILabelRepository interface {
 	CreateLabel(ctx context.Context, label *domain.Label) error
-	UpdateLabel(ctx context.Context, id string, label *domain.Label) error
-	DeleteLabel(ctx context.Context, id string) error
-	GetLabelById(ctx context.Context, id string) (*domain.Label, error)
+	UpdateLabel(ctx context.Context, id uint, label *domain.Label) error
+	DeleteLabel(ctx context.Context, id uint) error
+	GetLabelById(ctx context.Context, id uint) (*domain.Label, error)
 	QueryLabelList(ctx context.Context, labelType string, pageNo int64, pageSize int64) ([]*domain.Label, int64, error)
 	GetAllLabelsByType(ctx context.Context, labelType string) ([]*domain.Label, error)
-	GetCategoryLabelWithCount(ctx context.Context) ([]*domain.LabelPostCount, error)
-	GetTagsLabelWithCount(ctx context.Context) ([]*domain.LabelPostCount, error)
 	GetLabelByName(ctx context.Context, name string) (*domain.Label, error)
 }
 
@@ -35,28 +32,16 @@ func (r *LabelRepository) CreateLabel(ctx context.Context, label *domain.Label) 
 	return r.dao.CreateLabel(ctx, r.LabelDomainToLabelDO(label))
 }
 
-func (r *LabelRepository) UpdateLabel(ctx context.Context, id string, label *domain.Label) error {
-	bid, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return err
-	}
-	return r.dao.UpdateLabel(ctx, bid, r.LabelDomainToLabelDO(label))
+func (r *LabelRepository) UpdateLabel(ctx context.Context, id uint, label *domain.Label) error {
+	return r.dao.UpdateLabel(ctx, id, r.LabelDomainToLabelDO(label))
 }
 
-func (r *LabelRepository) DeleteLabel(ctx context.Context, id string) error {
-	bid, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return err
-	}
-	return r.dao.DeleteLabel(ctx, bid)
+func (r *LabelRepository) DeleteLabel(ctx context.Context, id uint) error {
+	return r.dao.DeleteLabel(ctx, id)
 }
 
-func (r *LabelRepository) GetLabelById(ctx context.Context, id string) (*domain.Label, error) {
-	bid, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, err
-	}
-	label, err := r.dao.GetLabelById(ctx, bid)
+func (r *LabelRepository) GetLabelById(ctx context.Context, id uint) (*domain.Label, error) {
+	label, err := r.dao.GetLabelById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +49,12 @@ func (r *LabelRepository) GetLabelById(ctx context.Context, id string) (*domain.
 }
 
 func (r *LabelRepository) QueryLabelList(ctx context.Context, labelType string, pageNo int64, pageSize int64) ([]*domain.Label, int64, error) {
-	labels, count, err := r.dao.QueryLabelList(ctx, labelType, pageSize, (pageNo-1)*pageSize)
+	count, err := r.dao.GetAllCount(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	labels, err := r.dao.QueryLabelList(ctx, labelType, pageSize, (pageNo-1)*pageSize)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -77,23 +67,6 @@ func (r *LabelRepository) GetAllLabelsByType(ctx context.Context, labelType stri
 		return nil, err
 	}
 	return r.LabelDoToDomainList(labels), nil
-}
-
-func (r *LabelRepository) GetCategoryLabelWithCount(ctx context.Context) ([]*domain.LabelPostCount, error) {
-	labelWithCount, err := r.dao.GetCategoryLabelWithCount(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return r.LabelPostCountDoToDomainList(labelWithCount), nil
-}
-
-func (r *LabelRepository) GetTagsLabelWithCount(ctx context.Context) ([]*domain.LabelPostCount, error) {
-	labelWithCount, err := r.dao.GetTagsLabelWithCount(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return r.LabelPostCountDoToDomainList(labelWithCount), nil
 }
 
 func (r *LabelRepository) GetLabelByName(ctx context.Context, name string) (*domain.Label, error) {
@@ -113,7 +86,7 @@ func (r *LabelRepository) LabelDomainToLabelDO(label *domain.Label) *dao.Label {
 
 func (r *LabelRepository) LabelDoToDomain(label *dao.Label) *domain.Label {
 	return &domain.Label{
-		Id:        label.ID,
+		ID:        label.ID,
 		LabelType: label.LabelType,
 		Name:      label.Name,
 	}
@@ -128,7 +101,7 @@ func (r *LabelRepository) LabelDoToDomainList(labels []*dao.Label) []*domain.Lab
 func (r *LabelRepository) LabelPostCountDoToDomainList(labelPostCounts []*dao.LabelPostCount) []*domain.LabelPostCount {
 	return lo.Map(labelPostCounts, func(labelPostCount *dao.LabelPostCount, _ int) *domain.LabelPostCount {
 		return &domain.LabelPostCount{
-			Id:        labelPostCount.ID,
+			ID:        labelPostCount.ID,
 			LabelType: labelPostCount.LabelType,
 			Name:      labelPostCount.Name,
 			Count:     labelPostCount.Count,

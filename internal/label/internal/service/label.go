@@ -6,18 +6,16 @@ import (
 
 	"github.com/codepzj/Stellux-Server/internal/label/internal/domain"
 	"github.com/codepzj/Stellux-Server/internal/label/internal/repository"
-	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gorm.io/gorm"
 )
 
 type ILabelService interface {
 	CreateLabel(ctx context.Context, label *domain.Label) error
-	UpdateLabel(ctx context.Context, id string, label *domain.Label) error
-	DeleteLabel(ctx context.Context, id string) error
-	GetLabelById(ctx context.Context, id string) (*domain.Label, error)
+	UpdateLabel(ctx context.Context, id uint, label *domain.Label) error
+	DeleteLabel(ctx context.Context, id uint) error
+	GetLabelById(ctx context.Context, id uint) (*domain.Label, error)
 	QueryLabelList(ctx context.Context, labelType string, pageNo int64, pageSize int64) ([]*domain.Label, int64, error)
 	GetAllLabelsByType(ctx context.Context, labelType string) ([]*domain.Label, error)
-	GetAllLabelsWithCount(ctx context.Context) ([]*domain.LabelPostCount, error)
-	GetAllTagsLabelWithCount(ctx context.Context) ([]*domain.LabelPostCount, error)
 }
 
 var _ ILabelService = (*LabelService)(nil)
@@ -36,47 +34,35 @@ type LabelService struct {
 func (s *LabelService) CreateLabel(ctx context.Context, label *domain.Label) error {
 	// 检查标签是否存在
 	existLabel, err := s.repo.GetLabelByName(ctx, label.Name)
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return s.repo.CreateLabel(ctx, label)
-		}
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}
 	if existLabel != nil {
-		if existLabel.Id.Hex() == label.Id.Hex() {
-			return nil
-		}
 		return errors.New("标签已存在")
 	}
 	return s.repo.CreateLabel(ctx, label)
 }
 
 // UpdateLabel 更新标签
-func (s *LabelService) UpdateLabel(ctx context.Context, id string, label *domain.Label) error {
+func (s *LabelService) UpdateLabel(ctx context.Context, id uint, label *domain.Label) error {
 	// 检查标签是否存在
 	existLabel, err := s.repo.GetLabelByName(ctx, label.Name)
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return s.repo.UpdateLabel(ctx, id, label)
-		}
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}
-	if existLabel != nil {
-		if existLabel.Id.Hex() == label.Id.Hex() {
-			return nil
-		}
+	if existLabel != nil && existLabel.ID != id {
 		return errors.New("标签已存在")
 	}
 	return s.repo.UpdateLabel(ctx, id, label)
 }
 
 // DeleteLabel 删除标签
-func (s *LabelService) DeleteLabel(ctx context.Context, id string) error {
+func (s *LabelService) DeleteLabel(ctx context.Context, id uint) error {
 	return s.repo.DeleteLabel(ctx, id)
 }
 
 // GetLabelById 根据id获取标签
-func (s *LabelService) GetLabelById(ctx context.Context, id string) (*domain.Label, error) {
+func (s *LabelService) GetLabelById(ctx context.Context, id uint) (*domain.Label, error) {
 	return s.repo.GetLabelById(ctx, id)
 }
 
@@ -90,12 +76,3 @@ func (s *LabelService) GetAllLabelsByType(ctx context.Context, labelType string)
 	return s.repo.GetAllLabelsByType(ctx, labelType)
 }
 
-// GetAllLabelsWithCount 获取所有分类标签及其文章数量
-func (s *LabelService) GetAllLabelsWithCount(ctx context.Context) ([]*domain.LabelPostCount, error) {
-	return s.repo.GetCategoryLabelWithCount(ctx)
-}
-
-// GetAllTagsLabelWithCount 获取所有标签及其文章数量
-func (s *LabelService) GetAllTagsLabelWithCount(ctx context.Context) ([]*domain.LabelPostCount, error) {
-	return s.repo.GetTagsLabelWithCount(ctx)
-}

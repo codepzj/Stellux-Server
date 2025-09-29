@@ -29,7 +29,7 @@ func InitApp(cfg *conf.Config) *HttpServer {
 	database := infra.NewMongoDB(cfg)
 	postModule := post.InitPostModule(database)
 	postHandler := postModule.Hdl
-	labelModule := label.InitLabelModule(database)
+	labelModule := label.InitLabelModule(db)
 	labelHandler := labelModule.Hdl
 	fileModule := file.InitFileModule(db)
 	fileHandler := fileModule.Hdl

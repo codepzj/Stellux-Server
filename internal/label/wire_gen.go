@@ -7,18 +7,18 @@
 package label
 
 import (
-	"github.com/chenmingyong0423/go-mongox/v2"
 	"github.com/codepzj/Stellux-Server/internal/label/internal/repository"
 	"github.com/codepzj/Stellux-Server/internal/label/internal/repository/dao"
 	"github.com/codepzj/Stellux-Server/internal/label/internal/service"
 	"github.com/codepzj/Stellux-Server/internal/label/internal/web"
 	"github.com/google/wire"
+	"gorm.io/gorm"
 )
 
 // Injectors from wire.go:
 
-func InitLabelModule(mongoDB *mongox.Database) *Module {
-	labelDao := dao.NewLabelDao(mongoDB)
+func InitLabelModule(db *gorm.DB) *Module {
+	labelDao := dao.NewLabelDao(db)
 	labelRepository := repository.NewLabelRepository(labelDao)
 	labelService := service.NewLabelService(labelRepository)
 	labelHandler := web.NewLabelHandler(labelService)

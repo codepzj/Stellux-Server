@@ -1,7 +1,7 @@
 package web
 
 type LabelRequest struct {
-	ID        string `json:"id,omitempty"`
+	ID        uint   `json:"id,omitempty"`
 	LabelType string `json:"label_type" binding:"required"`
 	Name      string `json:"name" binding:"required"`
 }
