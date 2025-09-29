@@ -1,5 +1,5 @@
 package web
 
 type DeleteFilesRequest struct {
-	IDList []string `json:"id_list" binding:"required"`
+	IDList []uint `json:"id_list" binding:"required"`
 }

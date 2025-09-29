@@ -35,7 +35,7 @@ type UserService struct {
 
 func (s *UserService) VerifyUser(ctx context.Context, user *domain.User) (*domain.User, error) {
 	u, err := s.repo.GetByUsername(ctx, user.Username)
-	if err != nil {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
 	if u == nil {
@@ -51,7 +51,6 @@ func (s *UserService) VerifyUser(ctx context.Context, user *domain.User) (*domai
 // 管理员创建用户
 func (s *UserService) AdminCreate(ctx context.Context, user *domain.User) error {
 	_, err := s.repo.GetByUsername(ctx, user.Username)
-	// 如果err不是记录不存在，则返回err
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}

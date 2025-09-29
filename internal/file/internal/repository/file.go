@@ -7,16 +7,15 @@ import (
 	"github.com/codepzj/Stellux-Server/internal/file/internal/repository/dao"
 	"github.com/codepzj/Stellux-Server/internal/pkg/apiwrap"
 	"github.com/samber/lo"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type IFileRepository interface {
 	Create(ctx context.Context, file *domain.File) error
-	Get(ctx context.Context, id bson.ObjectID) (*domain.File, error)
+	Get(ctx context.Context, id uint) (*domain.File, error)
 	GetList(ctx context.Context, page *apiwrap.Page) ([]*domain.File, int64, error)
-	GetListByIDList(ctx context.Context, idList []bson.ObjectID) ([]*domain.File, error)
-	Delete(ctx context.Context, id bson.ObjectID) error
-	DeleteMany(ctx context.Context, idList []bson.ObjectID) error
+	GetListByIDList(ctx context.Context, idList []uint) ([]*domain.File, error)
+	Delete(ctx context.Context, id uint) error
+	DeleteMany(ctx context.Context, idList []uint) error
 }
 
 var _ IFileRepository = (*FileRepository)(nil)
@@ -33,7 +32,7 @@ func (r *FileRepository) Create(ctx context.Context, file *domain.File) error {
 	return r.dao.Create(ctx, r.FileDomainToDao(file))
 }
 
-func (r *FileRepository) Get(ctx context.Context, id bson.ObjectID) (*domain.File, error) {
+func (r *FileRepository) Get(ctx context.Context, id uint) (*domain.File, error) {
 	file, err := r.dao.Get(ctx, id)
 	if err != nil {
 		return nil, err
@@ -42,24 +41,28 @@ func (r *FileRepository) Get(ctx context.Context, id bson.ObjectID) (*domain.Fil
 }
 
 func (r *FileRepository) GetList(ctx context.Context, page *apiwrap.Page) ([]*domain.File, int64, error) {
+	count, err := r.dao.GetAllCount(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
 	limit := page.PageSize
 	skip := (page.PageNo - 1) * page.PageSize
-	files, count, err := r.dao.GetList(ctx, skip, limit)
+	files, err := r.dao.GetList(ctx, skip, limit)
 	if err != nil {
 		return nil, 0, err
 	}
 	return r.FileDaoToDomainList(files), count, nil
 }
 
-func (r *FileRepository) Delete(ctx context.Context, id bson.ObjectID) error {
+func (r *FileRepository) Delete(ctx context.Context, id uint) error {
 	return r.dao.Delete(ctx, id)
 }
 
-func (r *FileRepository) DeleteMany(ctx context.Context, idList []bson.ObjectID) error {
+func (r *FileRepository) DeleteMany(ctx context.Context, idList []uint) error {
 	return r.dao.DeleteMany(ctx, idList)
 }
 
-func (r *FileRepository) GetListByIDList(ctx context.Context, idList []bson.ObjectID) ([]*domain.File, error) {
+func (r *FileRepository) GetListByIDList(ctx context.Context, idList []uint) ([]*domain.File, error) {
 	files, err := r.dao.GetListByIDList(ctx, idList)
 	if err != nil {
 		return nil, err
@@ -84,6 +87,8 @@ func (r *FileRepository) FileDomainToDaoList(files []*domain.File) []*dao.File {
 func (r *FileRepository) FileDaoToDomain(file *dao.File) *domain.File {
 	return &domain.File{
 		ID:       file.ID,
+		CreatedAt: file.CreatedAt,
+		UpdatedAt: file.UpdatedAt,
 		FileName: file.FileName,
 		Url:      file.Url,
 		Dst:      file.Dst,

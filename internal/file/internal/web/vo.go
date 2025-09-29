@@ -6,14 +6,14 @@ import (
 )
 
 type FileVO struct {
-	Id       string `json:"id"`
+	Id       uint `json:"id"`
 	FileName string `json:"file_name"`
 	Url      string `json:"url"`
 }
 
 func (h *FileHandler) FileDomainToVO(file *domain.File) *FileVO {
 	return &FileVO{
-		Id:       file.ID.Hex(),
+		Id:       file.ID,
 		FileName: file.FileName,
 		Url:      file.Url,
 	}

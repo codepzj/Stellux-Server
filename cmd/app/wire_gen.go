@@ -31,7 +31,7 @@ func InitApp(cfg *conf.Config) *HttpServer {
 	postHandler := postModule.Hdl
 	labelModule := label.InitLabelModule(database)
 	labelHandler := labelModule.Hdl
-	fileModule := file.InitFileModule(database)
+	fileModule := file.InitFileModule(db)
 	fileHandler := fileModule.Hdl
 	documentModule := document.InitDocumentModule(database)
 	documentHandler := documentModule.Hdl

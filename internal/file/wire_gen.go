@@ -7,18 +7,18 @@
 package file
 
 import (
-	"github.com/chenmingyong0423/go-mongox/v2"
 	"github.com/codepzj/Stellux-Server/internal/file/internal/repository"
 	"github.com/codepzj/Stellux-Server/internal/file/internal/repository/dao"
 	"github.com/codepzj/Stellux-Server/internal/file/internal/service"
 	"github.com/codepzj/Stellux-Server/internal/file/internal/web"
 	"github.com/google/wire"
+	"gorm.io/gorm"
 )
 
 // Injectors from wire.go:
 
-func InitFileModule(mongoDB *mongox.Database) *Module {
-	fileDao := dao.NewFileDao(mongoDB)
+func InitFileModule(db *gorm.DB) *Module {
+	fileDao := dao.NewFileDao(db)
 	fileRepository := repository.NewFileRepository(fileDao)
 	fileService := service.NewFileService(fileRepository)
 	fileHandler := web.NewFileHandler(fileService)

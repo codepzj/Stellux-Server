@@ -4,86 +4,94 @@ import (
 	"context"
 	"errors"
 
-	"github.com/chenmingyong0423/go-mongox/v2"
-	"github.com/chenmingyong0423/go-mongox/v2/builder/query"
-	"go.mongodb.org/mongo-driver/v2/bson"
+	"gorm.io/gorm"
 )
 
 type File struct {
-	mongox.Model `bson:",inline"`
-	FileName     string
-	Url          string
-	Dst          string
+	gorm.Model
+	FileName string
+	Url      string
+	Dst      string
 }
 
 type IFileDao interface {
 	Create(ctx context.Context, file *File) error
-	Get(ctx context.Context, id bson.ObjectID) (*File, error)
-	GetList(ctx context.Context, skip int64, limit int64) ([]*File, int64, error)
-	GetListByIDList(ctx context.Context, idList []bson.ObjectID) ([]*File, error)
-
-	Delete(ctx context.Context, id bson.ObjectID) error
-	DeleteMany(ctx context.Context, idList []bson.ObjectID) error
+	Get(ctx context.Context, id uint) (*File, error)
+	GetList(ctx context.Context, skip int64, limit int64) ([]*File, error)
+	GetAllCount(ctx context.Context) (int64, error)
+	GetListByIDList(ctx context.Context, idList []uint) ([]*File, error)
+	Delete(ctx context.Context, id uint) error
+	DeleteMany(ctx context.Context, idList []uint) error
 }
 
 var _ IFileDao = (*FileDao)(nil)
 
-func NewFileDao(db *mongox.Database) *FileDao {
-	return &FileDao{coll: mongox.NewCollection[File](db, "file")}
+func NewFileDao(db *gorm.DB) *FileDao {
+	db.AutoMigrate(&File{})
+	return &FileDao{db: db}
 }
 
 type FileDao struct {
-	coll *mongox.Collection[File]
+	db *gorm.DB
 }
 
 func (d *FileDao) Create(ctx context.Context, file *File) error {
-	result, err := d.coll.Creator().InsertOne(ctx, file)
+	return d.db.Model(&File{}).Create(file).Error
+}
+
+func (d *FileDao) Get(ctx context.Context, id uint) (*File, error) {
+	var file File
+	err := d.db.Model(&File{}).Where("id = ?", id).First(&file).Error
 	if err != nil {
+		return nil, err
+	}
+	return &file, nil
+}
+
+func (d *FileDao) GetList(ctx context.Context, skip int64, limit int64) ([]*File, error) {
+	files := make([]*File, 0)
+	err := d.db.Model(&File{}).Offset(int(skip)).Limit(int(limit)).Order("created_at desc").Find(&files).Error
+	if err != nil {
+		return nil, err
+	}
+	return files, nil
+}
+
+func (d *FileDao) GetAllCount(ctx context.Context) (int64, error) {
+	var count int64
+	err := d.db.Model(&File{}).Count(&count).Error
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (d *FileDao) GetListByIDList(ctx context.Context, idList []uint) ([]*File, error) {
+	files := make([]*File, 0)
+	err := d.db.Model(&File{}).Where("id IN ?", idList).Find(&files).Error
+	if err != nil {
+		return nil, err
+	}
+	return files, nil
+}
+
+func (d *FileDao) Delete(ctx context.Context, id uint) error {
+	res := d.db.Model(&File{}).Where("id = ?", id).Delete(&File{})
+	if err := res.Error; err != nil {
 		return err
 	}
-	if result.InsertedID == nil {
-		return errors.New("保存文件失败")
-	}
-	return nil
-}
-
-func (d *FileDao) Get(ctx context.Context, id bson.ObjectID) (*File, error) {
-	return d.coll.Finder().Filter(query.Id(id)).FindOne(ctx)
-}
-
-func (d *FileDao) GetList(ctx context.Context, skip int64, limit int64) ([]*File, int64, error) {
-	count, err := d.coll.Finder().Count(ctx)
-	if err != nil {
-		return nil, 0, err
-	}
-	files, err := d.coll.Finder().Skip(skip).Limit(limit).Sort(bson.M{"created_at": -1}).Find(ctx)
-	if err != nil {
-		return nil, 0, err
-	}
-	return files, count, nil
-}
-
-func (d *FileDao) GetListByIDList(ctx context.Context, idList []bson.ObjectID) ([]*File, error) {
-	return d.coll.Finder().Filter(query.In("_id", idList...)).Find(ctx)
-}
-
-func (d *FileDao) Delete(ctx context.Context, id bson.ObjectID) error {
-	deleteResult, err := d.coll.Deleter().Filter(query.Id(id)).DeleteOne(ctx)
-	if err != nil {
-		return err
-	}
-	if deleteResult.DeletedCount == 0 {
+	if res.RowsAffected == 0 {
 		return errors.New("删除文件失败")
 	}
 	return nil
 }
 
-func (d *FileDao) DeleteMany(ctx context.Context, idList []bson.ObjectID) error {
-	deleteResult, err := d.coll.Deleter().Filter(query.In("_id", idList...)).DeleteMany(ctx)
-	if err != nil {
+func (d *FileDao) DeleteMany(ctx context.Context, idList []uint) error {
+	res := d.db.Model(&File{}).Where("id IN ?", idList).Delete(&File{})
+	if err := res.Error; err != nil {
 		return err
 	}
-	if deleteResult.DeletedCount != int64(len(idList)) {
+	if res.RowsAffected != int64(len(idList)) {
 		return errors.New("删除文件失败")
 	}
 	return nil

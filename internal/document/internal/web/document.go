@@ -172,7 +172,6 @@ func (h *DocumentHandler) AdminFindDocumentByAlias(c *gin.Context) (*apiwrap.Res
 		Id:          doc.Id.Hex(),
 		CreatedAt:   doc.CreatedAt,
 		UpdatedAt:   doc.UpdatedAt,
-		DeletedAt:   doc.DeletedAt,
 		Title:       doc.Title,
 		Description: doc.Description,
 		Thumbnail:   doc.Thumbnail,
@@ -248,7 +247,6 @@ func (h *DocumentHandler) FindDocument(c *gin.Context) (*apiwrap.Response[any], 
 		Id:          doc.Id.Hex(),
 		CreatedAt:   doc.CreatedAt,
 		UpdatedAt:   doc.UpdatedAt,
-		DeletedAt:   doc.DeletedAt,
 		Title:       doc.Title,
 		Description: doc.Description,
 		Alias:       doc.Alias,
@@ -280,7 +278,6 @@ func (h *DocumentHandler) FindDocumentByAlias(c *gin.Context) (*apiwrap.Response
 		Alias:       doc.Alias,
 		Sort:        doc.Sort,
 		IsPublic:    doc.IsPublic,
-		IsDeleted:   doc.IsDeleted,
 	}
 	return apiwrap.SuccessWithDetail[any](docVO, "查询文档成功"), nil
 }
@@ -320,7 +317,6 @@ func (h *DocumentHandler) GetAllPublicDocument(c *gin.Context) (*apiwrap.Respons
 			Id:          doc.Id.Hex(),
 			CreatedAt:   doc.CreatedAt,
 			UpdatedAt:   doc.UpdatedAt,
-			DeletedAt:   doc.DeletedAt,
 			Title:       doc.Title,
 			Description: doc.Description,
 			Thumbnail:   doc.Thumbnail,
@@ -364,7 +360,6 @@ func (h *DocumentHandler) GetDocument(c *gin.Context) (*apiwrap.Response[any], e
 		IsPublic:    doc.IsPublic,
 		CreatedAt:   doc.CreatedAt,
 		UpdatedAt:   doc.UpdatedAt,
-		DeletedAt:   doc.DeletedAt,
 	}
 
 	return apiwrap.SuccessWithDetail[any](docVO, "获取文档成功"), nil
@@ -378,7 +373,6 @@ func (h *DocumentHandler) DocumentDomainToVOList(docs []*domain.Document) []Docu
 			Id:          doc.Id.Hex(),
 			CreatedAt:   doc.CreatedAt,
 			UpdatedAt:   doc.UpdatedAt,
-			DeletedAt:   doc.DeletedAt,
 			Title:       doc.Title,
 			Description: doc.Description,
 			Thumbnail:   doc.Thumbnail,

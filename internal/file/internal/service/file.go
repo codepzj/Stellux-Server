@@ -13,13 +13,12 @@ import (
 	"github.com/codepzj/Stellux-Server/internal/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type IFileService interface {
 	UploadFile(ctx *gin.Context, file *multipart.FileHeader) error
 	QueryFileList(ctx *gin.Context, page *apiwrap.Page) ([]*domain.File, int64, error)
-	DeleteFiles(ctx *gin.Context, idList []string) error
+	DeleteFiles(ctx *gin.Context, idList []uint) error
 }
 
 var _ IFileService = (*FileService)(nil)
@@ -41,8 +40,8 @@ func (s *FileService) UploadFile(ctx *gin.Context, file *multipart.FileHeader) e
 	}
 
 	// 获取domain文件信息
-
 	fileName := file.Filename
+
 	// 生成新的文件名
 	timestamp := time.Now().Unix()
 	newFileName := strconv.FormatInt(timestamp, 10) + utils.RandString(10) + filepath.Ext(fileName)
@@ -74,16 +73,8 @@ func (s *FileService) QueryFileList(ctx *gin.Context, page *apiwrap.Page) ([]*do
 	return s.repo.GetList(ctx, page)
 }
 
-func (s *FileService) DeleteFiles(ctx *gin.Context, idList []string) error {
-	var objIdList []bson.ObjectID
-	for _, id := range idList {
-		objId, err := bson.ObjectIDFromHex(id)
-		if err != nil {
-			return err
-		}
-		objIdList = append(objIdList, objId)
-	}
-	files, err := s.repo.GetListByIDList(ctx, objIdList)
+func (s *FileService) DeleteFiles(ctx *gin.Context, idList []uint) error {
+	files, err := s.repo.GetListByIDList(ctx, idList)
 	if err != nil {
 		return err
 	}
@@ -91,5 +82,5 @@ func (s *FileService) DeleteFiles(ctx *gin.Context, idList []string) error {
 		_ = os.Remove(file.Dst)
 	}
 
-	return s.repo.DeleteMany(ctx, objIdList)
+	return s.repo.DeleteMany(ctx, idList)
 }

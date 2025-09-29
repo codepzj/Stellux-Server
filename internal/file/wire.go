@@ -3,7 +3,7 @@
 package file
 
 import (
-	"github.com/chenmingyong0423/go-mongox/v2"
+	"gorm.io/gorm"
 	"github.com/codepzj/Stellux-Server/internal/file/internal/repository"
 	"github.com/codepzj/Stellux-Server/internal/file/internal/repository/dao"
 	"github.com/codepzj/Stellux-Server/internal/file/internal/service"
@@ -16,7 +16,7 @@ var FileProviders = wire.NewSet(web.NewFileHandler, service.NewFileService, repo
 	wire.Bind(new(repository.IFileRepository), new(*repository.FileRepository)),
 	wire.Bind(new(dao.IFileDao), new(*dao.FileDao)))
 
-func InitFileModule(mongoDB *mongox.Database) *Module {
+func InitFileModule(db *gorm.DB) *Module {
 	panic(wire.Build(
 		FileProviders,
 		wire.Struct(new(Module), "Svc", "Hdl"),

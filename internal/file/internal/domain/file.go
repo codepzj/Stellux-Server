@@ -1,10 +1,12 @@
 package domain
 
-import "go.mongodb.org/mongo-driver/v2/bson"
+import "time"
 
 type File struct {
-	ID       bson.ObjectID
-	FileName string
-	Url      string
-	Dst      string
+	ID        uint
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	FileName  string
+	Url       string
+	Dst       string
 }
