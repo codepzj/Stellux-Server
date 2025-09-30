@@ -26,13 +26,13 @@ func InitApp(cfg *conf.Config) *HttpServer {
 	db := infra.NewPgsql(cfg)
 	module := user.InitUserModule(db)
 	userHandler := module.Hdl
-	database := infra.NewMongoDB(cfg)
-	postModule := post.InitPostModule(database)
+	postModule := post.InitPostModule(db)
 	postHandler := postModule.Hdl
 	labelModule := label.InitLabelModule(db)
 	labelHandler := labelModule.Hdl
 	fileModule := file.InitFileModule(db)
 	fileHandler := fileModule.Hdl
+	database := infra.NewMongoDB(cfg)
 	documentModule := document.InitDocumentModule(database)
 	documentHandler := documentModule.Hdl
 	document_contentModule := document_content.InitDocumentContentModule(database)

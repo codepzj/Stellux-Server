@@ -3,12 +3,12 @@
 package post
 
 import (
-	"github.com/chenmingyong0423/go-mongox/v2"
 	"github.com/codepzj/Stellux-Server/internal/post/internal/repository"
 	"github.com/codepzj/Stellux-Server/internal/post/internal/repository/dao"
 	"github.com/codepzj/Stellux-Server/internal/post/internal/service"
 	"github.com/codepzj/Stellux-Server/internal/post/internal/web"
 	"github.com/google/wire"
+	"gorm.io/gorm"
 )
 
 var PostProviders = wire.NewSet(web.NewPostHandler, service.NewPostService, repository.NewPostRepository, dao.NewPostDao,
@@ -16,7 +16,7 @@ var PostProviders = wire.NewSet(web.NewPostHandler, service.NewPostService, repo
 	wire.Bind(new(repository.IPostRepository), new(*repository.PostRepository)),
 	wire.Bind(new(dao.IPostDao), new(*dao.PostDao)))
 
-func InitPostModule(mongoDB *mongox.Database) *Module {
+func InitPostModule(db *gorm.DB) *Module {
 	panic(wire.Build(
 		PostProviders,
 		wire.Struct(new(Module), "Hdl"),

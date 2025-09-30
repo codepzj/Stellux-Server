@@ -2,291 +2,252 @@ package dao
 
 import (
 	"context"
-	"time"
+	"fmt"
 
-	"github.com/chenmingyong0423/go-mongox/v2"
-	"github.com/chenmingyong0423/go-mongox/v2/builder/aggregation"
-	"github.com/chenmingyong0423/go-mongox/v2/builder/query"
-	"github.com/chenmingyong0423/go-mongox/v2/builder/update"
 	"github.com/codepzj/Stellux-Server/internal/label"
 	"github.com/codepzj/Stellux-Server/internal/pkg/utils"
+	"github.com/lib/pq"
 	"github.com/pkg/errors"
-	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gorm.io/gorm"
 )
 
 type Post struct {
-	mongox.Model `bson:",inline"`
-	Title        string          `bson:"title"`
-	Content      string          `bson:"content"`
-	Description  string          `bson:"description"`
-	Author       string          `bson:"author"`
-	Alias        string          `bson:"alias"`
-	CategoryID   bson.ObjectID   `bson:"category_id"`
-	TagsID       []bson.ObjectID `bson:"tags_id"`
-	IsPublish    bool            `bson:"is_publish"`
-	IsTop        bool            `bson:"is_top"`
-	Thumbnail    string          `bson:"thumbnail"`
+	gorm.Model
+	Title       string         `gorm:"column:title"`
+	Content     string         `gorm:"column:content"`
+	Description string         `gorm:"column:description"`
+	Author      string         `gorm:"column:author"`
+	Alias       string         `gorm:"column:alias"`
+	CategoryID  uint           `gorm:"column:category_id"`
+	Category    label.Domain   `gorm:"-"`
+	TagsID      pq.Int64Array  `gorm:"column:tags_id;type:integer[]"`
+	Tags        []label.Domain `gorm:"-"`
+	IsPublish   bool           `gorm:"column:is_publish"`
+	IsTop       bool           `gorm:"column:is_top"`
+	Thumbnail   string         `gorm:"column:thumbnail"`
+}
+
+func (Post) TableName() string {
+	return "post"
 }
 
 type PostUpdate struct {
-	Title       string          `bson:"title"`
-	Content     string          `bson:"content"`
-	Description string          `bson:"description"`
-	Author      string          `bson:"author"`
-	Alias       string          `bson:"alias"`
-	CategoryID  bson.ObjectID   `bson:"category_id"`
-	TagsID      []bson.ObjectID `bson:"tags_id"`
-	IsPublish   bool            `bson:"is_publish"`
-	IsTop       bool            `bson:"is_top"`
-	Thumbnail   string          `bson:"thumbnail"`
+	Title       string
+	Content     string
+	Description string
+	Author      string
+	Alias       string
+	CategoryID  uint
+	TagsID      pq.Int64Array `gorm:"type:integer[]"`
+	IsPublish   bool
+	IsTop       bool
+	Thumbnail   string
 }
 
-// 聚合查询返回带有category和tags的结构体
-type PostCategoryTags struct {
-	Id          bson.ObjectID  `bson:"_id"`
-	CreatedAt   time.Time      `bson:"created_at"`
-	UpdatedAt   time.Time      `bson:"updated_at"`
-	Title       string         `bson:"title"`
-	Content     string         `bson:"content"`
-	Description string         `bson:"description"`
-	Author      string         `bson:"author"`
-	Alias       string         `bson:"alias"`
-	Category    label.Domain   `bson:"category"`
-	Tags        []label.Domain `bson:"tags"`
-	IsPublish   bool           `bson:"is_publish"`
-	IsTop       bool           `bson:"is_top"`
-	Thumbnail   string         `bson:"thumbnail"`
-}
-
-type UpdatePost struct {
-	CreatedAt   time.Time       `bson:"created_at,omitempty"`
-	Title       string          `bson:"title"`
-	Content     string          `bson:"content"`
-	Description string          `bson:"description"`
-	Author      string          `bson:"author"`
-	Alias       string          `bson:"alias"`
-	CategoryId  bson.ObjectID   `bson:"category_id"`
-	TagsId      []bson.ObjectID `bson:"tags_id"`
-	IsPublish   bool            `bson:"is_publish"`
-	IsTop       bool            `bson:"is_top"`
-	Thumbnail   string          `bson:"thumbnail"`
+func (PostUpdate) TableName() string {
+	return "post"
 }
 
 type IPostDao interface {
 	Create(ctx context.Context, post *Post) error
-	Update(ctx context.Context, id bson.ObjectID, post *UpdatePost) error
-	UpdatePostPublishStatus(ctx context.Context, id bson.ObjectID, isPublish bool) error
-	SoftDelete(ctx context.Context, id bson.ObjectID) error
-	SoftDeleteBatch(ctx context.Context, ids []bson.ObjectID) error
-	Delete(ctx context.Context, id bson.ObjectID) error
-	DeleteBatch(ctx context.Context, ids []bson.ObjectID) error
-	Restore(ctx context.Context, id bson.ObjectID) error
-	RestoreBatch(ctx context.Context, ids []bson.ObjectID) error
-	GetByID(ctx context.Context, id bson.ObjectID) (*Post, error)
-	GetByKeyWord(ctx context.Context, keyWord string) ([]*Post, error)
-	GetDetailByID(ctx context.Context, id bson.ObjectID) (*PostCategoryTags, error)
-	GetList(ctx context.Context, pagePipeline mongo.Pipeline, cond bson.D) ([]*PostCategoryTags, int64, error)
-	GetListWithTagFilter(ctx context.Context, pagePipeline mongo.Pipeline, cond bson.D, hasTagFilter bool, labelName string) ([]*PostCategoryTags, int64, error)
+	Update(ctx context.Context, id uint, post *PostUpdate) error
+	UpdatePostPublishStatus(ctx context.Context, id uint, isPublish bool) error
+	SoftDelete(ctx context.Context, id uint) error
+	SoftDeleteBatch(ctx context.Context, ids []uint) error
+	Delete(ctx context.Context, id uint) error
+	DeleteBatch(ctx context.Context, ids []uint) error
+	Restore(ctx context.Context, id uint) error
+	RestoreBatch(ctx context.Context, ids []uint) error
+	GetByID(ctx context.Context, id uint) (*Post, error)
+	GetListByKeyWord(ctx context.Context, keyWord string) ([]*Post, error)
+	GetWithCategoryAndTags(ctx context.Context, id uint) (*Post, error)
+	GetListByFilter(ctx context.Context, filter func(tx *gorm.DB) *gorm.DB) ([]*Post, error)
+	GetAllCount(ctx context.Context) (int64, error)
 	GetAllPublishPost(ctx context.Context) ([]*Post, error)
 	FindByAlias(ctx context.Context, alias string) (*Post, error)
 }
 
 var _ IPostDao = (*PostDao)(nil)
 
-func NewPostDao(db *mongox.Database) *PostDao {
-	return &PostDao{coll: mongox.NewCollection[Post](db, "post")}
+func NewPostDao(db *gorm.DB) *PostDao {
+	fmt.Println("NewPostDao")
+	err := db.AutoMigrate(&Post{})
+	if err != nil {
+		fmt.Println("AutoMigrate Post error", err)
+	}
+	return &PostDao{db: db}
 }
 
 type PostDao struct {
-	coll *mongox.Collection[Post]
+	db *gorm.DB
 }
 
 // Create 创建文章
 func (d *PostDao) Create(ctx context.Context, post *Post) error {
-	insertResult, err := d.coll.Creator().InsertOne(ctx, post)
-	if err != nil {
-		return err
-	}
-	if insertResult.InsertedID == nil {
-		return errors.Wrap(err, "插入文章失败")
-	}
-	return nil
+	return d.db.Model(&Post{}).Create(post).Error
 }
 
-func (d *PostDao) Update(ctx context.Context, id bson.ObjectID, post *UpdatePost) error {
-	updateResult, err := d.coll.Updater().Filter(query.Id(id)).Updates(update.NewBuilder().SetFields(post).Build()).UpdateOne(ctx)
-	if err != nil {
+// Update 更新文章
+func (d *PostDao) Update(ctx context.Context, id uint, post *PostUpdate) error {
+	res := d.db.Model(&Post{}).Where("id = ?", id).Updates(post)
+	if err := res.Error; err != nil {
 		return err
 	}
-	if updateResult.ModifiedCount == 0 {
-		return errors.New("文章修改失败")
+	if res.RowsAffected == 0 {
+		return errors.New("文章更新失败")
 	}
 	return nil
 }
 
 // UpdatePostPublishStatus 更新文章发布状态
-func (d *PostDao) UpdatePostPublishStatus(ctx context.Context, id bson.ObjectID, isPublish bool) error {
-	_, err := d.coll.Updater().Filter(query.Id(id)).Updates(update.NewBuilder().Set("is_publish", isPublish).Build()).UpdateOne(ctx)
-	return err
+func (d *PostDao) UpdatePostPublishStatus(ctx context.Context, id uint, isPublish bool) error {
+	res := d.db.Model(&Post{}).Where("id = ?", id).Update("is_publish", isPublish)
+	if err := res.Error; err != nil {
+		return err
+	}
+	if res.RowsAffected == 0 {
+		return errors.New("文章发布状态更新失败")
+	}
+	return nil
 }
 
 // SoftDelete 软删除文章
-func (d *PostDao) SoftDelete(ctx context.Context, id bson.ObjectID) error {
-	_, err := d.coll.Updater().Filter(query.Id(id)).Updates(update.NewBuilder().Set("deleted_at", time.Now()).Set("is_publish", false).Set("is_top", false).Build()).UpdateOne(ctx)
-	return err
+func (d *PostDao) SoftDelete(ctx context.Context, id uint) error {
+	res := d.db.Delete(&Post{}, id)
+	if err := res.Error; err != nil {
+		return err
+	}
+	if res.RowsAffected == 0 {
+		return errors.New("文章软删除失败")
+	}
+	return nil
 }
 
 // Delete 删除文章
-func (d *PostDao) Delete(ctx context.Context, id bson.ObjectID) error {
-	_, err := d.coll.Deleter().Filter(query.Id(id)).DeleteOne(ctx)
-	return err
+func (d *PostDao) Delete(ctx context.Context, id uint) error {
+	res := d.db.Unscoped().Delete(&Post{}, id)
+	if err := res.Error; err != nil {
+		return err
+	}
+	if res.RowsAffected == 0 {
+		return errors.New("文章删除失败")
+	}
+	return nil
 }
 
 // DeleteBatch 批量删除文章
-func (d *PostDao) DeleteBatch(ctx context.Context, ids []bson.ObjectID) error {
-	_, err := d.coll.Deleter().Filter(query.In("_id", ids...)).DeleteMany(ctx)
-	return err
+func (d *PostDao) DeleteBatch(ctx context.Context, ids []uint) error {
+	res := d.db.Unscoped().Delete(&Post{}, ids)
+	if err := res.Error; err != nil {
+		return err
+	}
+	if res.RowsAffected != int64(len(ids)) {
+		return errors.New("文章删除失败")
+	}
+	return nil
 }
 
 // Restore 恢复文章
-func (d *PostDao) Restore(ctx context.Context, id bson.ObjectID) error {
-	_, err := d.coll.Updater().Filter(query.Id(id)).Updates(update.NewBuilder().Set("deleted_at", nil).Build()).UpdateOne(ctx)
-	return err
+func (d *PostDao) Restore(ctx context.Context, id uint) error {
+	res := d.db.Model(&Post{}).Where("id = ?", id).Update("deleted_at", nil)
+	if err := res.Error; err != nil {
+		return err
+	}
+	if res.RowsAffected == 0 {
+		return errors.New("文章恢复失败")
+	}
+	return nil
 }
 
-// GetDetailByID 获取文章
-func (d *PostDao) GetDetailByID(ctx context.Context, id bson.ObjectID) (*PostCategoryTags, error) {
-	// 设置管道,聚合查询包含详细分类和标签的文章
-	pipeline := aggregation.NewStageBuilder().Match(query.Id(id)).Lookup("label", "category", &aggregation.LookUpOptions{
-		LocalField:   "category_id",
-		ForeignField: "_id",
-	}).Unwind("$category", nil).Lookup("label", "tags", &aggregation.LookUpOptions{
-		LocalField:   "tags_id",
-		ForeignField: "_id",
-	}).Build()
-	var postResult []PostCategoryTags
-	err := d.coll.Aggregator().Pipeline(pipeline).AggregateWithParse(ctx, &postResult)
+// GetWithCategoryAndTags 获取有分类和标签的文章
+func (d *PostDao) GetWithCategoryAndTags(ctx context.Context, id uint) (*Post, error) {
+	var post Post
+	err := d.db.Model(&Post{}).Where("id = ?", id).Preload("Category").Preload("Tags").First(&post).Error
 	if err != nil {
 		return nil, err
 	}
-	if len(postResult) == 0 {
-		return nil, errors.New("文章不存在")
-	}
-	return &postResult[0], err
+	return &post, nil
 }
 
 // GetByID 获取文章
-func (d *PostDao) GetByID(ctx context.Context, id bson.ObjectID) (*Post, error) {
-	post, err := d.coll.Finder().Filter(query.Id(id)).FindOne(ctx)
+func (d *PostDao) GetByID(ctx context.Context, id uint) (*Post, error) {
+	var post Post
+	err := d.db.Model(&Post{}).Where("id = ?", id).First(&post).Error
 	if err != nil {
 		return nil, err
 	}
-	return post, nil
+	return &post, nil
 }
 
-// GetByKeyWord 获取文章
-func (d *PostDao) GetByKeyWord(ctx context.Context, keyWord string) ([]*Post, error) {
-	cond := query.NewBuilder().Or(query.RegexOptions("title", keyWord, "i"), query.RegexOptions("description", keyWord, "i")).And(query.Eq("deleted_at", nil), query.Eq("is_publish", true)).Build()
-	return d.coll.Finder().Filter(cond).Find(ctx)
-}
-
-// GetList 获取文章列表
-func (d *PostDao) GetList(ctx context.Context, pagePipeline mongo.Pipeline, cond bson.D) ([]*PostCategoryTags, int64, error) {
-	var postResult []PostCategoryTags
-	err := d.coll.Aggregator().Pipeline(pagePipeline).AggregateWithParse(ctx, &postResult)
+// GetListByKeyWord 根据关键词获取文章列表
+func (d *PostDao) GetListByKeyWord(ctx context.Context, keyWord string) ([]*Post, error) {
+	var posts []Post
+	err := d.db.Model(&Post{}).Where("title LIKE ? OR description LIKE ?", "%"+keyWord+"%", "%"+keyWord+"%").Where("is_publish = ?", true).Find(&posts).Error
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
-
-	// 使用简单的计数
-	count, err := d.coll.Finder().Filter(cond).Count(ctx)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return utils.ValToPtrList(postResult), count, err
+	return utils.ValToPtrList(posts), nil
 }
 
-// buildCountPipeline 构建计数管道
-func (d *PostDao) buildCountPipeline(cond bson.D, labelName string) mongo.Pipeline {
-	stageBuilder := aggregation.NewStageBuilder().Match(cond).
-		Lookup("label", "category", &aggregation.LookUpOptions{
-			LocalField:   "category_id",
-			ForeignField: "_id",
-		}).
-		Unwind("$category", &aggregation.UnWindOptions{
-			PreserveNullAndEmptyArrays: true,
-		}).
-		Lookup("label", "tags", &aggregation.LookUpOptions{
-			LocalField:   "tags_id",
-			ForeignField: "_id",
-		})
-
-	// 添加标签过滤条件
-	if labelName != "" {
-		stageBuilder = stageBuilder.Match(query.ElemMatch("tags", query.And(
-			query.Eq("type", "tag"),
-			query.Eq("name", labelName),
-		)))
+// GetListByFilter 根据条件获取文章列表
+func (d *PostDao) GetListByFilter(ctx context.Context, filter func(tx *gorm.DB) *gorm.DB) ([]*Post, error) {
+	var posts []Post
+	err := d.db.Model(&Post{}).Scopes(filter).Find(&posts).Error
+	if err != nil {
+		return nil, err
 	}
-
-	return stageBuilder.Build()
+	return utils.ValToPtrList(posts), nil
 }
 
-// GetListWithTagFilter 获取文章列表（带标签过滤）
-func (d *PostDao) GetListWithTagFilter(ctx context.Context, pagePipeline mongo.Pipeline, cond bson.D, hasTagFilter bool, labelName string) ([]*PostCategoryTags, int64, error) {
-	// 执行分页查询
-	var postResult []PostCategoryTags
-	err := d.coll.Aggregator().Pipeline(pagePipeline).AggregateWithParse(ctx, &postResult)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	// 计算总数
+func (d *PostDao) GetAllCount(ctx context.Context) (int64, error) {
 	var count int64
-	if hasTagFilter {
-		// 有标签过滤时，使用聚合管道计数
-		countPipeline := d.buildCountPipeline(cond, labelName)
-		var countResult []bson.M
-		err = d.coll.Aggregator().Pipeline(countPipeline).AggregateWithParse(ctx, &countResult)
-		if err != nil {
-			return nil, 0, err
-		}
-		count = int64(len(countResult))
-	} else {
-		// 无标签过滤时，使用简单计数
-		count, err = d.coll.Finder().Filter(cond).Count(ctx)
-		if err != nil {
-			return nil, 0, err
-		}
+	err := d.db.Model(&Post{}).Count(&count).Error
+	if err != nil {
+		return 0, err
 	}
-
-	return utils.ValToPtrList(postResult), count, err
+	return count, nil
 }
 
 // SoftDeleteBatch 批量软删除文章
-func (d *PostDao) SoftDeleteBatch(ctx context.Context, ids []bson.ObjectID) error {
-	_, err := d.coll.Updater().Filter(query.In("_id", ids...)).Updates(update.NewBuilder().Set("deleted_at", time.Now()).Set("is_publish", false).Set("is_top", false).Build()).UpdateMany(ctx)
-	return err
+func (d *PostDao) SoftDeleteBatch(ctx context.Context, ids []uint) error {
+	res := d.db.Delete(&Post{}, ids)
+	if err := res.Error; err != nil {
+		return err
+	}
+	if res.RowsAffected != int64(len(ids)) {
+		return errors.New("文章软删除失败")
+	}
+	return nil
 }
 
 // RestoreBatch 批量恢复文章
-func (d *PostDao) RestoreBatch(ctx context.Context, ids []bson.ObjectID) error {
-	_, err := d.coll.Updater().Filter(query.In("_id", ids...)).Updates(update.NewBuilder().Set("deleted_at", nil).Build()).UpdateMany(ctx)
-	return err
+func (d *PostDao) RestoreBatch(ctx context.Context, ids []uint) error {
+	res := d.db.Model(&Post{}).Where("id IN (?)", ids).Update("deleted_at", nil)
+	if err := res.Error; err != nil {
+		return err
+	}
+	if res.RowsAffected != int64(len(ids)) {
+		return errors.New("文章恢复失败")
+	}
+	return nil
 }
 
 // GetAllPublishPost 获取所有发布文章
 func (d *PostDao) GetAllPublishPost(ctx context.Context) ([]*Post, error) {
-	return d.coll.Finder().Filter(query.Eq("is_publish", true)).Sort(bson.M{"updated_at": -1}).Find(ctx)
+	var posts []Post
+	err := d.db.Model(&Post{}).Where("is_publish = ?", true).Order("created_at DESC").Find(&posts).Error
+	if err != nil {
+		return nil, err
+	}
+	return utils.ValToPtrList(posts), nil
 }
 
 // FindByAlias 根据别名获取文章
 func (d *PostDao) FindByAlias(ctx context.Context, alias string) (*Post, error) {
-	post, err := d.coll.Finder().Filter(query.Eq("alias", alias)).FindOne(ctx)
+	var post Post
+	err := d.db.Model(&Post{}).Where("alias = ?", alias).First(&post).Error
 	if err != nil {
 		return nil, err
 	}
-	return post, nil
+	return &post, nil
 }

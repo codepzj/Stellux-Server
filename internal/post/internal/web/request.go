@@ -26,37 +26,37 @@ type PostDto struct {
 	Description string    `json:"description"`
 	Author      string    `json:"author" binding:"required"`
 	Alias       string    `json:"alias" binding:"required"`
-	CategoryID  string    `json:"category_id"`
-	TagsID      []string  `json:"tags_id"`
+	CategoryID  uint      `json:"category_id"`
+	TagsID      []uint    `json:"tags_id"`
 	IsPublish   bool      `json:"is_publish"`
 	IsTop       bool      `json:"is_top"`
 	Thumbnail   string    `json:"thumbnail"`
 }
 
 type PostUpdateDto struct {
-	Id          string    `json:"id"`
+	ID          uint      `json:"id"`
 	CreatedAt   time.Time `json:"created_at"`
 	Title       string    `json:"title"`
 	Content     string    `json:"content"`
 	Description string    `json:"description"`
 	Author      string    `json:"author"`
 	Alias       string    `json:"alias" binding:"required"`
-	CategoryID  string    `json:"category_id"`
-	TagsID      []string  `json:"tags_id"`
+	CategoryID  uint      `json:"category_id"`
+	TagsID      []uint    `json:"tags_id"`
 	IsPublish   bool      `json:"is_publish"`
 	IsTop       bool      `json:"is_top"`
 	Thumbnail   string    `json:"thumbnail"`
 }
 
 type PostIdRequest struct {
-	Id string `uri:"id" binding:"required"`
+	ID uint `uri:"id" binding:"required"`
 }
 
 type PostPublishStatusRequest struct {
-	ID        string `json:"id" binding:"required"`
-	IsPublish *bool  `json:"is_publish" binding:"required"`
+	ID        uint  `json:"id" binding:"required"`
+	IsPublish *bool `json:"is_publish" binding:"required"`
 }
 
 type PostIDListRequest struct {
-	IDList []string `json:"id_list" binding:"required"`
+	IDList []uint `json:"id_list" binding:"required"`
 }

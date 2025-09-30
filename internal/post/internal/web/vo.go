@@ -6,11 +6,10 @@ import (
 	"github.com/codepzj/Stellux-Server/internal/label"
 	"github.com/codepzj/Stellux-Server/internal/post/internal/domain"
 	"github.com/samber/lo"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type PostVO struct {
-	Id          string    `json:"id"`
+	ID          uint    `json:"id"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 	Title       string    `json:"title"`
@@ -18,15 +17,15 @@ type PostVO struct {
 	Description string    `json:"description"`
 	Author      string    `json:"author"`
 	Alias       string    `json:"alias"`
-	CategoryID  string    `json:"category_id"`
-	TagsID      []string  `json:"tags_id"`
+	CategoryID  uint    `json:"category_id"`
+	TagsID      []uint  `json:"tags_id"`
 	IsPublish   bool      `json:"is_publish"`
 	IsTop       bool      `json:"is_top"`
 	Thumbnail   string    `json:"thumbnail"`
 }
 
 type PostDetailVO struct {
-	ID          string    `json:"id"`
+	ID          uint    `json:"id"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 	Title       string    `json:"title"`
@@ -34,30 +33,24 @@ type PostDetailVO struct {
 	Description string    `json:"description"`
 	Author      string    `json:"author"`
 	Alias       string    `json:"alias"`
-	Category    string    `json:"category"`
-	Tags        []string  `json:"tags"`
+	CategoryID  uint    `json:"category_id"`
+	TagsID      []uint  `json:"tags_id"`
 	IsPublish   bool      `json:"is_publish"`
 	IsTop       bool      `json:"is_top"`
 	Thumbnail   string    `json:"thumbnail"`
 }
 
-func GetCategoryNameFromLabel(label label.Domain) string {
-	return label.Name
+func GetCategoryNameFromLabel(label label.Domain) uint {
+	return label.ID
 }
 
-func GetTagNamesFromLabels(labels []label.Domain) []string {
-	return lo.Map(labels, func(label label.Domain, _ int) string {
-		return label.Name
+func GetTagNamesFromLabels(labels []label.Domain) []uint {
+	return lo.Map(labels, func(label label.Domain, _ int) uint {
+		return label.ID
 	})
 }
 
 func (h *PostHandler) PostDTOToDomain(postReq PostDto) *domain.Post {
-	categoryId, _ := bson.ObjectIDFromHex(postReq.CategoryID)
-	var tagsId []bson.ObjectID
-	for _, tagId := range postReq.TagsID {
-		objId, _ := bson.ObjectIDFromHex(tagId)
-		tagsId = append(tagsId, objId)
-	}
 	return &domain.Post{
 		CreatedAt:   postReq.CreatedAt,
 		Title:       postReq.Title,
@@ -65,8 +58,8 @@ func (h *PostHandler) PostDTOToDomain(postReq PostDto) *domain.Post {
 		Description: postReq.Description,
 		Author:      postReq.Author,
 		Alias:       postReq.Alias,
-		CategoryId:  categoryId,
-		TagsId:      tagsId,
+		CategoryID:  postReq.CategoryID,
+		TagsID:      postReq.TagsID,
 		IsPublish:   postReq.IsPublish,
 		IsTop:       postReq.IsTop,
 		Thumbnail:   postReq.Thumbnail,
@@ -74,23 +67,16 @@ func (h *PostHandler) PostDTOToDomain(postReq PostDto) *domain.Post {
 }
 
 func (h *PostHandler) PostUpdateDTOToDomain(postUpdateReq PostUpdateDto) *domain.Post {
-	objId, _ := bson.ObjectIDFromHex(postUpdateReq.Id)
-	categoryId, _ := bson.ObjectIDFromHex(postUpdateReq.CategoryID)
-	var tagsId []bson.ObjectID
-	for _, tagId := range postUpdateReq.TagsID {
-		tagsObjId, _ := bson.ObjectIDFromHex(tagId)
-		tagsId = append(tagsId, tagsObjId)
-	}
 	return &domain.Post{
-		Id:          objId,
+		ID:          postUpdateReq.ID,
 		CreatedAt:   postUpdateReq.CreatedAt,
 		Title:       postUpdateReq.Title,
 		Content:     postUpdateReq.Content,
 		Description: postUpdateReq.Description,
 		Author:      postUpdateReq.Author,
 		Alias:       postUpdateReq.Alias,
-		CategoryId:  categoryId,
-		TagsId:      tagsId,
+		CategoryID:  postUpdateReq.CategoryID,
+		TagsID:      postUpdateReq.TagsID,
 		IsPublish:   postUpdateReq.IsPublish,
 		IsTop:       postUpdateReq.IsTop,
 		Thumbnail:   postUpdateReq.Thumbnail,
@@ -99,7 +85,7 @@ func (h *PostHandler) PostUpdateDTOToDomain(postUpdateReq PostUpdateDto) *domain
 
 func (h *PostHandler) PostDetailToVO(post *domain.PostDetail) *PostDetailVO {
 	return &PostDetailVO{
-		ID:          post.Id.Hex(),
+		ID:          post.ID,
 		CreatedAt:   post.CreatedAt,
 		UpdatedAt:   post.UpdatedAt,
 		Title:       post.Title,
@@ -107,8 +93,8 @@ func (h *PostHandler) PostDetailToVO(post *domain.PostDetail) *PostDetailVO {
 		Description: post.Description,
 		Author:      post.Author,
 		Alias:       post.Alias,
-		Category:    GetCategoryNameFromLabel(post.Category),
-		Tags:        GetTagNamesFromLabels(post.Tags),
+		CategoryID:  post.CategoryID,
+		TagsID:      GetTagNamesFromLabels(post.Tags),
 		IsPublish:   post.IsPublish,
 		IsTop:       post.IsTop,
 		Thumbnail:   post.Thumbnail,
@@ -122,19 +108,8 @@ func (h *PostHandler) PostDetailListToVOList(posts []*domain.PostDetail) []*Post
 }
 
 func (h *PostHandler) PostToVO(post *domain.Post) *PostVO {
-	categoryId := ""
-	tagsId := []string{}
-	// mongodb查询得到的categoryId和tagsId可能出现空值，转成字符串需要处理
-	if !post.CategoryId.IsZero() {
-		categoryId = post.CategoryId.Hex()
-	}
-	for i := 0; i < len(post.TagsId); i++ {
-		if !post.TagsId[i].IsZero() {
-			tagsId = append(tagsId, post.TagsId[i].Hex())
-		}
-	}
 	return &PostVO{
-		Id:          post.Id.Hex(),
+		ID:          post.ID,
 		CreatedAt:   post.CreatedAt,
 		UpdatedAt:   post.UpdatedAt,
 		Title:       post.Title,
@@ -142,8 +117,8 @@ func (h *PostHandler) PostToVO(post *domain.Post) *PostVO {
 		Description: post.Description,
 		Author:      post.Author,
 		Alias:       post.Alias,
-		CategoryID:  categoryId,
-		TagsID:      tagsId,
+		CategoryID:  post.CategoryID,
+		TagsID:      post.TagsID,
 		IsPublish:   post.IsPublish,
 		IsTop:       post.IsTop,
 		Thumbnail:   post.Thumbnail,

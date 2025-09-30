@@ -5,7 +5,6 @@ import (
 	"github.com/codepzj/Stellux-Server/internal/post/internal/domain"
 	"github.com/codepzj/Stellux-Server/internal/post/internal/service"
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func NewPostHandler(serv service.IPostService) *PostHandler {
@@ -63,11 +62,7 @@ func (h *PostHandler) AdminUpdatePost(c *gin.Context, postUpdateReq PostUpdateDt
 }
 
 func (h *PostHandler) AdminUpdatePostPublishStatus(c *gin.Context, postPublishStatusRequest PostPublishStatusRequest) (*apiwrap.Response[any], error) {
-	objId, err := bson.ObjectIDFromHex(postPublishStatusRequest.ID)
-	if err != nil {
-		return nil, apiwrap.NewBadRequest("id格式错误")
-	}
-	err = h.serv.AdminUpdatePostPublishStatus(c, objId, *postPublishStatusRequest.IsPublish)
+	err := h.serv.AdminUpdatePostPublishStatus(c, postPublishStatusRequest.ID, *postPublishStatusRequest.IsPublish)
 	if err != nil {
 		return nil, apiwrap.NewInternalError(err.Error())
 	}
@@ -75,11 +70,7 @@ func (h *PostHandler) AdminUpdatePostPublishStatus(c *gin.Context, postPublishSt
 }
 
 func (h *PostHandler) AdminRestorePost(c *gin.Context, postIDRequest PostIdRequest) (*apiwrap.Response[any], error) {
-	objId, err := bson.ObjectIDFromHex(postIDRequest.Id)
-	if err != nil {
-		return nil, apiwrap.NewBadRequest("id格式错误")
-	}
-	err = h.serv.AdminRestorePost(c, objId)
+	err := h.serv.AdminRestorePost(c, postIDRequest.ID)
 	if err != nil {
 		return nil, apiwrap.NewInternalError(err.Error())
 	}
@@ -87,17 +78,7 @@ func (h *PostHandler) AdminRestorePost(c *gin.Context, postIDRequest PostIdReque
 }
 
 func (h *PostHandler) AdminRestorePostBatch(c *gin.Context, postIDListRequest PostIDListRequest) (*apiwrap.Response[any], error) {	
-	var objIdList []bson.ObjectID
-	var err error
-	for _, id := range postIDListRequest.IDList {
-		objId, err := bson.ObjectIDFromHex(id)
-		if err != nil {
-			return nil, apiwrap.NewBadRequest("id格式错误")
-		}
-		objIdList = append(objIdList, objId)
-	}
-		
-	err = h.serv.AdminRestorePostBatch(c, objIdList)
+	err := h.serv.AdminRestorePostBatch(c, postIDListRequest.IDList)
 	if err != nil {
 		return nil, apiwrap.NewInternalError(err.Error())
 	}
@@ -105,11 +86,7 @@ func (h *PostHandler) AdminRestorePostBatch(c *gin.Context, postIDListRequest Po
 }
 
 func (h *PostHandler) AdminSoftDeletePost(c *gin.Context, postIDRequest PostIdRequest) (*apiwrap.Response[any], error) {
-	objId, err := bson.ObjectIDFromHex(postIDRequest.Id)
-	if err != nil {
-		return nil, apiwrap.NewBadRequest("id格式错误")
-	}
-	err = h.serv.AdminSoftDeletePost(c, objId)
+	err := h.serv.AdminSoftDeletePost(c, postIDRequest.ID)
 	if err != nil {
 		return nil, apiwrap.NewInternalError(err.Error())
 	}
@@ -117,16 +94,7 @@ func (h *PostHandler) AdminSoftDeletePost(c *gin.Context, postIDRequest PostIdRe
 }
 
 func (h *PostHandler) AdminSoftDeletePostBatch(c *gin.Context, postIDListRequest PostIDListRequest) (*apiwrap.Response[any], error) {
-	var objIdList []bson.ObjectID
-	var err error
-	for _, id := range postIDListRequest.IDList {
-		objId, err := bson.ObjectIDFromHex(id)
-		if err != nil {
-			return nil, apiwrap.NewBadRequest("id格式错误")
-		}
-		objIdList = append(objIdList, objId)
-	}
-	err = h.serv.AdminSoftDeletePostBatch(c, objIdList)
+	err := h.serv.AdminSoftDeletePostBatch(c, postIDListRequest.IDList)
 	if err != nil {
 		return nil, apiwrap.NewInternalError(err.Error())
 	}
@@ -134,11 +102,7 @@ func (h *PostHandler) AdminSoftDeletePostBatch(c *gin.Context, postIDListRequest
 }
 
 func (h *PostHandler) AdminDeletePost(c *gin.Context, postIDRequest PostIdRequest) (*apiwrap.Response[any], error) {
-	objId, err := bson.ObjectIDFromHex(postIDRequest.Id)
-	if err != nil {
-		return nil, apiwrap.NewBadRequest("id格式错误")
-	}
-	err = h.serv.AdminDeletePost(c, objId)
+	err := h.serv.AdminDeletePost(c, postIDRequest.ID)
 	if err != nil {
 		return nil, apiwrap.NewInternalError(err.Error())
 	}
@@ -146,16 +110,7 @@ func (h *PostHandler) AdminDeletePost(c *gin.Context, postIDRequest PostIdReques
 }
 
 func (h *PostHandler) AdminDeletePostBatch(c *gin.Context, postIDListRequest PostIDListRequest) (*apiwrap.Response[any], error) {
-	var objIdList []bson.ObjectID
-	var err error
-	for _, id := range postIDListRequest.IDList {
-		objId, err := bson.ObjectIDFromHex(id)
-		if err != nil {
-			return nil, apiwrap.NewBadRequest("id格式错误")
-		}
-		objIdList = append(objIdList, objId)
-	}
-	err = h.serv.AdminDeletePostBatch(c, objIdList)
+	err := h.serv.AdminDeletePostBatch(c, postIDListRequest.IDList)
 	if err != nil {
 		return nil, apiwrap.NewInternalError(err.Error())
 	}
@@ -220,11 +175,7 @@ func (h *PostHandler) AdminGetBinDetailPostList(c *gin.Context, pageReq Page) (*
 
 // GetPostDetailById 获取文章详情
 func (h *PostHandler) GetPostDetailById(c *gin.Context, postIDRequest PostIdRequest) (*apiwrap.Response[any], error) {
-	objId, err := bson.ObjectIDFromHex(postIDRequest.Id)
-	if err != nil {
-		return nil, apiwrap.NewBadRequest("id格式错误")
-	}
-	postDetail, err := h.serv.GetPostDetailById(c, objId)
+	postDetail, err := h.serv.GetPostDetailById(c, postIDRequest.ID)
 	if err != nil {
 		return nil, apiwrap.NewInternalError(err.Error())
 	}
@@ -233,11 +184,7 @@ func (h *PostHandler) GetPostDetailById(c *gin.Context, postIDRequest PostIdRequ
 
 // GetPostById 获取文章详情
 func (h *PostHandler) GetPostById(c *gin.Context, postIDRequest PostIdRequest) (*apiwrap.Response[any], error) {
-	objId, err := bson.ObjectIDFromHex(postIDRequest.Id)
-	if err != nil {
-		return nil, apiwrap.NewBadRequest("id格式错误")
-	}
-	post, err := h.serv.GetPostById(c, objId)
+	post, err := h.serv.GetPostById(c, postIDRequest.ID)
 	if err != nil {
 		return nil, apiwrap.NewInternalError(err.Error())
 	}
