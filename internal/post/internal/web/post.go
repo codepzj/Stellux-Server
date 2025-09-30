@@ -165,12 +165,13 @@ func (h *PostHandler) AdminDeletePostBatch(c *gin.Context, postIDListRequest Pos
 // GetPublishPostList 获取发布文章列表
 func (h *PostHandler) GetPublishPostList(c *gin.Context, pageReq Page) (*apiwrap.Response[any], error) {
 	postDetailList, total, err := h.serv.GetPostList(c, &domain.Page{
-		PageNo:    pageReq.PageNo,
-		PageSize:  pageReq.PageSize,
-		Field:     pageReq.Field,
-		Order:     pageReq.Order,
-		Keyword:   pageReq.Keyword,
-		LabelName: pageReq.LabelName,
+		PageNo:       pageReq.PageNo,
+		PageSize:     pageReq.PageSize,
+		Field:        pageReq.Field,
+		Order:        pageReq.Order,
+		Keyword:      pageReq.Keyword,
+		LabelName:    pageReq.LabelName,
+		CategoryName: pageReq.CategoryName,
 	}, "publish")
 	if err != nil {
 		return nil, apiwrap.NewInternalError(err.Error())
@@ -184,12 +185,13 @@ func (h *PostHandler) GetPublishPostList(c *gin.Context, pageReq Page) (*apiwrap
 // AdminGetDraftDetailPostList 获取草稿箱文章列表
 func (h *PostHandler) AdminGetDraftDetailPostList(c *gin.Context, pageReq Page) (*apiwrap.Response[any], error) {
 	postDetailList, total, err := h.serv.GetPostList(c, &domain.Page{
-		PageNo:    pageReq.PageNo,
-		PageSize:  pageReq.PageSize,
-		Field:     pageReq.Field,
-		Order:     pageReq.Order,
-		Keyword:   pageReq.Keyword,
-		LabelName: pageReq.LabelName,
+		PageNo:       pageReq.PageNo,
+		PageSize:     pageReq.PageSize,
+		Field:        pageReq.Field,
+		Order:        pageReq.Order,
+		Keyword:      pageReq.Keyword,
+		LabelName:    pageReq.LabelName,
+		CategoryName: pageReq.CategoryName,
 	}, "draft")
 	if err != nil {
 		return nil, apiwrap.NewInternalError(err.Error())
@@ -202,12 +204,13 @@ func (h *PostHandler) AdminGetDraftDetailPostList(c *gin.Context, pageReq Page) 
 
 func (h *PostHandler) AdminGetBinDetailPostList(c *gin.Context, pageReq Page) (*apiwrap.Response[any], error) {
 	postDetailList, total, err := h.serv.GetPostList(c, &domain.Page{
-		PageNo:    pageReq.PageNo,
-		PageSize:  pageReq.PageSize,
-		Field:     pageReq.Field,
-		Order:     pageReq.Order,
-		Keyword:   pageReq.Keyword,
-		LabelName: pageReq.LabelName,
+		PageNo:       pageReq.PageNo,
+		PageSize:     pageReq.PageSize,
+		Field:        pageReq.Field,
+		Order:        pageReq.Order,
+		Keyword:      pageReq.Keyword,
+		LabelName:    pageReq.LabelName,
+		CategoryName: pageReq.CategoryName,
 	}, "bin")
 	if err != nil {
 		return nil, apiwrap.NewInternalError(err.Error())

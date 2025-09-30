@@ -15,8 +15,10 @@ type Page struct {
 	Order string `form:"order" json:"order,omitempty" binding:"omitempty,oneof=ASC DESC"`
 	// 搜索内容
 	Keyword string `form:"keyword" json:"keyword,omitempty"`
-	// 标签名称（用于过滤LabelType为"tag"的标签）
+	// 标签名称
 	LabelName string `form:"label_name" json:"label_name,omitempty"`
+	// 分类名称
+	CategoryName string `form:"category_name" json:"category_name,omitempty"`
 }
 
 type PostDto struct {

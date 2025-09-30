@@ -161,6 +161,14 @@ func (r *PostRepository) buildPostAggregationPipeline(cond bson.D, page *domain.
 		)))
 	}
 
+	// 添加分类过滤条件
+	if page.CategoryName != "" {
+		stageBuilder = stageBuilder.Match(query.And(
+			query.Eq("category.type", "category"),
+			query.Eq("category.name", page.CategoryName),
+		))
+	}
+
 	return stageBuilder.Sort(sortBuilder.Build()).Skip(skip).Limit(limit).Build()
 }
 
@@ -178,7 +186,8 @@ func (r *PostRepository) GetList(ctx context.Context, page *domain.Page, postTyp
 
 	// 执行查询
 	hasTagFilter := page.LabelName != ""
-	posts, count, err := r.dao.GetListWithTagFilter(ctx, pagePipeline, cond, hasTagFilter, page.LabelName)
+	hasCategoryFilter := page.CategoryName != ""
+	posts, count, err := r.dao.GetListWithFilter(ctx, pagePipeline, cond, hasTagFilter, page.LabelName, hasCategoryFilter, page.CategoryName)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -219,7 +228,6 @@ func (r *PostRepository) FindByAlias(ctx context.Context, alias string) (*domain
 	return r.PostDOToPostDomain(post), nil
 }
 
-// PostDomain2PostDO 将domain.Post转换为dao.Post
 func (r *PostRepository) PostDomainToPostDO(post *domain.Post) *dao.Post {
 	return &dao.Post{
 		Model:       mongox.Model{CreatedAt: post.CreatedAt},
@@ -258,7 +266,6 @@ func (r *PostRepository) PostDOToPostDomainList(posts []*dao.Post) []*domain.Pos
 	})
 }
 
-// PostDOToPostDomain 将dao.Post转换为domain.Post
 func (r *PostRepository) PostDOToPostDomain(post *dao.Post) *domain.Post {
 	return &domain.Post{
 		Id:          post.ID,
@@ -277,7 +284,6 @@ func (r *PostRepository) PostDOToPostDomain(post *dao.Post) *domain.Post {
 	}
 }
 
-// PostCategoryTagsDOToPostDetail 将dao.PostCategoryTags转换为domain.PostDetail
 func (r *PostRepository) PostCategoryTagsDOToPostDetail(postCategoryTags *dao.PostCategoryTags) *domain.PostDetail {
 	return &domain.PostDetail{
 		Id:          postCategoryTags.Id,

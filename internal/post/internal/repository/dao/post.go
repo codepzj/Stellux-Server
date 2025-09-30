@@ -88,6 +88,7 @@ type IPostDao interface {
 	GetDetailByID(ctx context.Context, id bson.ObjectID) (*PostCategoryTags, error)
 	GetList(ctx context.Context, pagePipeline mongo.Pipeline, cond bson.D) ([]*PostCategoryTags, int64, error)
 	GetListWithTagFilter(ctx context.Context, pagePipeline mongo.Pipeline, cond bson.D, hasTagFilter bool, labelName string) ([]*PostCategoryTags, int64, error)
+	GetListWithFilter(ctx context.Context, pagePipeline mongo.Pipeline, cond bson.D, hasTagFilter bool, labelName string, hasCategoryFilter bool, categoryName string) ([]*PostCategoryTags, int64, error)
 	GetAllPublishPost(ctx context.Context) ([]*Post, error)
 	FindByAlias(ctx context.Context, alias string) (*Post, error)
 }
@@ -209,7 +210,7 @@ func (d *PostDao) GetList(ctx context.Context, pagePipeline mongo.Pipeline, cond
 }
 
 // buildCountPipeline 构建计数管道
-func (d *PostDao) buildCountPipeline(cond bson.D, labelName string) mongo.Pipeline {
+func (d *PostDao) buildCountPipeline(cond bson.D, labelName string, categoryName string) mongo.Pipeline {
 	stageBuilder := aggregation.NewStageBuilder().Match(cond).
 		Lookup("label", "category", &aggregation.LookUpOptions{
 			LocalField:   "category_id",
@@ -231,6 +232,14 @@ func (d *PostDao) buildCountPipeline(cond bson.D, labelName string) mongo.Pipeli
 		)))
 	}
 
+	// 添加分类过滤条件
+	if categoryName != "" {
+		stageBuilder = stageBuilder.Match(query.And(
+			query.Eq("category.type", "category"),
+			query.Eq("category.name", categoryName),
+		))
+	}
+
 	return stageBuilder.Build()
 }
 
@@ -247,7 +256,7 @@ func (d *PostDao) GetListWithTagFilter(ctx context.Context, pagePipeline mongo.P
 	var count int64
 	if hasTagFilter {
 		// 有标签过滤时，使用聚合管道计数
-		countPipeline := d.buildCountPipeline(cond, labelName)
+		countPipeline := d.buildCountPipeline(cond, labelName, "")
 		var countResult []bson.M
 		err = d.coll.Aggregator().Pipeline(countPipeline).AggregateWithParse(ctx, &countResult)
 		if err != nil {
@@ -256,6 +265,37 @@ func (d *PostDao) GetListWithTagFilter(ctx context.Context, pagePipeline mongo.P
 		count = int64(len(countResult))
 	} else {
 		// 无标签过滤时，使用简单计数
+		count, err = d.coll.Finder().Filter(cond).Count(ctx)
+		if err != nil {
+			return nil, 0, err
+		}
+	}
+
+	return utils.ValToPtrList(postResult), count, err
+}
+
+// GetListWithFilter 获取文章列表（带标签和分类过滤）
+func (d *PostDao) GetListWithFilter(ctx context.Context, pagePipeline mongo.Pipeline, cond bson.D, hasTagFilter bool, labelName string, hasCategoryFilter bool, categoryName string) ([]*PostCategoryTags, int64, error) {
+	// 执行分页查询
+	var postResult []PostCategoryTags
+	err := d.coll.Aggregator().Pipeline(pagePipeline).AggregateWithParse(ctx, &postResult)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// 计算总数
+	var count int64
+	if hasTagFilter || hasCategoryFilter {
+		// 有过滤条件时，使用聚合管道计数
+		countPipeline := d.buildCountPipeline(cond, labelName, categoryName)
+		var countResult []bson.M
+		err = d.coll.Aggregator().Pipeline(countPipeline).AggregateWithParse(ctx, &countResult)
+		if err != nil {
+			return nil, 0, err
+		}
+		count = int64(len(countResult))
+	} else {
+		// 无过滤条件时，使用简单计数
 		count, err = d.coll.Finder().Filter(cond).Count(ctx)
 		if err != nil {
 			return nil, 0, err
