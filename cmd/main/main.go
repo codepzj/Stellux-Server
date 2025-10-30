@@ -9,7 +9,7 @@ import (
 
 // 命令行参数
 var (
-	CfgPath = flag.String("cfg_path", "conf/dev.yaml", "配置文件路径,eg: conf/dev.yaml")
+	CfgPath = flag.String("cfg_path", "../../conf/dev.yaml", "配置文件路径,eg: conf/dev.yaml")
 )
 
 func main() {
