@@ -8,46 +8,35 @@ import (
 )
 
 type Config struct {
-	MongoDB MongoDB `mapstructure:"MongoDB"`
-	Pgsql   Pgsql   `mapstructure:"pgsql"`
-	Log     Log     `mapstructure:"log"`
-	Server  Server  `mapstructure:"Server"`
+	Mysql  *Mysql  `mapstructure:"mysql"`
+	Log    *Log    `mapstructure:"log"`
+	Server *Server `mapstructure:"server"`
 }
 
-// MongoDB配置
-type MongoDB struct {
-	Host                    string `mapstructure:"HOST"`
-	Port                    int    `mapstructure:"PORT"`
-	MongoInitdbRootUsername string `mapstructure:"MONGO_INITDB_ROOT_USERNAME"`
-	MongoInitdbRootPassword string `mapstructure:"MONGO_INITDB_ROOT_PASSWORD"`
-	MongoInitdbDatabase     string `mapstructure:"MONGO_INITDB_DATABASE"`
-	MongoUsername           string `mapstructure:"MONGO_USERNAME"`
-	MongoPassword           string `mapstructure:"MONGO_PASSWORD"`
-}
-
-// Pgsql配置
-type Pgsql struct {
-	Dsn              string `mapstructure:"dsn"`              // 数据库连接字符串
-	LogType          int    `mapstructure:"logType"`          // 0 控制台 1 文件
-	LogFile          string `mapstructure:"logFile"`          // 日志文件路径
-	SlowSqlThreshold int    `mapstructure:"slowSqlThreshold"` // 慢查询阈值，单位秒
-	LogLevel         string `mapstructure:"logLevel"`         // 日志级别 silent info warn error
+// MySQL配置
+type Mysql struct {
+	Dsn              string `mapstructure:"dsn"`                // 数据库连接字符串
+	LogType          int    `mapstructure:"log_type"`           // 0 控制台 1 文件
+	LogFile          string `mapstructure:"log_file"`           // 日志文件路径
+	SlowSqlThreshold int    `mapstructure:"slow_sql_threshold"` // 慢查询阈值，单位秒
+	LogLevel         string `mapstructure:"log_level"`          // 日志级别 silent info warn error
 }
 
 // Log日志配置
 type Log struct {
-	Level      string `mapstructure:"level"`      // 日志级别
-	Filename   string `mapstructure:"filename"`   // 日志文件名
-	MaxSize    int    `mapstructure:"maxSize"`    // 单个日志文件最大尺寸，单位MB
-	MaxBackups int    `mapstructure:"maxBackups"` // 最大保留日志文件数量
-	MaxAge     int    `mapstructure:"maxAge"`     // 最大保留天数
-	Compress   bool   `mapstructure:"compress"`   // 是否压缩日志文件
+	Level            string `mapstructure:"level"`              // 日志级别
+	FullLogFilename  string `mapstructure:"full_log_filename"`  // 日志文件名
+	ErrorLogFilename string `mapstructure:"error_log_filename"` // 错误日志文件名
+	MaxSize          int    `mapstructure:"max_size"`           // 单个日志文件最大尺寸，单位MB
+	MaxBackups       int    `mapstructure:"max_backups"`        // 最大保留日志文件数量
+	MaxAge           int    `mapstructure:"max_age"`            // 最大保留天数
+	Compress         bool   `mapstructure:"compress"`           // 是否压缩日志文件
 }
 
 // Server配置
 type Server struct {
-	Port      int    `mapstructure:"PORT"`
-	JwtSecret string `mapstructure:"JWT_SECRET"`
+	Port      int    `mapstructure:"port"`
+	JwtSecret string `mapstructure:"jwt_secret"`
 }
 
 // 获取配置

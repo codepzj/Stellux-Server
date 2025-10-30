@@ -2,10 +2,9 @@ package main
 
 import (
 	"flag"
+	"log"
 
-	"github.com/codepzj/Stellux-Server/cmd/app"
 	"github.com/codepzj/Stellux-Server/conf"
-	"github.com/codepzj/Stellux-Server/internal/infra"
 )
 
 // 命令行参数
@@ -20,11 +19,12 @@ func main() {
 	// 根据环境读取配置文件
 	config := conf.GetConfig(*CfgPath)
 
-	// 日志
-	infra.InitLogger(config)
-
-	infra.NewPgsql(config)
+	// 使用 wire 生成的初始化函数
+	server, err := wireApp(config.Server, config.Mysql, config.Log)
+	if err != nil {
+		log.Fatalf("初始化应用失败: %v", err)
+	}
 
 	// 启动服务
-	app.InitApp(config).Start()
+	server.Start()
 }

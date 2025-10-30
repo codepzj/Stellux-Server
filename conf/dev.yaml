@@ -1,27 +1,19 @@
-MongoDB:
-  HOST: "localhost" # 数据库地址
-  PORT: 27017 # 数据库端口
-  MONGO_INITDB_ROOT_USERNAME: "admin" # 数据库管理员用户名
-  MONGO_INITDB_ROOT_PASSWORD: "123456" # 数据库管理员密码
-  MONGO_INITDB_DATABASE: "stellux" # 数据库名称
-  MONGO_USERNAME: "stellux" # 数据库用户名
-  MONGO_PASSWORD: "123456" # 数据库密码
-
-pgsql:
-  dsn: "user=postgres password=123456 dbname=stellux host=localhost port=5432 sslmode=disable TimeZone=Asia/Shanghai"
-  logType: 1 # 0 控制台，1 文件
-  logFile: ./logs/pgsql.log
-  slowSqlThreshold: 1 # 慢查询日志，单位s
-  logLevel: info # silent/error/warn/info
+mysql:
+  dsn: "root:123456@tcp(localhost:23306)/stellux?charset=utf8mb4&parseTime=True&loc=Local"
+  log_type: 1 # 0 控制台，1 文件
+  log_file: ./logs/mysql.log
+  slow_sql_threshold: 1 # 慢查询日志，单位s
+  log_level: info # silent/error/warn/info
 
 log:
   level: debug # debug/info/warn/error 日志级别
-  filename: ./logs/server_dev.log # 日志文件名
-  maxSize: 100 # 单个日志文件最大尺寸，单位MB
-  maxBackups: 10 # 最大保留日志文件数量
-  maxAge: 30 # 最大保留天数
+  full_log_filename: ./logs/server_dev.log # 日志文件名
+  error_log_filename: ./logs/server_dev_error.log # 错误日志文件名
+  max_size: 10 # 单个日志文件最大尺寸，单位MB
+  max_backups: 5 # 最大保留日志文件数量
+  max_age: 30 # 最大保留天数
   compress: true # 是否压缩日志文件
 
-Server:
-  PORT: 9001 # 服务端口
-  JWT_SECRET: "stellux" # JWT密钥
+server:
+  port: 9001 # 服务端口
+  jwt_secret: "stellux" # JWT密钥
