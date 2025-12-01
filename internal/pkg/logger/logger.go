@@ -91,79 +91,45 @@ func GetLogger() *zap.Logger {
 }
 
 func Debug(msg string, fields ...zap.Field) {
-	if logger == nil {
-		log.Printf("[DEBUG] %s (logger not initialized)\n", msg)
-		return
-	}
 	logger.Debug(msg, fields...)
 }
 
 func Info(msg string, fields ...zap.Field) {
-	if logger == nil {
-		log.Printf("[INFO] %s (logger not initialized)\n", msg)
-		return
-	}
 	logger.Info(msg, fields...)
 }
 
 func Warn(msg string, fields ...zap.Field) {
-	if logger == nil {
-		log.Printf("[WARN] %s (logger not initialized)\n", msg)
-		return
-	}
 	logger.Warn(msg, fields...)
 }
 
 func Error(msg string, fields ...zap.Field) {
-	if logger == nil {
-		log.Printf("[ERROR] %s (logger not initialized)\n", msg)
-		return
-	}
 	logger.Error(msg, fields...)
 }
 
-// Fatal logs a message at FatalLevel and then calls os.Exit(1)
 func Fatal(msg string, fields ...zap.Field) {
-	if logger == nil {
-		log.Fatalf("[FATAL] %s (logger not initialized)\n", msg)
-		return
-	}
 	logger.Fatal(msg, fields...)
 }
 
-// Sync flushes any buffered log entries
 func Sync() error {
-	if logger != nil {
-		return logger.Sync()
-	}
-	return nil
+	return logger.Sync()
 }
 
-// WithContext creates a new logger with context fields
 func WithContext(ctx string) *zap.Logger {
-	if logger == nil {
-		log.Println("[WARN] logger not initialized, returning nil")
-		return nil
-	}
 	return logger.With(zap.String("context", ctx))
 }
 
-// WithError logs with error field
 func WithError(err error) zap.Field {
 	return zap.Error(err)
 }
 
-// WithString logs with string field
 func WithString(key, value string) zap.Field {
 	return zap.String(key, value)
 }
 
-// WithInt logs with int field
 func WithInt(key string, value int) zap.Field {
 	return zap.Int(key, value)
 }
 
-// WithAny logs with any type field
 func WithAny(key string, value interface{}) zap.Field {
 	return zap.Any(key, value)
 }

@@ -1,3 +1,3 @@
 package web
 
-type CommentVO struct {}
+type CommentVO struct{}

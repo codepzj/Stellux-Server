@@ -163,14 +163,13 @@ func (h *PostHandler) AdminDeletePostBatch(c *gin.Context, postIDListRequest Pos
 
 // GetPublishPostList 获取发布文章列表
 func (h *PostHandler) GetPublishPostList(c *gin.Context, pageReq Page) (int, string, any) {
-	// 构造通用分页参数（web的Page有特殊字段，需要在service层处理）
 	postDetailList, total, err := h.serv.GetPostList(c, &apiwrap.Page{
 		PageNo:   pageReq.PageNo,
 		PageSize: pageReq.PageSize,
 		Field:    pageReq.Field,
 		Order:    pageReq.Order,
 		Keyword:  pageReq.Keyword,
-	}, "publish")
+	}, pageReq.LabelName, pageReq.CategoryName, "publish")
 	if err != nil {
 		return 500, err.Error(), nil
 	}
@@ -188,7 +187,7 @@ func (h *PostHandler) AdminGetDraftDetailPostList(c *gin.Context, pageReq Page) 
 		Field:    pageReq.Field,
 		Order:    pageReq.Order,
 		Keyword:  pageReq.Keyword,
-	}, "draft")
+	}, "", "", "draft")
 	if err != nil {
 		return 500, err.Error(), nil
 	}
@@ -205,7 +204,7 @@ func (h *PostHandler) AdminGetBinDetailPostList(c *gin.Context, pageReq Page) (i
 		Field:    pageReq.Field,
 		Order:    pageReq.Order,
 		Keyword:  pageReq.Keyword,
-	}, "bin")
+	}, "", "", "bin")
 	if err != nil {
 		return 500, err.Error(), nil
 	}

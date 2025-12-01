@@ -1,3 +1,3 @@
 package web
 
-type CommentRequest struct {}
+type CommentRequest struct{}

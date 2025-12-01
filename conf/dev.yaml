@@ -11,5 +11,11 @@ Server:
   PORT: 9001 # 服务端口
   JWT_SECRET: "stellux" # JWT密钥
   Log:
-    FILE: "log/server_dev.log" # 日志文件
+    ENV: "dev" # 环境
     LEVEL: "debug" # 日志级别
+    FILE: "log/server_dev.log" # 日志文件
+    ERROR_FILE: "log/error_dev.log" # 错误日志文件
+    MAX_SIZE: 10 # 日志文件最大大小
+    MAX_BACKUPS: 3 # 日志文件最大备份
+    MAX_AGE: 30 # 日志文件最大年龄
+    COMPRESS: true # 是否压缩日志文件

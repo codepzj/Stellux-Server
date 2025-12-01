@@ -1,7 +1,7 @@
 package conf
 
 import (
-	"log/slog"
+	"log"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
@@ -29,8 +29,14 @@ type Server struct {
 }
 
 type Log struct {
-	File  string `mapstructure:"FILE"`
-	Level string `mapstructure:"LEVEL"`
+	Env        string `mapstructure:"ENV"`
+	Level      string `mapstructure:"LEVEL"`
+	File       string `mapstructure:"FILE"`
+	ErrorFile  string `mapstructure:"ERROR_FILE"`
+	MaxSize    int    `mapstructure:"MAX_SIZE"`
+	MaxBackups int    `mapstructure:"MAX_BACKUPS"`
+	MaxAge     int    `mapstructure:"MAX_AGE"`
+	Compress   bool   `mapstructure:"COMPRESS"`
 }
 
 func GetConfig(cfgPath string) *Config {
@@ -42,7 +48,7 @@ func GetConfig(cfgPath string) *Config {
 	// 读取配置文件
 	err := v.ReadInConfig()
 	if err != nil {
-		slog.Error("viper读取配置文件失败", "error", err.Error())
+		log.Println("viper读取配置文件失败", err)
 		panic("viper读取配置文件失败")
 	}
 
@@ -51,17 +57,17 @@ func GetConfig(cfgPath string) *Config {
 
 	v.OnConfigChange(func(in fsnotify.Event) {
 		if err := v.Unmarshal(&Config{}); err != nil {
-			slog.Error(err.Error())
+			log.Println("viper读取配置文件失败", err)
 		}
 	})
 
 	var config Config
 	if err := v.Unmarshal(&config); err != nil {
-		slog.Error(err.Error())
+		log.Println("viper读取配置文件失败", err)
 	}
 
 	// 输出配置
-	slog.Info("配置信息", "config", config)
+	log.Println("配置信息", "config", config)
 
 	return &config
 }

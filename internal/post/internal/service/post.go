@@ -26,7 +26,7 @@ type IPostService interface {
 	GetPostById(ctx context.Context, id bson.ObjectID) (*domain.Post, error)
 	GetPostByKeyWord(ctx context.Context, keyWord string) ([]*domain.Post, error)
 	GetPostDetailById(ctx context.Context, id bson.ObjectID) (*domain.PostDetail, error)
-	GetPostList(ctx context.Context, page *apiwrap.Page, postType string) ([]*domain.PostDetail, int64, error)
+	GetPostList(ctx context.Context, page *apiwrap.Page, labelName, categoryName, postType string) ([]*domain.PostDetail, int64, error)
 	GetAllPublishPost(ctx context.Context) ([]*domain.PostDetail, error)
 	FindByAlias(ctx context.Context, alias string) (*domain.Post, error)
 }
@@ -262,14 +262,16 @@ func (s *PostService) GetPostDetailById(ctx context.Context, id bson.ObjectID) (
 	return detail, nil
 }
 
-func (s *PostService) GetPostList(ctx context.Context, page *apiwrap.Page, postType string) ([]*domain.PostDetail, int64, error) {
+func (s *PostService) GetPostList(ctx context.Context, page *apiwrap.Page, labelName, categoryName, postType string) ([]*domain.PostDetail, int64, error) {
 	var posts []*domain.PostDetail
 	var total int64
 	var err error
 
 	// 将apiwrap.Page转换为domain.PostQueryPage
 	queryPage := &domain.PostQueryPage{
-		Page: *page,
+		Page:         *page,
+		LabelName:    labelName,
+		CategoryName: categoryName,
 	}
 
 	switch postType {

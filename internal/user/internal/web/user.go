@@ -115,7 +115,8 @@ func (h *UserHandler) AdminGetUserList(c *gin.Context, page apiwrap.Page) (int, 
 	if err != nil {
 		return 500, err.Error(), nil
 	}
-	return 200, "获取用户列表成功", apiwrap.ToPageVO(page.PageNo, page.PageSize, count, h.UserDomainToVOList(users))}
+	return 200, "获取用户列表成功", apiwrap.ToPageVO(page.PageNo, page.PageSize, count, h.UserDomainToVOList(users))
+}
 
 func (h *UserHandler) AdminGetUserInfo(c *gin.Context) (int, string, any) {
 	id := c.GetString("userId")

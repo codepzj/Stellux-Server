@@ -4,7 +4,6 @@ import (
 	"github.com/codepzj/Stellux-Server/internal/comment/internal/repository"
 )
 
-
 type ICommentService interface {
 }
 

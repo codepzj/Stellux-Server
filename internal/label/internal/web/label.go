@@ -87,7 +87,7 @@ func (h *LabelHandler) GetByID(c *gin.Context) (int, string, any) {
 
 // QueryLabelList 分页查询标签
 func (h *LabelHandler) QueryLabelList(c *gin.Context, page *Page) (int, string, any) {
-	labels, count, err := h.serv.QueryLabelList(c, page.LabelType, page.PageNo, page.PageSize)
+	labels, count, err := h.serv.QueryLabelList(c, page.LabelType, page.Keyword, page.PageNo, page.PageSize)
 	if err != nil {
 		return 500, err.Error(), nil
 	}

@@ -14,7 +14,7 @@ type ILabelRepository interface {
 	UpdateLabel(ctx context.Context, id string, label *domain.Label) error
 	DeleteLabel(ctx context.Context, id string) error
 	GetLabelById(ctx context.Context, id string) (*domain.Label, error)
-	QueryLabelList(ctx context.Context, labelType string, pageNo int64, pageSize int64) ([]*domain.Label, int64, error)
+	QueryLabelList(ctx context.Context, labelType string, keyword string, pageNo int64, pageSize int64) ([]*domain.Label, int64, error)
 	GetAllLabelsByType(ctx context.Context, labelType string) ([]*domain.Label, error)
 	GetCategoryLabelWithCount(ctx context.Context) ([]*domain.LabelPostCount, error)
 	GetTagsLabelWithCount(ctx context.Context) ([]*domain.LabelPostCount, error)
@@ -63,8 +63,8 @@ func (r *LabelRepository) GetLabelById(ctx context.Context, id string) (*domain.
 	return r.LabelDoToDomain(label), nil
 }
 
-func (r *LabelRepository) QueryLabelList(ctx context.Context, labelType string, pageNo int64, pageSize int64) ([]*domain.Label, int64, error) {
-	labels, count, err := r.dao.QueryLabelList(ctx, labelType, pageSize, (pageNo-1)*pageSize)
+func (r *LabelRepository) QueryLabelList(ctx context.Context, labelType string, keyword string, pageNo int64, pageSize int64) ([]*domain.Label, int64, error) {
+	labels, count, err := r.dao.QueryLabelList(ctx, labelType, keyword, pageSize, (pageNo-1)*pageSize)
 	if err != nil {
 		return nil, 0, err
 	}

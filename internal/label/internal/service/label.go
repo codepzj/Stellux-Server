@@ -15,7 +15,7 @@ type ILabelService interface {
 	UpdateLabel(ctx context.Context, id string, label *domain.Label) error
 	DeleteLabel(ctx context.Context, id string) error
 	GetLabelById(ctx context.Context, id string) (*domain.Label, error)
-	QueryLabelList(ctx context.Context, labelType string, pageNo int64, pageSize int64) ([]*domain.Label, int64, error)
+	QueryLabelList(ctx context.Context, labelType string, keyword string, pageNo int64, pageSize int64) ([]*domain.Label, int64, error)
 	GetAllLabelsByType(ctx context.Context, labelType string) ([]*domain.Label, error)
 	GetAllLabelsWithCount(ctx context.Context) ([]*domain.LabelPostCount, error)
 	GetAllTagsLabelWithCount(ctx context.Context) ([]*domain.LabelPostCount, error)
@@ -193,15 +193,16 @@ func (s *LabelService) GetLabelById(ctx context.Context, id string) (*domain.Lab
 }
 
 // QueryLabelList 分页查询标签
-func (s *LabelService) QueryLabelList(ctx context.Context, labelType string, pageNo int64, pageSize int64) ([]*domain.Label, int64, error) {
+func (s *LabelService) QueryLabelList(ctx context.Context, labelType string, keyword string, pageNo int64, pageSize int64) ([]*domain.Label, int64, error) {
 	logger.Info("分页查询标签",
 		logger.WithString("method", "QueryLabelList"),
 		logger.WithString("labelType", labelType),
+		logger.WithString("keyword", keyword),
 		logger.WithInt("pageNo", int(pageNo)),
 		logger.WithInt("pageSize", int(pageSize)),
 	)
 
-	labels, total, err := s.repo.QueryLabelList(ctx, labelType, pageNo, pageSize)
+	labels, total, err := s.repo.QueryLabelList(ctx, labelType, keyword, pageNo, pageSize)
 	if err != nil {
 		logger.Error("查询标签列表失败",
 			logger.WithError(err),

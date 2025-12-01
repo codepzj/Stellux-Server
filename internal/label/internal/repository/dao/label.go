@@ -27,7 +27,7 @@ type ILabelDao interface {
 	UpdateLabel(ctx context.Context, id bson.ObjectID, label *Label) error
 	DeleteLabel(ctx context.Context, id bson.ObjectID) error
 	GetLabelById(ctx context.Context, id bson.ObjectID) (*Label, error)
-	QueryLabelList(ctx context.Context, labelType string, limit int64, skip int64) ([]*Label, int64, error)
+	QueryLabelList(ctx context.Context, labelType string, keyword string, limit int64, skip int64) ([]*Label, int64, error)
 	GetAllLabelsByType(ctx context.Context, labelType string) ([]*Label, error)
 	GetCategoryLabelWithCount(ctx context.Context) ([]*LabelPostCount, error)
 	GetTagsLabelWithCount(ctx context.Context) ([]*LabelPostCount, error)
@@ -80,15 +80,18 @@ func (d *LabelDao) GetLabelById(ctx context.Context, id bson.ObjectID) (*Label, 
 }
 
 // QueryLabelList 分页查询标签
-func (d *LabelDao) QueryLabelList(ctx context.Context, labelType string, limit int64, skip int64) ([]*Label, int64, error) {
+func (d *LabelDao) QueryLabelList(ctx context.Context, labelType string, keyword string, limit int64, skip int64) ([]*Label, int64, error) {
 	filter := bson.M{"type": labelType}
+	if keyword != "" {
+		filter["name"] = bson.M{"$regex": keyword, "$options": "i"}
+	}
 
 	count, err := d.coll.CountDocuments(ctx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	opts := options.Find().SetLimit(limit).SetSkip(skip)
+	opts := options.Find().SetLimit(limit).SetSkip(skip).SetSort(bson.D{{Key: "_id", Value: -1}})
 	cursor, err := d.coll.Find(ctx, filter, opts)
 	if err != nil {
 		return nil, 0, err
