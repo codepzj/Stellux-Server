@@ -7,17 +7,17 @@
 package post
 
 import (
-	"github.com/chenmingyong0423/go-mongox/v2"
 	"github.com/codepzj/Stellux-Server/internal/post/internal/repository"
 	"github.com/codepzj/Stellux-Server/internal/post/internal/repository/dao"
 	"github.com/codepzj/Stellux-Server/internal/post/internal/service"
 	"github.com/codepzj/Stellux-Server/internal/post/internal/web"
 	"github.com/google/wire"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 // Injectors from wire.go:
 
-func InitPostModule(mongoDB *mongox.Database) *Module {
+func InitPostModule(mongoDB *mongo.Database) *Module {
 	postDao := dao.NewPostDao(mongoDB)
 	postRepository := repository.NewPostRepository(postDao)
 	postService := service.NewPostService(postRepository)

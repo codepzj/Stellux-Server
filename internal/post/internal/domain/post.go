@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/codepzj/Stellux-Server/internal/label"
+	"github.com/codepzj/Stellux-Server/internal/pkg/apiwrap"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -42,13 +43,9 @@ type PostDetail struct {
 	Thumbnail   string          // 缩略图
 }
 
-// Page 分页查询参数
-type Page struct {
-	PageNo       int64  // 页码，从1开始
-	PageSize     int64  // 每页大小
-	Field        string // 排序字段
-	Order        string // 排序方式：ASC/DESC
-	Keyword      string // 搜索关键词
-	LabelName    string // 标签名称，用于过滤LabelType为"tag"的标签
-	CategoryName string // 分类名称，用于过滤LabelType为"category"的分类
+// PostQueryPage Post模块的分页查询参数（包含特殊过滤字段）
+type PostQueryPage struct {
+	apiwrap.Page        // 嵌入通用分页参数
+	LabelName    string // 标签名称过滤
+	CategoryName string // 分类名称过滤
 }

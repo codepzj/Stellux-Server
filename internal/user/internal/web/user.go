@@ -37,26 +37,26 @@ func (h *UserHandler) RegisterGinRoutes(engine *gin.Engine) {
 	}
 }
 
-func (h *UserHandler) Login(c *gin.Context, userRequest LoginRequest) (*apiwrap.Response[any], error) {
+func (h *UserHandler) Login(c *gin.Context, userRequest LoginRequest) (int, string, any) {
 	user := domain.User{
 		Username: userRequest.Username,
 		Password: userRequest.Password,
 	}
 	exist, id := h.serv.CheckUserExist(c, &user)
 	if !exist {
-		return nil, apiwrap.NewInternalError("用户名或密码错误")
+		return 500, "用户名或密码错误", nil
 	}
 	accessToken, err := utils.GenerateAccessToken(id)
 	if err != nil {
-		return nil, apiwrap.NewInternalError(err.Error())
+		return 500, err.Error(), nil
 	}
 	loginVO := LoginVO{
 		AccessToken: accessToken,
 	}
-	return apiwrap.SuccessWithDetail[any](loginVO, "登录成功"), nil
+	return 200, "登录成功", loginVO
 }
 
-func (h *UserHandler) AdminCreateUser(c *gin.Context, createUserRequest CreateUserRequest) (*apiwrap.Response[any], error) {
+func (h *UserHandler) AdminCreateUser(c *gin.Context, createUserRequest CreateUserRequest) (int, string, any) {
 	user := domain.User{
 		Username: createUserRequest.Username,
 		Password: createUserRequest.Password,
@@ -67,15 +67,15 @@ func (h *UserHandler) AdminCreateUser(c *gin.Context, createUserRequest CreateUs
 	}
 	err := h.serv.AdminCreate(c, &user)
 	if err != nil {
-		return nil, apiwrap.NewInternalError(err.Error())
+		return 500, err.Error(), nil
 	}
-	return apiwrap.SuccessWithMsg("创建用户成功"), nil
+	return 200, "创建用户成功", nil
 }
 
-func (h *UserHandler) AdminUpdateUser(c *gin.Context, updateUserRequest UpdateUserRequest) (*apiwrap.Response[any], error) {
+func (h *UserHandler) AdminUpdateUser(c *gin.Context, updateUserRequest UpdateUserRequest) (int, string, any) {
 	objId, err := bson.ObjectIDFromHex(updateUserRequest.ID)
 	if err != nil {
-		return nil, apiwrap.NewInternalError(err.Error())
+		return 500, err.Error(), nil
 	}
 	user := domain.User{
 		ID:       objId,
@@ -85,44 +85,43 @@ func (h *UserHandler) AdminUpdateUser(c *gin.Context, updateUserRequest UpdateUs
 	}
 	err = h.serv.AdminUpdate(c, &user)
 	if err != nil {
-		return nil, apiwrap.NewInternalError(err.Error())
+		return 500, err.Error(), nil
 	}
-	return apiwrap.SuccessWithMsg("更新用户成功"), nil
+	return 200, "更新用户成功", nil
 }
 
-func (h *UserHandler) AdminUpdatePassword(c *gin.Context, updatePasswordRequest UpdatePasswordRequest) (*apiwrap.Response[any], error) {
+func (h *UserHandler) AdminUpdatePassword(c *gin.Context, updatePasswordRequest UpdatePasswordRequest) (int, string, any) {
 	err := h.serv.AdminUpdatePassword(c, updatePasswordRequest.ID, updatePasswordRequest.OldPassword, updatePasswordRequest.NewPassword)
 	if err != nil {
-		return nil, apiwrap.NewInternalError(err.Error())
+		return 500, err.Error(), nil
 	}
-	return apiwrap.SuccessWithMsg("更新密码成功"), nil
+	return 200, "更新密码成功", nil
 }
 
-func (h *UserHandler) AdminDeleteUser(c *gin.Context) (*apiwrap.Response[any], error) {
+func (h *UserHandler) AdminDeleteUser(c *gin.Context) (int, string, any) {
 	id := c.Param("id")
 	err := h.serv.AdminDelete(c, id)
 	if err != nil {
-		return nil, apiwrap.NewInternalError(err.Error())
+		return 500, err.Error(), nil
 	}
-	return apiwrap.SuccessWithMsg("删除用户成功"), nil
+	return 200, "删除用户成功", nil
 }
 
-func (h *UserHandler) AdminGetUserList(c *gin.Context, page apiwrap.Page) (*apiwrap.Response[any], error) {
-	users, count, err := h.serv.GetUserList(c, &domain.Page{
+func (h *UserHandler) AdminGetUserList(c *gin.Context, page apiwrap.Page) (int, string, any) {
+	users, count, err := h.serv.GetUserList(c, &apiwrap.Page{
 		PageNo:   page.PageNo,
 		PageSize: page.PageSize,
 	})
 	if err != nil {
-		return nil, apiwrap.NewInternalError(err.Error())
+		return 500, err.Error(), nil
 	}
-	return apiwrap.SuccessWithDetail[any](apiwrap.ToPageVO(page.PageNo, page.PageSize, count, h.UserDomainToVOList(users)), "获取用户列表成功"), nil
-}
+	return 200, "获取用户列表成功", apiwrap.ToPageVO(page.PageNo, page.PageSize, count, h.UserDomainToVOList(users))}
 
-func (h *UserHandler) AdminGetUserInfo(c *gin.Context) (*apiwrap.Response[any], error) {
+func (h *UserHandler) AdminGetUserInfo(c *gin.Context) (int, string, any) {
 	id := c.GetString("userId")
 	user, err := h.serv.GetUserInfo(c, id)
 	if err != nil {
-		return nil, apiwrap.NewInternalError(err.Error())
+		return 500, err.Error(), nil
 	}
-	return apiwrap.SuccessWithDetail[any](h.UserDomainToVO(user), "获取用户信息成功"), nil
+	return 200, "获取用户信息成功", h.UserDomainToVO(user)
 }

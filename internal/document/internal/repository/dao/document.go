@@ -4,22 +4,25 @@ import (
 	"context"
 	"time"
 
-	"github.com/chenmingyong0423/go-mongox/v2"
-	"github.com/chenmingyong0423/go-mongox/v2/builder/query"
-	"github.com/chenmingyong0423/go-mongox/v2/builder/update"
+	"github.com/codepzj/Stellux-Server/internal/pkg/apiwrap"
 	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type Document struct {
-	mongox.Model `bson:",inline"`
-	Title        string `bson:"title"`
-	Description  string `bson:"description"`
-	Thumbnail    string `bson:"thumbnail"`
-	Alias        string `bson:"alias"`
-	Sort         int    `bson:"sort"`
-	IsPublic     bool   `bson:"is_public"`
-	IsDeleted    bool   `bson:"is_deleted"`
+	ID          bson.ObjectID `bson:"_id,omitempty"`
+	CreatedAt   time.Time     `bson:"created_at"`
+	UpdatedAt   time.Time     `bson:"updated_at"`
+	DeletedAt   *time.Time    `bson:"deleted_at,omitempty"`
+	Title       string        `bson:"title"`
+	Description string        `bson:"description"`
+	Thumbnail   string        `bson:"thumbnail"`
+	Alias       string        `bson:"alias"`
+	Sort        int           `bson:"sort"`
+	IsPublic    bool          `bson:"is_public"`
+	IsDeleted   bool          `bson:"is_deleted"`
 }
 
 type IDocumentDao interface {
@@ -30,29 +33,26 @@ type IDocumentDao interface {
 	SoftDeleteDocumentById(ctx context.Context, id bson.ObjectID) error
 	RestoreDocumentById(ctx context.Context, id bson.ObjectID) error
 	FindDocumentByAlias(ctx context.Context, alias string) (*Document, error)
-	GetDocumentListByFilter(ctx context.Context, filter bson.D, page *Page) ([]*Document, int64, error)
+	GetDocumentListByFilter(ctx context.Context, filter bson.D, page *apiwrap.Page) ([]*Document, int64, error)
 	GetAllPublicDocuments(ctx context.Context) ([]*Document, error)
-}
-
-// Page 分页查询参数
-type Page struct {
-	PageNo   int64 `bson:"pageNo"`   // 页码
-	PageSize int64 `bson:"pageSize"` // 每页大小
 }
 
 var _ IDocumentDao = (*DocumentDao)(nil)
 
-func NewDocumentDao(db *mongox.Database) *DocumentDao {
-	return &DocumentDao{coll: mongox.NewCollection[Document](db, "document")}
+func NewDocumentDao(db *mongo.Database) *DocumentDao {
+	return &DocumentDao{coll: db.Collection("document")}
 }
 
 type DocumentDao struct {
-	coll *mongox.Collection[Document]
+	coll *mongo.Collection
 }
 
 // CreateDocument 创建文档
 func (d *DocumentDao) CreateDocument(ctx context.Context, doc *Document) (bson.ObjectID, error) {
-	result, err := d.coll.Creator().InsertOne(ctx, doc)
+	doc.ID = bson.NewObjectID()
+	doc.CreatedAt = time.Now()
+	doc.UpdatedAt = time.Now()
+	result, err := d.coll.InsertOne(ctx, doc)
 	if err != nil {
 		return bson.ObjectID{}, err
 	}
@@ -61,23 +61,28 @@ func (d *DocumentDao) CreateDocument(ctx context.Context, doc *Document) (bson.O
 
 // FindDocumentById 根据ID查询文档
 func (d *DocumentDao) FindDocumentById(ctx context.Context, id bson.ObjectID) (*Document, error) {
-	document, err := d.coll.Finder().Filter(query.Id(id)).FindOne(ctx)
+	var document Document
+	err := d.coll.FindOne(ctx, bson.M{"_id": id}).Decode(&document)
 	if err != nil {
 		return nil, err
 	}
-	return document, nil
+	return &document, nil
 }
 
 // UpdateDocumentById 更新文档
 func (d *DocumentDao) UpdateDocumentById(ctx context.Context, id bson.ObjectID, doc *Document) error {
-	result, err := d.coll.Updater().Filter(query.Id(id)).Updates(update.SetFields(bson.D{
-		{Key: "title", Value: doc.Title},
-		{Key: "description", Value: doc.Description},
-		{Key: "thumbnail", Value: doc.Thumbnail},
-		{Key: "alias", Value: doc.Alias},
-		{Key: "sort", Value: doc.Sort},
-		{Key: "is_public", Value: doc.IsPublic},
-	})).UpdateOne(ctx)
+	update := bson.M{
+		"$set": bson.M{
+			"title":       doc.Title,
+			"description": doc.Description,
+			"thumbnail":   doc.Thumbnail,
+			"alias":       doc.Alias,
+			"sort":        doc.Sort,
+			"is_public":   doc.IsPublic,
+			"updated_at":  time.Now(),
+		},
+	}
+	result, err := d.coll.UpdateOne(ctx, bson.M{"_id": id}, update)
 	if err != nil {
 		return err
 	}
@@ -89,7 +94,7 @@ func (d *DocumentDao) UpdateDocumentById(ctx context.Context, id bson.ObjectID, 
 
 // DeleteDocumentById 根据ID删除文档
 func (d *DocumentDao) DeleteDocumentById(ctx context.Context, id bson.ObjectID) error {
-	result, err := d.coll.Deleter().Filter(query.Id(id)).DeleteOne(ctx)
+	result, err := d.coll.DeleteOne(ctx, bson.M{"_id": id})
 	if err != nil {
 		return err
 	}
@@ -101,10 +106,15 @@ func (d *DocumentDao) DeleteDocumentById(ctx context.Context, id bson.ObjectID) 
 
 // SoftDeleteDocumentById 根据ID软删除文档
 func (d *DocumentDao) SoftDeleteDocumentById(ctx context.Context, id bson.ObjectID) error {
-	result, err := d.coll.Updater().Filter(query.Id(id)).Updates(update.SetFields(bson.D{
-		{Key: "deleted_at", Value: time.Now()},
-		{Key: "is_deleted", Value: true},
-	})).UpdateOne(ctx)
+	now := time.Now()
+	update := bson.M{
+		"$set": bson.M{
+			"deleted_at": now,
+			"is_deleted": true,
+			"updated_at": now,
+		},
+	}
+	result, err := d.coll.UpdateOne(ctx, bson.M{"_id": id}, update)
 	if err != nil {
 		return err
 	}
@@ -116,10 +126,16 @@ func (d *DocumentDao) SoftDeleteDocumentById(ctx context.Context, id bson.Object
 
 // RestoreDocumentById 根据ID恢复文档
 func (d *DocumentDao) RestoreDocumentById(ctx context.Context, id bson.ObjectID) error {
-	result, err := d.coll.Updater().Filter(query.Id(id)).Updates(update.SetFields(bson.D{
-		{Key: "deleted_at", Value: nil},
-		{Key: "is_deleted", Value: false},
-	})).UpdateOne(ctx)
+	update := bson.M{
+		"$set": bson.M{
+			"is_deleted": false,
+			"updated_at": time.Now(),
+		},
+		"$unset": bson.M{
+			"deleted_at": "",
+		},
+	}
+	result, err := d.coll.UpdateOne(ctx, bson.M{"_id": id}, update)
 	if err != nil {
 		return err
 	}
@@ -131,29 +147,36 @@ func (d *DocumentDao) RestoreDocumentById(ctx context.Context, id bson.ObjectID)
 
 // FindDocumentByAlias 根据别名查询文档
 func (d *DocumentDao) FindDocumentByAlias(ctx context.Context, alias string) (*Document, error) {
-	document, err := d.coll.Finder().Filter(query.Eq("alias", alias)).FindOne(ctx)
+	var document Document
+	err := d.coll.FindOne(ctx, bson.M{"alias": alias}).Decode(&document)
 	if err != nil {
 		return nil, err
 	}
-	return document, nil
+	return &document, nil
 }
 
 // GetDocumentListByFilter 根据过滤条件获取文档列表
-func (d *DocumentDao) GetDocumentListByFilter(ctx context.Context, filter bson.D, page *Page) ([]*Document, int64, error) {
+func (d *DocumentDao) GetDocumentListByFilter(ctx context.Context, filter bson.D, page *apiwrap.Page) ([]*Document, int64, error) {
 	skip := (page.PageNo - 1) * page.PageSize
 
-	count, err := d.coll.Finder().Filter(filter).Count(ctx)
+	count, err := d.coll.CountDocuments(ctx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	documents, err := d.coll.Finder().
-		Filter(filter).
-		Sort(bson.D{{Key: "sort", Value: 1}, {Key: "created_at", Value: -1}}).
-		Skip(skip).
-		Limit(page.PageSize).
-		Find(ctx)
+	opts := options.Find().
+		SetSort(bson.D{{Key: "sort", Value: 1}, {Key: "created_at", Value: -1}}).
+		SetSkip(skip).
+		SetLimit(page.PageSize)
+
+	cursor, err := d.coll.Find(ctx, filter, opts)
 	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	var documents []*Document
+	if err = cursor.All(ctx, &documents); err != nil {
 		return nil, 0, err
 	}
 
@@ -162,11 +185,20 @@ func (d *DocumentDao) GetDocumentListByFilter(ctx context.Context, filter bson.D
 
 // GetAllPublicDocuments 获取所有公开文档
 func (d *DocumentDao) GetAllPublicDocuments(ctx context.Context) ([]*Document, error) {
-	documents, err := d.coll.Finder().
-		Filter(query.And(query.Eq("is_public", true), query.Eq("is_deleted", false))).
-		Sort(bson.D{{Key: "sort", Value: 1}, {Key: "created_at", Value: -1}}).
-		Find(ctx)
+	filter := bson.M{
+		"is_public":  true,
+		"is_deleted": false,
+	}
+	opts := options.Find().SetSort(bson.D{{Key: "sort", Value: 1}, {Key: "created_at", Value: -1}})
+
+	cursor, err := d.coll.Find(ctx, filter, opts)
 	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var documents []*Document
+	if err = cursor.All(ctx, &documents); err != nil {
 		return nil, err
 	}
 	return documents, nil

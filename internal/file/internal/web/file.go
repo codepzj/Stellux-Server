@@ -29,33 +29,33 @@ func (h *FileHandler) RegisterGinRoutes(engine *gin.Engine) {
 	}
 }
 
-func (h *FileHandler) UploadFile(c *gin.Context) (*apiwrap.Response[any], error) {
+func (h *FileHandler) UploadFile(c *gin.Context) (int, string, any) {
 	file, err := c.FormFile("file")
 	if err != nil {
-		return nil, apiwrap.NewBadRequest(err.Error())
+		return 400, err.Error(), nil
 	}
 	if file == nil {
-		return nil, apiwrap.NewBadRequest("未找到上传的文件")
+		return 400, "未找到上传的文件", nil
 	}
 	err = h.serv.UploadFile(c, file)
 	if err != nil {
-		return nil, apiwrap.NewInternalError(err.Error())
+		return 500, err.Error(), nil
 	}
-	return apiwrap.SuccessWithMsg("文件上传成功"), nil
+	return 200, "文件上传成功", nil
 }
 
-func (h *FileHandler) QueryFileList(c *gin.Context, page *apiwrap.Page) (*apiwrap.Response[any], error) {
+func (h *FileHandler) QueryFileList(c *gin.Context, page *apiwrap.Page) (int, string, any) {
 	files, count, err := h.serv.QueryFileList(c, page)
 	if err != nil {
-		return nil, apiwrap.NewInternalError(err.Error())
+		return 500, err.Error(), nil
 	}
-	return apiwrap.SuccessWithDetail[any](apiwrap.ToPageVO(page.PageNo, page.PageSize, count, h.FileDomainToVOList(files)), "文件列表查询成功"), nil
+	return 200, "文件列表查询成功", apiwrap.ToPageVO(page.PageNo, page.PageSize, count, h.FileDomainToVOList(files))
 }
 
-func (h *FileHandler) DeleteFiles(c *gin.Context, deleteFilesRequest *DeleteFilesRequest) (*apiwrap.Response[any], error) {
+func (h *FileHandler) DeleteFiles(c *gin.Context, deleteFilesRequest *DeleteFilesRequest) (int, string, any) {
 	err := h.serv.DeleteFiles(c, deleteFilesRequest.IDList)
 	if err != nil {
-		return nil, apiwrap.NewInternalError(err.Error())
+		return 500, err.Error(), nil
 	}
-	return apiwrap.SuccessWithMsg("文件删除成功"), nil
+	return 200, "文件删除成功", nil
 }

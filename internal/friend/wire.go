@@ -3,12 +3,12 @@
 package friend
 
 import (
-	"github.com/chenmingyong0423/go-mongox/v2"
 	"github.com/codepzj/Stellux-Server/internal/friend/internal/repository"
 	"github.com/codepzj/Stellux-Server/internal/friend/internal/repository/dao"
 	"github.com/codepzj/Stellux-Server/internal/friend/internal/service"
 	"github.com/codepzj/Stellux-Server/internal/friend/internal/web"
 	"github.com/google/wire"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 var FriendProviders = wire.NewSet(web.NewFriendHandler, service.NewFriendService, repository.NewFriendRepository, dao.NewFriendDao,
@@ -16,7 +16,7 @@ var FriendProviders = wire.NewSet(web.NewFriendHandler, service.NewFriendService
 	wire.Bind(new(repository.IFriendRepository), new(*repository.FriendRepository)),
 	wire.Bind(new(dao.IFriendDao), new(*dao.FriendDao)))
 
-func InitFriendModule(mongoDB *mongox.Database) *Module {
+func InitFriendModule(mongoDB *mongo.Database) *Module {
 	panic(wire.Build(
 		FriendProviders,
 		wire.Struct(new(Module), "Svc", "Hdl"),

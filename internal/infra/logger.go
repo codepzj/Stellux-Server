@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/codepzj/Stellux-Server/conf"
+	"github.com/codepzj/Stellux-Server/internal/pkg/logger"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
@@ -45,6 +46,23 @@ func InitLogger(cfg *conf.Config) {
 	handler := slog.NewJSONHandler(multiWriter, opts)
 
 	slog.SetDefault(slog.New(handler))
+
+	// 初始化 zap logger
+	env := logger.Prod
+	if cfg.Server.Log.Level == "debug" {
+		env = logger.Dev
+	}
+
+	logger.NewLogger(&logger.Option{
+		Env:              env,
+		Level:            cfg.Server.Log.Level,
+		FullLogFilename:  cfg.Server.Log.File,
+		ErrorLogFilename: "log/error.log",
+		MaxSize:          10,
+		MaxBackups:       3,
+		MaxAge:           30,
+		Compress:         true,
+	})
 }
 
 func parseLevel(level string) slog.Level {

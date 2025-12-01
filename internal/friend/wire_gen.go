@@ -7,17 +7,17 @@
 package friend
 
 import (
-	"github.com/chenmingyong0423/go-mongox/v2"
 	"github.com/codepzj/Stellux-Server/internal/friend/internal/repository"
 	"github.com/codepzj/Stellux-Server/internal/friend/internal/repository/dao"
 	"github.com/codepzj/Stellux-Server/internal/friend/internal/service"
 	"github.com/codepzj/Stellux-Server/internal/friend/internal/web"
 	"github.com/google/wire"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 // Injectors from wire.go:
 
-func InitFriendModule(mongoDB *mongox.Database) *Module {
+func InitFriendModule(mongoDB *mongo.Database) *Module {
 	friendDao := dao.NewFriendDao(mongoDB)
 	friendRepository := repository.NewFriendRepository(friendDao)
 	friendService := service.NewFriendService(friendRepository)

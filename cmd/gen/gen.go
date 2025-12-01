@@ -5,9 +5,9 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"text/template"
-
-	"github.com/chenmingyong0423/gkit/stringx"
+	"unicode"
 )
 
 var (
@@ -50,6 +50,22 @@ type GenDomain struct {
 	OutputDir     string
 }
 
+// camelToSnake converts camel case to snake case
+func camelToSnake(s string) string {
+	var result strings.Builder
+	for i, r := range s {
+		if unicode.IsUpper(r) {
+			if i > 0 {
+				result.WriteRune('_')
+			}
+			result.WriteRune(unicode.ToLower(r))
+		} else {
+			result.WriteRune(r)
+		}
+	}
+	return result.String()
+}
+
 func main() {
 	flag.Parse()
 	if domain == nil || *domain == "" {
@@ -57,7 +73,7 @@ func main() {
 	}
 	gen := GenDomain{
 		DomainName:    *domain,
-		UnderlineName: stringx.CamelToSnake(*domain),
+		UnderlineName: camelToSnake(*domain),
 		TableName:     *tableName,
 		OutputDir:     *outputDir,
 	}

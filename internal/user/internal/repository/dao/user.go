@@ -2,23 +2,25 @@ package dao
 
 import (
 	"context"
+	"time"
 
-	"github.com/chenmingyong0423/go-mongox/v2"
-	"github.com/chenmingyong0423/go-mongox/v2/builder/query"
-	"github.com/chenmingyong0423/go-mongox/v2/builder/update"
 	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type User struct {
-	mongox.Model `bson:",inline"`
-	Username     string `bson:"username"`
-	Password     string `bson:"password"`
-	Nickname     string `bson:"nickname"`
-	RoleId       int    `bson:"role_id"`
-	Avatar       string `bson:"avatar"`
-	Email        string `bson:"email"`
+	ID        bson.ObjectID `bson:"_id,omitempty"`
+	CreatedAt time.Time     `bson:"created_at"`
+	UpdatedAt time.Time     `bson:"updated_at"`
+	DeletedAt *time.Time    `bson:"deleted_at,omitempty"`
+	Username  string        `bson:"username"`
+	Password  string        `bson:"password"`
+	Nickname  string        `bson:"nickname"`
+	RoleId    int           `bson:"role_id"`
+	Avatar    string        `bson:"avatar"`
+	Email     string        `bson:"email"`
 }
 
 type UserUpdate struct {
@@ -33,22 +35,25 @@ type IUserDao interface {
 	Update(ctx context.Context, id bson.ObjectID, user *User) error
 	UpdatePassword(ctx context.Context, id bson.ObjectID, password string) error
 	Delete(ctx context.Context, id bson.ObjectID) error
-	FindByCondition(ctx context.Context, findOptions *options.FindOptionsBuilder) ([]*User, int64, error)
+	FindByCondition(ctx context.Context, skip, limit int64, sort bson.M) ([]*User, int64, error)
 	GetByID(ctx context.Context, id bson.ObjectID) (*User, error)
 }
 
 var _ IUserDao = (*UserDao)(nil)
 
-func NewUserDao(db *mongox.Database) *UserDao {
-	return &UserDao{coll: mongox.NewCollection[User](db, "user")}
+func NewUserDao(db *mongo.Database) *UserDao {
+	return &UserDao{coll: db.Collection("user")}
 }
 
 type UserDao struct {
-	coll *mongox.Collection[User]
+	coll *mongo.Collection
 }
 
 func (d *UserDao) Create(ctx context.Context, user *User) (bson.ObjectID, error) {
-	res, err := d.coll.Creator().InsertOne(ctx, user)
+	user.ID = bson.NewObjectID()
+	user.CreatedAt = time.Now()
+	user.UpdatedAt = time.Now()
+	res, err := d.coll.InsertOne(ctx, user)
 	if err != nil {
 		return bson.ObjectID{}, err
 	}
@@ -59,11 +64,24 @@ func (d *UserDao) Create(ctx context.Context, user *User) (bson.ObjectID, error)
 }
 
 func (d *UserDao) GetByUsername(ctx context.Context, username string) (*User, error) {
-	return d.coll.Finder().Filter(bson.M{"username": username}).FindOne(ctx)
+	var user User
+	err := d.coll.FindOne(ctx, bson.M{"username": username}).Decode(&user)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
 
 func (d *UserDao) Update(ctx context.Context, id bson.ObjectID, user *User) error {
-	res, err := d.coll.Updater().Filter(query.Id(id)).Updates(update.SetFields(d.UserToUpdate(user))).UpdateOne(ctx)
+	update := bson.M{
+		"$set": bson.M{
+			"nickname":   user.Nickname,
+			"avatar":     user.Avatar,
+			"email":      user.Email,
+			"updated_at": time.Now(),
+		},
+	}
+	res, err := d.coll.UpdateOne(ctx, bson.M{"_id": id}, update)
 	if err != nil {
 		return err
 	}
@@ -74,7 +92,13 @@ func (d *UserDao) Update(ctx context.Context, id bson.ObjectID, user *User) erro
 }
 
 func (d *UserDao) UpdatePassword(ctx context.Context, id bson.ObjectID, password string) error {
-	res, err := d.coll.Updater().Filter(query.Id(id)).Updates(update.Set("password", password)).UpdateOne(ctx)
+	update := bson.M{
+		"$set": bson.M{
+			"password":   password,
+			"updated_at": time.Now(),
+		},
+	}
+	res, err := d.coll.UpdateOne(ctx, bson.M{"_id": id}, update)
 	if err != nil {
 		return err
 	}
@@ -85,7 +109,7 @@ func (d *UserDao) UpdatePassword(ctx context.Context, id bson.ObjectID, password
 }
 
 func (d *UserDao) Delete(ctx context.Context, id bson.ObjectID) error {
-	res, err := d.coll.Deleter().Filter(query.Id(id)).DeleteOne(ctx)
+	res, err := d.coll.DeleteOne(ctx, bson.M{"_id": id})
 	if err != nil {
 		return err
 	}
@@ -95,20 +119,33 @@ func (d *UserDao) Delete(ctx context.Context, id bson.ObjectID) error {
 	return nil
 }
 
-func (d *UserDao) FindByCondition(ctx context.Context, findOptions *options.FindOptionsBuilder) ([]*User, int64, error) {
-	count, err := d.coll.Finder().Count(ctx)
+func (d *UserDao) FindByCondition(ctx context.Context, skip, limit int64, sort bson.M) ([]*User, int64, error) {
+	count, err := d.coll.CountDocuments(ctx, bson.M{})
 	if err != nil {
 		return nil, 0, err
 	}
-	users, err := d.coll.Finder().Find(ctx, findOptions)
+
+	opts := options.Find().SetSkip(skip).SetLimit(limit).SetSort(sort)
+	cursor, err := d.coll.Find(ctx, bson.M{}, opts)
 	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	var users []*User
+	if err = cursor.All(ctx, &users); err != nil {
 		return nil, 0, err
 	}
 	return users, count, nil
 }
 
 func (d *UserDao) GetByID(ctx context.Context, id bson.ObjectID) (*User, error) {
-	return d.coll.Finder().Filter(query.Id(id)).FindOne(ctx)
+	var user User
+	err := d.coll.FindOne(ctx, bson.M{"_id": id}).Decode(&user)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
 
 func (d *UserDao) UserToUpdate(user *User) *UserUpdate {

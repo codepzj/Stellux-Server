@@ -3,11 +3,9 @@ package dao
 import (
 	"context"
 
-	"github.com/chenmingyong0423/go-mongox/v2"
-	"github.com/chenmingyong0423/go-mongox/v2/builder/aggregation"
-	"github.com/chenmingyong0423/go-mongox/v2/builder/query"
-	"github.com/chenmingyong0423/go-mongox/v2/builder/update"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type Label struct {
@@ -38,50 +36,67 @@ type ILabelDao interface {
 
 var _ ILabelDao = (*LabelDao)(nil)
 
-func NewLabelDao(db *mongox.Database) *LabelDao {
-	return &LabelDao{coll: mongox.NewCollection[Label](db, "label")}
+func NewLabelDao(db *mongo.Database) *LabelDao {
+	return &LabelDao{coll: db.Collection("label")}
 }
 
 type LabelDao struct {
-	coll *mongox.Collection[Label]
+	coll *mongo.Collection
 }
 
 // CreateLabel 创建标签
 func (d *LabelDao) CreateLabel(ctx context.Context, label *Label) error {
 	label.ID = bson.NewObjectID()
-	_, err := d.coll.Creator().InsertOne(ctx, label)
+	_, err := d.coll.InsertOne(ctx, label)
 	return err
 }
 
 // UpdateLabel 更新标签
 func (d *LabelDao) UpdateLabel(ctx context.Context, id bson.ObjectID, label *Label) error {
-	_, err := d.coll.Updater().Filter(query.Id(id)).Updates(update.SetFields(map[string]any{
-		"name": label.Name,
-		"type": label.LabelType,
-	})).UpdateOne(ctx)
+	update := bson.M{
+		"$set": bson.M{
+			"name": label.Name,
+			"type": label.LabelType,
+		},
+	}
+	_, err := d.coll.UpdateOne(ctx, bson.M{"_id": id}, update)
 	return err
 }
 
 // DeleteLabel 删除标签
 func (d *LabelDao) DeleteLabel(ctx context.Context, id bson.ObjectID) error {
-	_, err := d.coll.Deleter().Filter(query.Id(id)).DeleteOne(ctx)
+	_, err := d.coll.DeleteOne(ctx, bson.M{"_id": id})
 	return err
 }
 
 // GetLabelById 根据id获取标签
 func (d *LabelDao) GetLabelById(ctx context.Context, id bson.ObjectID) (*Label, error) {
-	return d.coll.Finder().Filter(query.Id(id)).FindOne(ctx)
+	var label Label
+	err := d.coll.FindOne(ctx, bson.M{"_id": id}).Decode(&label)
+	if err != nil {
+		return nil, err
+	}
+	return &label, nil
 }
 
 // QueryLabelList 分页查询标签
 func (d *LabelDao) QueryLabelList(ctx context.Context, labelType string, limit int64, skip int64) ([]*Label, int64, error) {
-	count, err := d.coll.Finder().Filter(query.Eq("type", labelType)).Count(ctx)
+	filter := bson.M{"type": labelType}
+
+	count, err := d.coll.CountDocuments(ctx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	labelList, err := d.coll.Finder().Filter(query.Eq("type", labelType)).Limit(limit).Skip(skip).Find(ctx)
+	opts := options.Find().SetLimit(limit).SetSkip(skip)
+	cursor, err := d.coll.Find(ctx, filter, opts)
 	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	var labelList []*Label
+	if err = cursor.All(ctx, &labelList); err != nil {
 		return nil, 0, err
 	}
 	return labelList, count, nil
@@ -89,35 +104,45 @@ func (d *LabelDao) QueryLabelList(ctx context.Context, labelType string, limit i
 
 // GetAllLabelsByType 通过类型获取所有标签
 func (d *LabelDao) GetAllLabelsByType(ctx context.Context, labelType string) ([]*Label, error) {
-	return d.coll.Finder().Filter(query.Eq("type", labelType)).Find(ctx)
+	cursor, err := d.coll.Find(ctx, bson.M{"type": labelType})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var labels []*Label
+	if err = cursor.All(ctx, &labels); err != nil {
+		return nil, err
+	}
+	return labels, nil
 }
 
 // GetCategoryLabelWithCount 获取分类标签及其文章数量, 一篇文章只能有一个分类
 func (d *LabelDao) GetCategoryLabelWithCount(ctx context.Context) ([]*LabelPostCount, error) {
+	pipeline := mongo.Pipeline{
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "post"},
+			{Key: "localField", Value: "_id"},
+			{Key: "foreignField", Value: "category_id"},
+			{Key: "as", Value: "category_post"},
+		}}},
+		{{Key: "$addFields", Value: bson.D{
+			{Key: "post_count", Value: bson.D{{Key: "$size", Value: "$category_post"}}},
+		}}},
+		{{Key: "$match", Value: bson.D{
+			{Key: "post_count", Value: bson.D{{Key: "$gt", Value: 0}}},
+		}}},
+		{{Key: "$sort", Value: bson.D{{Key: "post_count", Value: -1}}}},
+	}
 
-	// 标签根据文章数量降序排序, 并且筛选出文章数量大于0的标签
-	aggregationBuilder := aggregation.NewStageBuilder().
-		Lookup("post", "category_post", &aggregation.LookUpOptions{
-			LocalField:   "_id",
-			ForeignField: "category_id",
-		}).
-		AddFields(bson.M{
-			"post_count": bson.M{
-				"$size": "$category_post",
-			}}).
-		Match(bson.M{
-			"post_count": bson.M{
-				"$gt": 0,
-			},
-		}).
-		Sort(bson.M{
-			"post_count": -1,
-		})
+	cursor, err := d.coll.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
 
 	var labelPostCount []*LabelPostCount
-
-	err := d.coll.Aggregator().Pipeline(aggregationBuilder.Build()).AggregateWithParse(ctx, &labelPostCount)
-	if err != nil {
+	if err = cursor.All(ctx, &labelPostCount); err != nil {
 		return nil, err
 	}
 	return labelPostCount, nil
@@ -125,28 +150,30 @@ func (d *LabelDao) GetCategoryLabelWithCount(ctx context.Context) ([]*LabelPostC
 
 // GetTagsLabelWithCountByType 获取标签及其文章数量, 一篇文章可以有多个标签
 func (d *LabelDao) GetTagsLabelWithCount(ctx context.Context) ([]*LabelPostCount, error) {
-	aggregationBuilder := aggregation.NewStageBuilder().
-		Lookup("post", "tags_post", &aggregation.LookUpOptions{
-			LocalField:   "_id",
-			ForeignField: "tags_id",
-		}).
-		AddFields(bson.M{
-			"post_count": bson.M{
-				"$size": "$tags_post",
-			}}).
-		Match(bson.M{
-			"post_count": bson.M{
-				"$gt": 0,
-			},
-		}).
-		Sort(bson.M{
-			"post_count": -1,
-		})
+	pipeline := mongo.Pipeline{
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "post"},
+			{Key: "localField", Value: "_id"},
+			{Key: "foreignField", Value: "tags_id"},
+			{Key: "as", Value: "tags_post"},
+		}}},
+		{{Key: "$addFields", Value: bson.D{
+			{Key: "post_count", Value: bson.D{{Key: "$size", Value: "$tags_post"}}},
+		}}},
+		{{Key: "$match", Value: bson.D{
+			{Key: "post_count", Value: bson.D{{Key: "$gt", Value: 0}}},
+		}}},
+		{{Key: "$sort", Value: bson.D{{Key: "post_count", Value: -1}}}},
+	}
+
+	cursor, err := d.coll.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
 
 	var labelPostCount []*LabelPostCount
-
-	err := d.coll.Aggregator().Pipeline(aggregationBuilder.Build()).AggregateWithParse(ctx, &labelPostCount)
-	if err != nil {
+	if err = cursor.All(ctx, &labelPostCount); err != nil {
 		return nil, err
 	}
 	return labelPostCount, nil
@@ -154,5 +181,10 @@ func (d *LabelDao) GetTagsLabelWithCount(ctx context.Context) ([]*LabelPostCount
 
 // GetLabelByName 根据名称获取标签
 func (d *LabelDao) GetLabelByName(ctx context.Context, name string) (*Label, error) {
-	return d.coll.Finder().Filter(query.Eq("name", name)).FindOne(ctx)
+	var label Label
+	err := d.coll.FindOne(ctx, bson.M{"name": name}).Decode(&label)
+	if err != nil {
+		return nil, err
+	}
+	return &label, nil
 }

@@ -1,13 +1,13 @@
 package repository
 
 import (
+	"github.com/codepzj/Stellux-Server/internal/pkg/apiwrap"
 	"context"
 
 	"github.com/codepzj/Stellux-Server/internal/user/internal/domain"
 	"github.com/codepzj/Stellux-Server/internal/user/internal/repository/dao"
 	"github.com/samber/lo"
 	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type IUserRepository interface {
@@ -16,7 +16,7 @@ type IUserRepository interface {
 	Update(ctx context.Context, user *domain.User) error
 	UpdatePassword(ctx context.Context, id string, password string) error
 	Delete(ctx context.Context, id string) error
-	FindByPage(ctx context.Context, page *domain.Page) ([]*domain.User, int64, error)
+	FindByPage(ctx context.Context, page *apiwrap.Page) ([]*domain.User, int64, error)
 	GetByID(ctx context.Context, id string) (*domain.User, error)
 }
 
@@ -66,9 +66,9 @@ func (r *UserRepository) Delete(ctx context.Context, id string) error {
 	return r.dao.Delete(ctx, bid)
 }
 
-func (r *UserRepository) FindByPage(ctx context.Context, page *domain.Page) ([]*domain.User, int64, error) {
-	findOptions := options.Find().SetSkip((page.PageNo - 1) * page.PageSize).SetLimit(page.PageSize).SetSort(bson.M{"role_id": 1})
-	users, count, err := r.dao.FindByCondition(ctx, findOptions)
+func (r *UserRepository) FindByPage(ctx context.Context, page *apiwrap.Page) ([]*domain.User, int64, error) {
+	skip := (page.PageNo - 1) * page.PageSize
+	users, count, err := r.dao.FindByCondition(ctx, skip, page.PageSize, bson.M{"role_id": 1})
 	if err != nil {
 		return nil, 0, err
 	}

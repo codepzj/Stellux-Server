@@ -3,10 +3,6 @@ package repository
 import (
 	"context"
 
-	"github.com/chenmingyong0423/go-mongox/v2"
-	"github.com/chenmingyong0423/go-mongox/v2/bsonx"
-	"github.com/chenmingyong0423/go-mongox/v2/builder/aggregation"
-	"github.com/chenmingyong0423/go-mongox/v2/builder/query"
 	"github.com/codepzj/Stellux-Server/internal/post/internal/domain"
 	"github.com/codepzj/Stellux-Server/internal/post/internal/repository/dao"
 	"github.com/samber/lo"
@@ -27,7 +23,7 @@ type IPostRepository interface {
 	GetByID(ctx context.Context, id bson.ObjectID) (*domain.Post, error)
 	GetByKeyWord(ctx context.Context, keyWord string) ([]*domain.Post, error)
 	GetDetailByID(ctx context.Context, id bson.ObjectID) (*domain.PostDetail, error)
-	GetList(ctx context.Context, page *domain.Page, postType string) ([]*domain.PostDetail, int64, error)
+	GetList(ctx context.Context, page *domain.PostQueryPage, postType string) ([]*domain.PostDetail, int64, error)
 	GetAllPublishPost(ctx context.Context) ([]*domain.PostDetail, error)
 	FindByAlias(ctx context.Context, alias string) (*domain.Post, error)
 }
@@ -114,66 +110,84 @@ func (r *PostRepository) GetByKeyWord(ctx context.Context, keyWord string) ([]*d
 }
 
 // buildPostQueryCondition 构建文章查询条件
-func (r *PostRepository) buildPostQueryCondition(page *domain.Page, postType string) bson.D {
-	builder := query.NewBuilder().
-		Or(
-			query.RegexOptions("title", page.Keyword, "i"),
-			query.RegexOptions("description", page.Keyword, "i"),
-		)
+func (r *PostRepository) buildPostQueryCondition(page *domain.PostQueryPage, postType string) bson.D {
+	conditions := bson.D{}
+
+	if page.Keyword != "" {
+		conditions = append(conditions, bson.E{Key: "$or", Value: []bson.M{
+			{"title": bson.M{"$regex": page.Keyword, "$options": "i"}},
+			{"description": bson.M{"$regex": page.Keyword, "$options": "i"}},
+		}})
+	}
 
 	switch postType {
 	case "publish":
-		builder = builder.And(query.Eq("deleted_at", nil)).And(query.Eq("is_publish", true))
+		conditions = append(conditions, bson.E{Key: "deleted_at", Value: nil})
+		conditions = append(conditions, bson.E{Key: "is_publish", Value: true})
 	case "draft":
-		builder = builder.And(query.Eq("deleted_at", nil)).And(query.Eq("is_publish", false))
+		conditions = append(conditions, bson.E{Key: "deleted_at", Value: nil})
+		conditions = append(conditions, bson.E{Key: "is_publish", Value: false})
 	case "bin":
-		builder = builder.And(query.Ne("deleted_at", nil))
+		conditions = append(conditions, bson.E{Key: "deleted_at", Value: bson.M{"$ne": nil}})
 	}
 
-	return builder.Build()
+	return conditions
 }
 
 // buildPostAggregationPipeline 构建文章聚合管道
-func (r *PostRepository) buildPostAggregationPipeline(cond bson.D, page *domain.Page, skip, limit int64) mongo.Pipeline {
-	sortBuilder := bsonx.NewD().Add("is_top", -1).Add("created_at", -1)
+func (r *PostRepository) buildPostAggregationPipeline(cond bson.D, page *domain.PostQueryPage, skip, limit int64) mongo.Pipeline {
+	sort := bson.D{{Key: "is_top", Value: -1}, {Key: "created_at", Value: -1}}
 	if page.Field != "" {
-		sortBuilder.Add(page.Field, r.OrderConvertToInt(page.Order))
+		sort = append(sort, bson.E{Key: page.Field, Value: r.OrderConvertToInt(page.Order)})
 	}
 
-	stageBuilder := aggregation.NewStageBuilder().Match(cond).
-		Lookup("label", "category", &aggregation.LookUpOptions{
-			LocalField:   "category_id",
-			ForeignField: "_id",
-		}).
-		Unwind("$category", &aggregation.UnWindOptions{
-			PreserveNullAndEmptyArrays: true,
-		}).
-		Lookup("label", "tags", &aggregation.LookUpOptions{
-			LocalField:   "tags_id",
-			ForeignField: "_id",
-		})
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: cond}},
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "label"},
+			{Key: "localField", Value: "category_id"},
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "category"},
+		}}},
+		{{Key: "$unwind", Value: bson.D{
+			{Key: "path", Value: "$category"},
+			{Key: "preserveNullAndEmptyArrays", Value: true},
+		}}},
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "label"},
+			{Key: "localField", Value: "tags_id"},
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "tags"},
+		}}},
+	}
 
-	// 添加标签过滤条件
 	if page.LabelName != "" {
-		stageBuilder = stageBuilder.Match(query.ElemMatch("tags", query.And(
-			query.Eq("type", "tag"),
-			query.Eq("name", page.LabelName),
-		)))
+		pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.D{
+			{Key: "tags", Value: bson.D{{Key: "$elemMatch", Value: bson.D{
+				{Key: "type", Value: "tag"},
+				{Key: "name", Value: page.LabelName},
+			}}}},
+		}}})
 	}
 
-	// 添加分类过滤条件
 	if page.CategoryName != "" {
-		stageBuilder = stageBuilder.Match(query.And(
-			query.Eq("category.type", "category"),
-			query.Eq("category.name", page.CategoryName),
-		))
+		pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.D{
+			{Key: "category.type", Value: "category"},
+			{Key: "category.name", Value: page.CategoryName},
+		}}})
 	}
 
-	return stageBuilder.Sort(sortBuilder.Build()).Skip(skip).Limit(limit).Build()
+	pipeline = append(pipeline,
+		bson.D{{Key: "$sort", Value: sort}},
+		bson.D{{Key: "$skip", Value: skip}},
+		bson.D{{Key: "$limit", Value: limit}},
+	)
+
+	return pipeline
 }
 
 // GetList 获取文章列表
-func (r *PostRepository) GetList(ctx context.Context, page *domain.Page, postType string) ([]*domain.PostDetail, int64, error) {
+func (r *PostRepository) GetList(ctx context.Context, page *domain.PostQueryPage, postType string) ([]*domain.PostDetail, int64, error) {
 	// 构建查询条件
 	cond := r.buildPostQueryCondition(page, postType)
 
@@ -196,23 +210,32 @@ func (r *PostRepository) GetList(ctx context.Context, page *domain.Page, postTyp
 }
 
 func (r *PostRepository) GetAllPublishPost(ctx context.Context) ([]*domain.PostDetail, error) {
-	var cond bson.D
-	builder := query.NewBuilder().And(query.Eq("deleted_at", nil)).And(query.Eq("is_publish", true))
-	cond = builder.Build()
-	sortBuilder := bsonx.NewD().Add("is_top", -1).Add("created_at", -1)
-	pipeline := aggregation.NewStageBuilder().Match(cond).
-		Lookup("label", "category", &aggregation.LookUpOptions{
-			LocalField:   "category_id",
-			ForeignField: "_id",
-		}).
-		Unwind("$category", &aggregation.UnWindOptions{
-			PreserveNullAndEmptyArrays: true,
-		}).
-		Lookup("label", "tags", &aggregation.LookUpOptions{
-			LocalField:   "tags_id",
-			ForeignField: "_id",
-		}).
-		Sort(sortBuilder.Build()).Build()
+	cond := bson.D{
+		{Key: "deleted_at", Value: nil},
+		{Key: "is_publish", Value: true},
+	}
+
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: cond}},
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "label"},
+			{Key: "localField", Value: "category_id"},
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "category"},
+		}}},
+		{{Key: "$unwind", Value: bson.D{
+			{Key: "path", Value: "$category"},
+			{Key: "preserveNullAndEmptyArrays", Value: true},
+		}}},
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "label"},
+			{Key: "localField", Value: "tags_id"},
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "tags"},
+		}}},
+		{{Key: "$sort", Value: bson.D{{Key: "is_top", Value: -1}, {Key: "created_at", Value: -1}}}},
+	}
+
 	posts, _, err := r.dao.GetList(ctx, pipeline, cond)
 	if err != nil {
 		return nil, err
@@ -230,7 +253,7 @@ func (r *PostRepository) FindByAlias(ctx context.Context, alias string) (*domain
 
 func (r *PostRepository) PostDomainToPostDO(post *domain.Post) *dao.Post {
 	return &dao.Post{
-		Model:       mongox.Model{CreatedAt: post.CreatedAt},
+		CreatedAt:   post.CreatedAt,
 		Title:       post.Title,
 		Content:     post.Content,
 		Description: post.Description,

@@ -3,12 +3,12 @@
 package user
 
 import (
-	"github.com/chenmingyong0423/go-mongox/v2"
 	"github.com/codepzj/Stellux-Server/internal/user/internal/repository"
 	"github.com/codepzj/Stellux-Server/internal/user/internal/repository/dao"
 	"github.com/codepzj/Stellux-Server/internal/user/internal/service"
 	"github.com/codepzj/Stellux-Server/internal/user/internal/web"
 	"github.com/google/wire"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 var UserProviders = wire.NewSet(web.NewUserHandler, service.NewUserService, repository.NewUserRepository, dao.NewUserDao,
@@ -16,7 +16,7 @@ var UserProviders = wire.NewSet(web.NewUserHandler, service.NewUserService, repo
 	wire.Bind(new(repository.IUserRepository), new(*repository.UserRepository)),
 	wire.Bind(new(dao.IUserDao), new(*dao.UserDao)))
 
-func InitUserModule(mongoDB *mongox.Database) *Module {
+func InitUserModule(mongoDB *mongo.Database) *Module {
 	panic(wire.Build(
 		UserProviders,
 		wire.Struct(new(Module), "Svc", "Hdl"),

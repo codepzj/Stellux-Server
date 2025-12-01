@@ -18,12 +18,6 @@ type DocumentContent struct {
 	Alias       string        // 文档别名
 	ParentId    bson.ObjectID // 父级ID
 	IsDir       bool          // 是否是目录
-	Sort        int           // 排序
+	Sort        int           `json:"sort"` // 文档内容排序
 	IsDeleted   bool          // 是否删除
-}
-
-// Page 分页查询参数
-type Page struct {
-	PageNo   int64 `json:"page_no"`   // 页码
-	PageSize int64 `json:"page_size"` // 每页大小
 }

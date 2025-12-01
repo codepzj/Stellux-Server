@@ -3,12 +3,12 @@
 package label
 
 import (
-	"github.com/chenmingyong0423/go-mongox/v2"
 	"github.com/codepzj/Stellux-Server/internal/label/internal/repository"
 	"github.com/codepzj/Stellux-Server/internal/label/internal/repository/dao"
 	"github.com/codepzj/Stellux-Server/internal/label/internal/service"
 	"github.com/codepzj/Stellux-Server/internal/label/internal/web"
 	"github.com/google/wire"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 var LabelProviders = wire.NewSet(web.NewLabelHandler, service.NewLabelService, repository.NewLabelRepository, dao.NewLabelDao,
@@ -16,7 +16,7 @@ var LabelProviders = wire.NewSet(web.NewLabelHandler, service.NewLabelService, r
 	wire.Bind(new(repository.ILabelRepository), new(*repository.LabelRepository)),
 	wire.Bind(new(dao.ILabelDao), new(*dao.LabelDao)))
 
-func InitLabelModule(mongoDB *mongox.Database) *Module {
+func InitLabelModule(mongoDB *mongo.Database) *Module {
 	panic(wire.Build(
 		LabelProviders,
 		wire.Struct(new(Module), "Svc", "Hdl"),

@@ -3,12 +3,12 @@
 package document
 
 import (
-	"github.com/chenmingyong0423/go-mongox/v2"
 	"github.com/codepzj/Stellux-Server/internal/document/internal/repository"
 	"github.com/codepzj/Stellux-Server/internal/document/internal/repository/dao"
 	"github.com/codepzj/Stellux-Server/internal/document/internal/service"
 	"github.com/codepzj/Stellux-Server/internal/document/internal/web"
 	"github.com/google/wire"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 var DocumentProviders = wire.NewSet(web.NewDocumentHandler, service.NewDocumentService, repository.NewDocumentRepository, dao.NewDocumentDao,
@@ -16,7 +16,7 @@ var DocumentProviders = wire.NewSet(web.NewDocumentHandler, service.NewDocumentS
 	wire.Bind(new(repository.IDocumentRepository), new(*repository.DocumentRepository)),
 	wire.Bind(new(dao.IDocumentDao), new(*dao.DocumentDao)))
 
-func InitDocumentModule(mongoDB *mongox.Database) *Module {
+func InitDocumentModule(mongoDB *mongo.Database) *Module {
 	panic(wire.Build(
 		DocumentProviders,
 		wire.Struct(new(Module), "Svc", "Hdl"),

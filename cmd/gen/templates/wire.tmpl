@@ -3,7 +3,7 @@
 package {{.UnderlineName}}
 
 import (
-    "github.com/chenmingyong0423/go-mongox/v2"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 	"github.com/codepzj/Stellux-Server/{{.OutputDir}}/internal/repository"
 	"github.com/codepzj/Stellux-Server/{{.OutputDir}}/internal/repository/dao"
 	"github.com/codepzj/Stellux-Server/{{.OutputDir}}/internal/service"
@@ -16,7 +16,7 @@ var {{.DomainName}}Providers = wire.NewSet(web.New{{.DomainName}}Handler, servic
 	wire.Bind(new(repository.I{{.DomainName}}Repository), new(*repository.{{.DomainName}}Repository)),
 	wire.Bind(new(dao.I{{.DomainName}}Dao), new(*dao.{{.DomainName}}Dao)))
 	
-func Init{{.DomainName}}Module(mongoDB *mongox.Database) *Module {
+func Init{{.DomainName}}Module(mongoDB *mongo.Database) *Module {
 	panic(wire.Build(
 		{{.DomainName}}Providers,
 		wire.Struct(new(Module), "Svc", "Hdl"),

@@ -2,6 +2,9 @@ package repository
 
 import (
 	"context"
+	"time"
+
+	"github.com/codepzj/Stellux-Server/internal/pkg/apiwrap"
 
 	"github.com/codepzj/Stellux-Server/internal/document_content/internal/domain"
 	"github.com/codepzj/Stellux-Server/internal/document_content/internal/repository/dao"
@@ -17,7 +20,7 @@ type IDocumentContentRepository interface {
 	FindDocumentContentByParentId(ctx context.Context, parentId bson.ObjectID) ([]domain.DocumentContent, error)
 	FindDocumentContentByDocumentId(ctx context.Context, documentId bson.ObjectID) ([]domain.DocumentContent, error)
 	UpdateDocumentContentById(ctx context.Context, id bson.ObjectID, doc domain.DocumentContent) error
-	GetDocumentContentList(ctx context.Context, page *domain.Page) ([]domain.DocumentContent, int64, error)
+	GetDocumentContentList(ctx context.Context, page *apiwrap.Page, documentId bson.ObjectID) ([]domain.DocumentContent, int64, error)
 	GetPublicDocumentContentListByDocumentId(ctx context.Context, documentId bson.ObjectID) ([]domain.DocumentContent, error)
 	SearchDocumentContent(ctx context.Context, keyword string) ([]domain.DocumentContent, error)
 	SearchPublicDocumentContent(ctx context.Context, keyword string) ([]domain.DocumentContent, error)
@@ -37,6 +40,14 @@ func NewDocumentContentRepository(dao dao.IDocumentContentDao) *DocumentContentR
 
 type DocumentContentRepository struct {
 	dao dao.IDocumentContentDao
+}
+
+// convertDeletedAt 转换 *time.Time 到 time.Time
+func convertDeletedAt(t *time.Time) time.Time {
+	if t == nil {
+		return time.Time{}
+	}
+	return *t
 }
 
 // CreateDocumentContent 创建文档内容
@@ -65,7 +76,7 @@ func (r *DocumentContentRepository) FindDocumentContentById(ctx context.Context,
 		Id:          doc.ID,
 		CreatedAt:   doc.CreatedAt,
 		UpdatedAt:   doc.UpdatedAt,
-		DeletedAt:   doc.DeletedAt,
+		DeletedAt:   convertDeletedAt(doc.DeletedAt),
 		DocumentId:  doc.DocumentId,
 		Title:       doc.Title,
 		Content:     doc.Content,
@@ -105,7 +116,7 @@ func (r *DocumentContentRepository) FindDocumentContentByParentId(ctx context.Co
 			Id:          doc.ID,
 			CreatedAt:   doc.CreatedAt,
 			UpdatedAt:   doc.UpdatedAt,
-			DeletedAt:   doc.DeletedAt,
+			DeletedAt:   convertDeletedAt(doc.DeletedAt),
 			DocumentId:  doc.DocumentId,
 			Title:       doc.Title,
 			Content:     doc.Content,
@@ -131,7 +142,7 @@ func (r *DocumentContentRepository) FindDocumentContentByDocumentId(ctx context.
 			Id:          doc.ID,
 			CreatedAt:   doc.CreatedAt,
 			UpdatedAt:   doc.UpdatedAt,
-			DeletedAt:   doc.DeletedAt,
+			DeletedAt:   convertDeletedAt(doc.DeletedAt),
 			DocumentId:  doc.DocumentId,
 			Title:       doc.Title,
 			Content:     doc.Content,
@@ -161,11 +172,8 @@ func (r *DocumentContentRepository) UpdateDocumentContentById(ctx context.Contex
 }
 
 // GetDocumentContentList 获取文档内容列表
-func (r *DocumentContentRepository) GetDocumentContentList(ctx context.Context, page *domain.Page) ([]domain.DocumentContent, int64, error) {
-	docs, count, err := r.dao.GetDocumentContentList(ctx, &dao.Page{
-		PageNo:   page.PageNo,
-		PageSize: page.PageSize,
-	})
+func (r *DocumentContentRepository) GetDocumentContentList(ctx context.Context, page *apiwrap.Page, documentId bson.ObjectID) ([]domain.DocumentContent, int64, error) {
+	docs, count, err := r.dao.GetDocumentContentList(ctx, page, documentId)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -176,7 +184,7 @@ func (r *DocumentContentRepository) GetDocumentContentList(ctx context.Context, 
 			Id:          doc.ID,
 			CreatedAt:   doc.CreatedAt,
 			UpdatedAt:   doc.UpdatedAt,
-			DeletedAt:   doc.DeletedAt,
+			DeletedAt:   convertDeletedAt(doc.DeletedAt),
 			DocumentId:  doc.DocumentId,
 			Title:       doc.Title,
 			Content:     doc.Content,
@@ -204,7 +212,7 @@ func (r *DocumentContentRepository) GetPublicDocumentContentListByDocumentId(ctx
 			Id:          doc.ID,
 			CreatedAt:   doc.CreatedAt,
 			UpdatedAt:   doc.UpdatedAt,
-			DeletedAt:   doc.DeletedAt,
+			DeletedAt:   convertDeletedAt(doc.DeletedAt),
 			DocumentId:  doc.DocumentId,
 			Title:       doc.Title,
 			Content:     doc.Content,
@@ -232,7 +240,7 @@ func (r *DocumentContentRepository) SearchDocumentContent(ctx context.Context, k
 			Id:          doc.ID,
 			CreatedAt:   doc.CreatedAt,
 			UpdatedAt:   doc.UpdatedAt,
-			DeletedAt:   doc.DeletedAt,
+			DeletedAt:   convertDeletedAt(doc.DeletedAt),
 			DocumentId:  doc.DocumentId,
 			Title:       doc.Title,
 			Content:     doc.Content,
@@ -260,7 +268,7 @@ func (r *DocumentContentRepository) SearchPublicDocumentContent(ctx context.Cont
 			Id:          doc.ID,
 			CreatedAt:   doc.CreatedAt,
 			UpdatedAt:   doc.UpdatedAt,
-			DeletedAt:   doc.DeletedAt,
+			DeletedAt:   convertDeletedAt(doc.DeletedAt),
 			DocumentId:  doc.DocumentId,
 			Title:       doc.Title,
 			Content:     doc.Content,
@@ -286,7 +294,7 @@ func (r *DocumentContentRepository) FindPublicDocumentContentById(ctx context.Co
 		Id:          doc.ID,
 		CreatedAt:   doc.CreatedAt,
 		UpdatedAt:   doc.UpdatedAt,
-		DeletedAt:   doc.DeletedAt,
+		DeletedAt:   convertDeletedAt(doc.DeletedAt),
 		DocumentId:  doc.DocumentId,
 		Title:       doc.Title,
 		Content:     doc.Content,
@@ -311,7 +319,7 @@ func (r *DocumentContentRepository) FindPublicDocumentContentByParentId(ctx cont
 			Id:          doc.ID,
 			CreatedAt:   doc.CreatedAt,
 			UpdatedAt:   doc.UpdatedAt,
-			DeletedAt:   doc.DeletedAt,
+			DeletedAt:   convertDeletedAt(doc.DeletedAt),
 			DocumentId:  doc.DocumentId,
 			Title:       doc.Title,
 			Content:     doc.Content,
@@ -338,7 +346,7 @@ func (r *DocumentContentRepository) FindPublicDocumentContentByDocumentId(ctx co
 			Id:          doc.ID,
 			CreatedAt:   doc.CreatedAt,
 			UpdatedAt:   doc.UpdatedAt,
-			DeletedAt:   doc.DeletedAt,
+			DeletedAt:   convertDeletedAt(doc.DeletedAt),
 			DocumentId:  doc.DocumentId,
 			Title:       doc.Title,
 			Content:     doc.Content,
@@ -368,7 +376,7 @@ func (r *DocumentContentRepository) FindPublicDocumentContentByRootIdAndAlias(ct
 		Id:          doc.ID,
 		CreatedAt:   doc.CreatedAt,
 		UpdatedAt:   doc.UpdatedAt,
-		DeletedAt:   doc.DeletedAt,
+		DeletedAt:   convertDeletedAt(doc.DeletedAt),
 		DocumentId:  doc.DocumentId,
 		Title:       doc.Title,
 		Content:     doc.Content,

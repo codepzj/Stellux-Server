@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"github.com/codepzj/Stellux-Server/internal/comment/internal/domain"
 	"github.com/codepzj/Stellux-Server/internal/comment/internal/repository/dao"
@@ -74,11 +75,15 @@ func (r *CommentRepository) CommentDaoToShowDomainList(comments []*dao.Comment) 
 
 // 转成前端展示的评论
 func (r *CommentRepository) CommentDaoToShowDomain(comment *dao.Comment) *domain.CommentShow {
+	var deletedAt time.Time
+	if comment.DeletedAt != nil {
+		deletedAt = *comment.DeletedAt
+	}
 	return &domain.CommentShow{
 		Id:        comment.ID,
 		CreatedAt: comment.CreatedAt,
 		UpdatedAt: comment.UpdatedAt,
-		DeletedAt: comment.DeletedAt,
+		DeletedAt: deletedAt,
 		Path:      comment.Path,
 		Content:   comment.Content,
 		Nickname:  comment.Nickname,

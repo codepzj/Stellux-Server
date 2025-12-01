@@ -17,8 +17,3 @@ type User struct {
 	Avatar    string
 	Email     string
 }
-
-type Page struct {
-	PageNo   int64
-	PageSize int64
-}

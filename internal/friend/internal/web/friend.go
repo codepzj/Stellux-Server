@@ -34,16 +34,16 @@ func (h *FriendHandler) RegisterGinRoutes(engine *gin.Engine) {
 }
 
 // FindFriendList 获取友链列表
-func (h *FriendHandler) FindFriendList(c *gin.Context) (*apiwrap.Response[any], error) {
+func (h *FriendHandler) FindFriendList(c *gin.Context) (int, string, any) {
 	friends, err := h.serv.FindFriendList(c)
 	if err != nil {
-		return nil, err
+		return 500, err.Error(), nil
 	}
-	return apiwrap.SuccessWithDetail[any](FriendDomainToShowVOList(friends), "获取友链列表成功"), nil
+	return 200, "获取友链列表成功", FriendDomainToShowVOList(friends)
 }
 
 // CreateFriend 创建友链
-func (h *FriendHandler) CreateFriend(c *gin.Context, friend *FriendRequest) (*apiwrap.Response[any], error) {
+func (h *FriendHandler) CreateFriend(c *gin.Context, friend *FriendRequest) (int, string, any) {
 	err := h.serv.CreateFriend(c, &domain.Friend{
 		Name:        friend.Name,
 		Description: friend.Description,
@@ -53,25 +53,25 @@ func (h *FriendHandler) CreateFriend(c *gin.Context, friend *FriendRequest) (*ap
 	})
 
 	if err != nil {
-		return nil, err
+		return 500, err.Error(), nil
 	}
-	return apiwrap.Success(), nil
+	return 200, "操作成功", nil
 }
 
 // FindAllFriends 获取所有友链
-func (h *FriendHandler) FindAllFriends(c *gin.Context) (*apiwrap.Response[any], error) {
+func (h *FriendHandler) FindAllFriends(c *gin.Context) (int, string, any) {
 	friends, err := h.serv.FindAllFriends(c)
 	if err != nil {
-		return nil, err
+		return 500, err.Error(), nil
 	}
-	return apiwrap.SuccessWithDetail[any](FriendDomainToVOList(friends), "获取朋友列表成功"), nil
+	return 200, "获取朋友列表成功", FriendDomainToVOList(friends)
 }
 
 // UpdateFriend 更新友链
-func (h *FriendHandler) UpdateFriend(c *gin.Context, friend *FriendUpdateRequest) (*apiwrap.Response[any], error) {
+func (h *FriendHandler) UpdateFriend(c *gin.Context, friend *FriendUpdateRequest) (int, string, any) {
 	objId, err := bson.ObjectIDFromHex(friend.ID)
 	if err != nil {
-		return nil, apiwrap.NewBadRequest("id格式错误")
+		return 400, "id格式错误", nil
 	}
 	err = h.serv.UpdateFriend(c, objId, &domain.Friend{
 		Name:        friend.Name,
@@ -82,20 +82,20 @@ func (h *FriendHandler) UpdateFriend(c *gin.Context, friend *FriendUpdateRequest
 		IsActive:    friend.IsActive,
 	})
 	if err != nil {
-		return nil, err
+		return 500, err.Error(), nil
 	}
-	return apiwrap.SuccessWithMsg("更新好友成功"), nil
+	return 200, "更新好友成功", nil
 }
 
 // DeleteFriend 删除友链
-func (h *FriendHandler) DeleteFriend(c *gin.Context) (*apiwrap.Response[any], error) {
+func (h *FriendHandler) DeleteFriend(c *gin.Context) (int, string, any) {
 	objId, err := bson.ObjectIDFromHex(c.Param("id"))
 	if err != nil {
-		return nil, apiwrap.NewBadRequest("id格式错误")
+		return 400, "id格式错误", nil
 	}
 	err = h.serv.DeleteFriend(c, objId)
 	if err != nil {
-		return nil, err
+		return 500, err.Error(), nil
 	}
-	return apiwrap.SuccessWithMsg("删除好友成功"), nil
+	return 200, "删除好友成功", nil
 }

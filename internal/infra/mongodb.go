@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/chenmingyong0423/go-mongox/v2"
 	"github.com/codepzj/Stellux-Server/conf"
 
 	"github.com/pkg/errors"
@@ -13,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
 )
 
-func NewMongoDB(cfg *conf.Config) *mongox.Database {
+func NewMongoDB(cfg *conf.Config) *mongo.Database {
 	url := fmt.Sprintf("mongodb://%s:%s@%s:%d/?authSource=admin", cfg.MongoDB.MongoInitdbRootUsername, cfg.MongoDB.MongoInitdbRootPassword, cfg.MongoDB.Host, cfg.MongoDB.Port)
 	mongoClient, err := mongo.Connect(options.Client().ApplyURI(url))
 	if err != nil {
@@ -22,5 +21,5 @@ func NewMongoDB(cfg *conf.Config) *mongox.Database {
 	if err := mongoClient.Ping(context.Background(), readpref.Primary()); err != nil {
 		panic(errors.Wrap(err, "数据库无法ping通"))
 	}
-	return mongox.NewClient(mongoClient, &mongox.Config{}).NewDatabase(cfg.MongoDB.MongoInitdbDatabase)
+	return mongoClient.Database(cfg.MongoDB.MongoInitdbDatabase)
 }

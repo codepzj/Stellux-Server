@@ -7,17 +7,17 @@
 package document
 
 import (
-	"github.com/chenmingyong0423/go-mongox/v2"
 	"github.com/codepzj/Stellux-Server/internal/document/internal/repository"
 	"github.com/codepzj/Stellux-Server/internal/document/internal/repository/dao"
 	"github.com/codepzj/Stellux-Server/internal/document/internal/service"
 	"github.com/codepzj/Stellux-Server/internal/document/internal/web"
 	"github.com/google/wire"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 // Injectors from wire.go:
 
-func InitDocumentModule(mongoDB *mongox.Database) *Module {
+func InitDocumentModule(mongoDB *mongo.Database) *Module {
 	documentDao := dao.NewDocumentDao(mongoDB)
 	documentRepository := repository.NewDocumentRepository(documentDao)
 	documentService := service.NewDocumentService(documentRepository)

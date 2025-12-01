@@ -7,17 +7,17 @@
 package user
 
 import (
-	"github.com/chenmingyong0423/go-mongox/v2"
 	"github.com/codepzj/Stellux-Server/internal/user/internal/repository"
 	"github.com/codepzj/Stellux-Server/internal/user/internal/repository/dao"
 	"github.com/codepzj/Stellux-Server/internal/user/internal/service"
 	"github.com/codepzj/Stellux-Server/internal/user/internal/web"
 	"github.com/google/wire"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 // Injectors from wire.go:
 
-func InitUserModule(mongoDB *mongox.Database) *Module {
+func InitUserModule(mongoDB *mongo.Database) *Module {
 	userDao := dao.NewUserDao(mongoDB)
 	userRepository := repository.NewUserRepository(userDao)
 	userService := service.NewUserService(userRepository)

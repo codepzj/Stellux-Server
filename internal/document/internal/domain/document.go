@@ -19,9 +19,3 @@ type Document struct {
 	IsPublic    bool          // 是否公开
 	IsDeleted   bool          // 是否删除
 }
-
-// Page 分页查询参数
-type Page struct {
-	PageNo   int64 `json:"pageNo"`   // 页码
-	PageSize int64 `json:"pageSize"` // 每页大小
-}

@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"github.com/codepzj/Stellux-Server/internal/pkg/apiwrap"
 	"context"
+	"time"
 
 	"github.com/codepzj/Stellux-Server/internal/document/internal/domain"
 	"github.com/codepzj/Stellux-Server/internal/document/internal/repository/dao"
@@ -16,9 +18,9 @@ type IDocumentRepository interface {
 	SoftDeleteDocumentById(ctx context.Context, id bson.ObjectID) error
 	RestoreDocumentById(ctx context.Context, id bson.ObjectID) error
 	FindDocumentByAlias(ctx context.Context, alias string) (*domain.Document, error)
-	GetDocumentList(ctx context.Context, page *domain.Page) ([]*domain.Document, int64, error)
-	GetDocumentBinList(ctx context.Context, page *domain.Page) ([]*domain.Document, int64, error)
-	GetPublicDocumentList(ctx context.Context, page *domain.Page) ([]*domain.Document, int64, error)
+	GetDocumentList(ctx context.Context, page *apiwrap.Page) ([]*domain.Document, int64, error)
+	GetDocumentBinList(ctx context.Context, page *apiwrap.Page) ([]*domain.Document, int64, error)
+	GetPublicDocumentList(ctx context.Context, page *apiwrap.Page) ([]*domain.Document, int64, error)
 	GetAllPublicDocuments(ctx context.Context) ([]*domain.Document, error)
 }
 
@@ -30,6 +32,14 @@ func NewDocumentRepository(dao dao.IDocumentDao) *DocumentRepository {
 
 type DocumentRepository struct {
 	dao dao.IDocumentDao
+}
+
+// convertDeletedAt 转换 *time.Time 到 time.Time
+func convertDeletedAt(t *time.Time) time.Time {
+	if t == nil {
+		return time.Time{}
+	}
+	return *t
 }
 
 func (r *DocumentRepository) CreateDocument(ctx context.Context, doc *domain.Document) (bson.ObjectID, error) {
@@ -54,7 +64,7 @@ func (r *DocumentRepository) FindDocumentById(ctx context.Context, id bson.Objec
 		Id:          doc.ID,
 		CreatedAt:   doc.CreatedAt,
 		UpdatedAt:   doc.UpdatedAt,
-		DeletedAt:   doc.DeletedAt,
+		DeletedAt:   convertDeletedAt(doc.DeletedAt),
 		Title:       doc.Title,
 		Description: doc.Description,
 		Thumbnail:   doc.Thumbnail,
@@ -103,7 +113,7 @@ func (r *DocumentRepository) FindDocumentByAlias(ctx context.Context, alias stri
 		Id:          doc.ID,
 		CreatedAt:   doc.CreatedAt,
 		UpdatedAt:   doc.UpdatedAt,
-		DeletedAt:   doc.DeletedAt,
+		DeletedAt:   convertDeletedAt(doc.DeletedAt),
 		Title:       doc.Title,
 		Description: doc.Description,
 		Thumbnail:   doc.Thumbnail,
@@ -115,8 +125,8 @@ func (r *DocumentRepository) FindDocumentByAlias(ctx context.Context, alias stri
 }
 
 // GetDocumentList 获取文档列表
-func (r *DocumentRepository) GetDocumentList(ctx context.Context, page *domain.Page) ([]*domain.Document, int64, error) {
-	docs, count, err := r.dao.GetDocumentListByFilter(ctx, bson.D{{Key: "is_deleted", Value: false}}, &dao.Page{
+func (r *DocumentRepository) GetDocumentList(ctx context.Context, page *apiwrap.Page) ([]*domain.Document, int64, error) {
+	docs, count, err := r.dao.GetDocumentListByFilter(ctx, bson.D{{Key: "is_deleted", Value: false}}, &apiwrap.Page{
 		PageNo:   page.PageNo,
 		PageSize: page.PageSize,
 	})
@@ -130,7 +140,7 @@ func (r *DocumentRepository) GetDocumentList(ctx context.Context, page *domain.P
 			Id:          doc.ID,
 			CreatedAt:   doc.CreatedAt,
 			UpdatedAt:   doc.UpdatedAt,
-			DeletedAt:   doc.DeletedAt,
+			DeletedAt:   convertDeletedAt(doc.DeletedAt),
 			Title:       doc.Title,
 			Description: doc.Description,
 			Thumbnail:   doc.Thumbnail,
@@ -144,8 +154,8 @@ func (r *DocumentRepository) GetDocumentList(ctx context.Context, page *domain.P
 }
 
 // GetDocumentBinList 获取文档回收箱列表
-func (r *DocumentRepository) GetDocumentBinList(ctx context.Context, page *domain.Page) ([]*domain.Document, int64, error) {
-	docs, count, err := r.dao.GetDocumentListByFilter(ctx, bson.D{{Key: "is_deleted", Value: true}}, &dao.Page{
+func (r *DocumentRepository) GetDocumentBinList(ctx context.Context, page *apiwrap.Page) ([]*domain.Document, int64, error) {
+	docs, count, err := r.dao.GetDocumentListByFilter(ctx, bson.D{{Key: "is_deleted", Value: true}}, &apiwrap.Page{
 		PageNo:   page.PageNo,
 		PageSize: page.PageSize,
 	})
@@ -159,7 +169,7 @@ func (r *DocumentRepository) GetDocumentBinList(ctx context.Context, page *domai
 			Id:          doc.ID,
 			CreatedAt:   doc.CreatedAt,
 			UpdatedAt:   doc.UpdatedAt,
-			DeletedAt:   doc.DeletedAt,
+			DeletedAt:   convertDeletedAt(doc.DeletedAt),
 			Title:       doc.Title,
 			Description: doc.Description,
 			Thumbnail:   doc.Thumbnail,
@@ -173,8 +183,8 @@ func (r *DocumentRepository) GetDocumentBinList(ctx context.Context, page *domai
 }
 
 // GetPublicDocumentList 获取公开文档列表
-func (r *DocumentRepository) GetPublicDocumentList(ctx context.Context, page *domain.Page) ([]*domain.Document, int64, error) {
-	docs, count, err := r.dao.GetDocumentListByFilter(ctx, bson.D{{Key: "is_public", Value: true}, {Key: "is_deleted", Value: false}}, &dao.Page{
+func (r *DocumentRepository) GetPublicDocumentList(ctx context.Context, page *apiwrap.Page) ([]*domain.Document, int64, error) {
+	docs, count, err := r.dao.GetDocumentListByFilter(ctx, bson.D{{Key: "is_public", Value: true}, {Key: "is_deleted", Value: false}}, &apiwrap.Page{
 		PageNo:   page.PageNo,
 		PageSize: page.PageSize,
 	})
@@ -188,7 +198,7 @@ func (r *DocumentRepository) GetPublicDocumentList(ctx context.Context, page *do
 			Id:          doc.ID,
 			CreatedAt:   doc.CreatedAt,
 			UpdatedAt:   doc.UpdatedAt,
-			DeletedAt:   doc.DeletedAt,
+			DeletedAt:   convertDeletedAt(doc.DeletedAt),
 			Title:       doc.Title,
 			Description: doc.Description,
 			Thumbnail:   doc.Thumbnail,
@@ -214,7 +224,7 @@ func (r *DocumentRepository) GetAllPublicDocuments(ctx context.Context) ([]*doma
 			Id:          doc.ID,
 			CreatedAt:   doc.CreatedAt,
 			UpdatedAt:   doc.UpdatedAt,
-			DeletedAt:   doc.DeletedAt,
+			DeletedAt:   convertDeletedAt(doc.DeletedAt),
 			Title:       doc.Title,
 			Description: doc.Description,
 			Thumbnail:   doc.Thumbnail,
