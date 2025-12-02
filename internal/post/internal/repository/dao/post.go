@@ -119,10 +119,22 @@ func (d *PostDao) Create(ctx context.Context, post *Post) error {
 }
 
 func (d *PostDao) Update(ctx context.Context, id bson.ObjectID, post *UpdatePost) error {
-	update := bson.M{"$set": post}
-	if update["$set"].(bson.M)["updated_at"] == nil {
-		update["$set"].(bson.M)["updated_at"] = time.Now()
+	// 构建更新文档，确保包含 updated_at
+	updateDoc := bson.M{
+		"title":       post.Title,
+		"content":     post.Content,
+		"description": post.Description,
+		"author":      post.Author,
+		"alias":       post.Alias,
+		"category_id": post.CategoryId,
+		"tags_id":     post.TagsId,
+		"is_publish":  post.IsPublish,
+		"is_top":      post.IsTop,
+		"thumbnail":   post.Thumbnail,
+		"updated_at":  time.Now(),
 	}
+
+	update := bson.M{"$set": updateDoc}
 	updateResult, err := d.coll.UpdateOne(ctx, bson.M{"_id": id}, update)
 	if err != nil {
 		return err
