@@ -1,6 +1,7 @@
 package ioc
 
 import (
+	"github.com/codepzj/Stellux-Server/internal/config"
 	"github.com/codepzj/Stellux-Server/internal/document"
 	"github.com/codepzj/Stellux-Server/internal/document_content"
 	"github.com/codepzj/Stellux-Server/internal/file"
@@ -13,7 +14,7 @@ import (
 )
 
 // NewGin 初始化gin服务器
-func NewGin(userHdl *user.Handler, postHdl *post.Handler, labelHdl *label.Handler, fileHdl *file.Handler, documentHdl *document.Handler, documentContentHdl *document_content.Handler, friendHdl *friend.Handler, middleware []gin.HandlerFunc) *gin.Engine {
+func NewGin(userHdl *user.Handler, postHdl *post.Handler, labelHdl *label.Handler, fileHdl *file.Handler, documentHdl *document.Handler, documentContentHdl *document_content.Handler, friendHdl *friend.Handler, configHdl *config.Handler, middleware []gin.HandlerFunc) *gin.Engine {
 	router := gin.Default()
 
 	// 中间件
@@ -33,6 +34,7 @@ func NewGin(userHdl *user.Handler, postHdl *post.Handler, labelHdl *label.Handle
 		documentHdl.RegisterGinRoutes(router)
 		documentContentHdl.RegisterGinRoutes(router)
 		friendHdl.RegisterGinRoutes(router)
+		configHdl.RegisterGinRoutes(router)
 	}
 
 	return router

@@ -77,6 +77,211 @@ db.document.insertMany([
     }
 ]);
 
+// 批量插入网站配置数据
+db.config.insert( {
+    _id: ObjectId("688364000000000000000001"),
+    created_at: ISODate("2025-11-25T10:59:00.000Z"),
+    updated_at: ISODate("2025-12-06T08:35:23.147Z"),
+    type: "home",
+    content: {
+        SEOKeywords: null,
+        SEODescription: "",
+        RobotsMeta: "",
+        CanonicalURL: "",
+        OGTitle: "",
+        Title: "主页",
+        Location: "中国",
+        ShowRecentPosts: true,
+        RecentPostsCount: 4,
+        SEOAuthor: "",
+        OGDescription: "",
+        OGImage: "",
+        TwitterCard: "",
+        Description: "欢迎来到我的个人网站",
+        Bio: "一个热爱技术的开发者",
+        Github: "https://github.com/codepzj",
+        Blog: "https://www.golangblog.com",
+        TechStacks: [
+            "Go",
+            "Gorm",
+            "Kratos",
+            "K8s",
+            "Dataworks",
+            "Maxcompute",
+            "Kafka",
+            "Redis",
+            "Mysql",
+            "MongoDB"
+        ],
+        Repositories: [
+            {
+                Name: "Stellux-Server",
+                URL: "https://github.com/codepzj/Stellux-Server",
+                Desc: "Stellux博客后端服务"
+            },
+            {
+                Name: "hexo-graph",
+                URL: "https://github.com/codepzj/hexo-graph",
+                Desc: "hexo可视化插件"
+            }
+        ],
+        Quote: "生活就像海洋,只有意志坚强的人才能到达彼岸",
+        Skills: null,
+        Avatar: "https://cdn.codepzj.cn/image/20250529174726187.jpeg",
+        Name: "浩瀚星河",
+        Motto: "低级的欲望通过放纵就可获得,高级的欲望通过自律方可获得,顶级的欲望通过煎熬才可获得。所谓自由,不是随心所欲,而是自我主宰。",
+        Timeline: null,
+        Interests: null,
+        FocusItems: null,
+        SEOTitle: ""
+    }
+} );
+db.config.insert( {
+    _id: ObjectId("688364000000000000000002"),
+    created_at: ISODate("2025-11-25T10:59:00.000Z"),
+    updated_at: ISODate("2025-12-06T08:28:18.482Z"),
+    type: "about",
+    content: {
+        OGImage: "",
+        Location: "",
+        TechStacks: null,
+        Skills: [
+            {
+                Category: "编程语言",
+                Items: [
+                    "Go",
+                    "JavaScript",
+                    "TypeScript",
+                    "Python"
+                ]
+            },
+            {
+                Category: "前端技术",
+                Items: [
+                    "Vue.js",
+                    "React",
+                    "HTML",
+                    "CSS"
+                ]
+            },
+            {
+                Category: "后端技术",
+                Items: [
+                    "Gin",
+                    "MongoDB",
+                    "Redis",
+                    "Docker"
+                ]
+            }
+        ],
+        Timeline: [
+            {
+                Year: "2022",
+                Title: "开始编程之旅",
+                Desc: "学习编程基础知识"
+            },
+            {
+                Year: "2023",
+                Title: "全栈开发",
+                Desc: "掌握前后端开发技能"
+            },
+            {
+                Year: "2024",
+                Title: "开源贡献",
+                Desc: "开始参与开源项目"
+            },
+            {
+                Year: "2025",
+                Title: "技术探索",
+                Desc: "深入学习 Go 微服务架构，实践云原生技术"
+            },
+            {
+                Year: "如今",
+                Title: "技术分享",
+                Desc: "已经成为社畜🧐"
+            }
+        ],
+        RobotsMeta: "",
+        CanonicalURL: "",
+        OGDescription: "",
+        TwitterCard: "",
+        Title: "关于我",
+        Name: "",
+        Github: "",
+        Blog: "",
+        Motto: "",
+        Interests: [
+            "阅读",
+            "运动",
+            "音乐",
+            "旅行"
+        ],
+        SEODescription: "",
+        SEOAuthor: "",
+        Description: "了解更多关于我的信息",
+        Bio: "",
+        SEOKeywords: null,
+        OGTitle: "",
+        ShowRecentPosts: false,
+        RecentPostsCount: 0,
+        Avatar: "",
+        Repositories: null,
+        Quote: "",
+        FocusItems: [
+            "努力提升golang编程水平💪",
+            "努力提升业务能力💪"
+        ],
+        SEOTitle: ""
+    }
+} );
+db.config.insert( {
+    _id: ObjectId("688364000000000000000003"),
+    created_at: ISODate("2025-11-25T10:59:00.000Z"),
+    updated_at: ISODate("2025-12-06T08:38:10.097Z"),
+    type: "seo",
+    content: {
+        CanonicalURL: "https://www.golangblog.com/",
+        OGImage: "https://cdn.codepzj.cn/image/20251206162201655.png",
+        TwitterCard: "summary_large_image",
+        Title: "网站配置",
+        Description: "网站基础配置信息",
+        Avatar: "",
+        Blog: "",
+        Location: "",
+        Repositories: null,
+        Quote: "",
+        Motto: "",
+        Name: "",
+        TechStacks: null,
+        Skills: null,
+        FocusItems: null,
+        SEOTitle: "浩瀚星河 - 个人技术博客",
+        SEOKeywords: [
+            "Go",
+            "GoZero",
+            "Kratos",
+            "Echo",
+            "Redis",
+            "Mysql",
+            "Pgsql",
+            "Mongodb",
+            "K8S",
+            "微服务"
+        ],
+        SEODescription: "浩瀚星河的个人技术博客,记录Golang学习与开发实践。分享Go语言、微服务架构、前后端开发等技术经验。",
+        SEOAuthor: "浩瀚星河",
+        Bio: "",
+        Github: "",
+        ShowRecentPosts: false,
+        RecentPostsCount: 0,
+        Interests: null,
+        RobotsMeta: "index,follow",
+        OGTitle: "浩瀚星河 - 个人技术博客",
+        OGDescription: "浩瀚星河的个人技术博客,记录Golang学习与开发实践。分享Go语言、微服务架构、前后端开发等技术经验。",
+        Timeline: null
+    }
+} );
+
 // 批量插入文档内容数据
 db.document_content.insertMany([
     {
