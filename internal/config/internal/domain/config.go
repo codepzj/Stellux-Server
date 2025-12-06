@@ -31,6 +31,7 @@ type Content struct {
 	TechStacks       []string `bson:"tech_stacks,omitempty"`        // 技术栈
 	Repositories     []Repo   `bson:"repositories,omitempty"`       // 开源项目
 	Quote            string   `bson:"quote,omitempty"`              // 名言
+	Motto            string   `bson:"motto,omitempty"`              // 座右铭
 	ShowRecentPosts  bool     `bson:"show_recent_posts,omitempty"`  // 是否显示最新文章
 	RecentPostsCount int      `bson:"recent_posts_count,omitempty"` // 最新文章数量
 
@@ -41,15 +42,16 @@ type Content struct {
 	FocusItems []string   `bson:"focus_items,omitempty"` // 当前专注事项
 
 	// SEO配置
-	SEOTitle        string   `bson:"seo_title,omitempty"`        // SEO标题
-	SEOKeywords     []string `bson:"seo_keywords,omitempty"`     // SEO关键词
-	SEODescription  string   `bson:"seo_description,omitempty"`  // SEO描述
-	RobotsMeta      string   `bson:"robots_meta,omitempty"`      // Robots指令
-	CanonicalURL    string   `bson:"canonical_url,omitempty"`    // 规范URL
-	OGTitle         string   `bson:"og_title,omitempty"`         // Open Graph标题
-	OGDescription   string   `bson:"og_description,omitempty"`   // Open Graph描述
-	OGImage         string   `bson:"og_image,omitempty"`         // Open Graph图片
-	TwitterCard     string   `bson:"twitter_card,omitempty"`     // Twitter Card类型
+	SEOTitle       string   `bson:"seo_title,omitempty"`       // SEO标题
+	SEOKeywords    []string `bson:"seo_keywords,omitempty"`    // SEO关键词
+	SEODescription string   `bson:"seo_description,omitempty"` // SEO描述
+	SEOAuthor      string   `bson:"seo_author,omitempty"`      // SEO作者
+	RobotsMeta     string   `bson:"robots_meta,omitempty"`     // Robots指令
+	CanonicalURL   string   `bson:"canonical_url,omitempty"`   // 规范URL
+	OGTitle        string   `bson:"og_title,omitempty"`        // Open Graph标题
+	OGDescription  string   `bson:"og_description,omitempty"`  // Open Graph描述
+	OGImage        string   `bson:"og_image,omitempty"`        // Open Graph图片
+	TwitterCard    string   `bson:"twitter_card,omitempty"`    // Twitter Card类型
 }
 
 // Repo 开源项目

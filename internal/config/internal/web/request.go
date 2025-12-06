@@ -22,6 +22,7 @@ type Content struct {
 	TechStacks       []string `json:"tech_stacks,omitempty"`
 	Repositories     []Repo   `json:"repositories,omitempty"`
 	Quote            string   `json:"quote,omitempty"`
+	Motto            string   `json:"motto,omitempty"`
 	ShowRecentPosts  bool     `json:"show_recent_posts,omitempty"`
 	RecentPostsCount int      `json:"recent_posts_count,omitempty" binding:"omitempty,gte=1,lte=50"`
 
@@ -32,15 +33,16 @@ type Content struct {
 	FocusItems []string   `json:"focus_items,omitempty"`
 
 	// SEO配置
-	SEOTitle        string   `json:"seo_title,omitempty"`
-	SEOKeywords     []string `json:"seo_keywords,omitempty"`
-	SEODescription  string   `json:"seo_description,omitempty"`
-	RobotsMeta      string   `json:"robots_meta,omitempty"`
-	CanonicalURL    string   `json:"canonical_url,omitempty"`
-	OGTitle         string   `json:"og_title,omitempty"`
-	OGDescription   string   `json:"og_description,omitempty"`
-	OGImage         string   `json:"og_image,omitempty"`
-	TwitterCard     string   `json:"twitter_card,omitempty"`
+	SEOTitle       string   `json:"seo_title,omitempty"`
+	SEOKeywords    []string `json:"seo_keywords,omitempty"`
+	SEODescription string   `json:"seo_description,omitempty"`
+	SEOAuthor      string   `json:"seo_author,omitempty"`
+	RobotsMeta     string   `json:"robots_meta,omitempty"`
+	CanonicalURL   string   `json:"canonical_url,omitempty"`
+	OGTitle        string   `json:"og_title,omitempty"`
+	OGDescription  string   `json:"og_description,omitempty"`
+	OGImage        string   `json:"og_image,omitempty"`
+	TwitterCard    string   `json:"twitter_card,omitempty"`
 }
 
 // Repo 开源项目
