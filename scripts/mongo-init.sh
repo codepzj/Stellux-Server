@@ -77,6 +77,73 @@ db.document.insertMany([
     }
 ]);
 
+// 批量插入网站配置数据
+db.config.insertMany([
+    {
+        _id: ObjectId("688364000000000000000001"),
+        created_at: ISODate("2025-07-25T10:59:00.000Z"),
+        updated_at: ISODate("2025-07-25T10:59:00.000Z"),
+        type: "home",
+        content: {
+            title: "主页",
+            description: "欢迎来到我的个人网站",
+            avatar: "https://github.githubassets.com/assets/pull-shark-default-498c279a747d.png",
+            name: "codepzj",
+            bio: "一个热爱技术的开发者",
+            github: "https://github.com/codepzj",
+            blog: "",
+            location: "中国",
+            tech_stacks: ["Go", "Vue.js", "React", "TypeScript"],
+            quote: "代码改变世界",
+            show_recent_posts: true,
+            recent_posts_count: 5
+        }
+    },
+    {
+        _id: ObjectId("688364000000000000000002"),
+        created_at: ISODate("2025-07-25T10:59:00.000Z"),
+        updated_at: ISODate("2025-07-25T10:59:00.000Z"),
+        type: "about",
+        content: {
+            title: "关于我",
+            description: "了解更多关于我的信息",
+            skills: [
+                {
+                    category: "编程语言",
+                    items: ["Go", "JavaScript", "TypeScript", "Python"]
+                },
+                {
+                    category: "前端技术",
+                    items: ["Vue.js", "React", "HTML", "CSS"]
+                },
+                {
+                    category: "后端技术",
+                    items: ["Gin", "MongoDB", "Redis", "Docker"]
+                }
+            ],
+            timeline: [
+                {
+                    year: "2020",
+                    title: "开始编程之旅",
+                    desc: "学习编程基础知识"
+                },
+                {
+                    year: "2022",
+                    title: "全栈开发",
+                    desc: "掌握前后端开发技能"
+                },
+                {
+                    year: "2024",
+                    title: "开源贡献",
+                    desc: "开始参与开源项目"
+                }
+            ],
+            interests: ["阅读", "运动", "音乐", "旅行"],
+            focus_items: ["学习新技术", "提升代码质量", "参与开源项目"]
+        }
+    }
+]);
+
 // 批量插入文档内容数据
 db.document_content.insertMany([
     {

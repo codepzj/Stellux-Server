@@ -8,6 +8,7 @@ package app
 
 import (
 	"github.com/codepzj/Stellux-Server/conf"
+	"github.com/codepzj/Stellux-Server/internal/config"
 	"github.com/codepzj/Stellux-Server/internal/document"
 	"github.com/codepzj/Stellux-Server/internal/document_content"
 	"github.com/codepzj/Stellux-Server/internal/file"
@@ -38,8 +39,10 @@ func InitApp(cfg *conf.Config) *HttpServer {
 	documentContentHandler := document_contentModule.Hdl
 	friendModule := friend.InitFriendModule(database)
 	friendHandler := friendModule.Hdl
+	configModule := config.InitConfigModule(database)
+	configHandler := configModule.Hdl
 	v := ioc.InitMiddleWare()
-	engine := ioc.NewGin(userHandler, postHandler, labelHandler, fileHandler, documentHandler, documentContentHandler, friendHandler, v)
+	engine := ioc.NewGin(userHandler, postHandler, labelHandler, fileHandler, documentHandler, documentContentHandler, friendHandler, configHandler, v)
 	httpServer := NewHttpServer(engine, cfg)
 	return httpServer
 }

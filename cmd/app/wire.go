@@ -9,6 +9,7 @@ import (
 	"github.com/codepzj/Stellux-Server/internal/document_content"
 	"github.com/codepzj/Stellux-Server/internal/infra"
 	"github.com/codepzj/Stellux-Server/internal/ioc"
+	"github.com/codepzj/Stellux-Server/internal/config"
 	"github.com/codepzj/Stellux-Server/internal/user"
 
 	"github.com/codepzj/Stellux-Server/internal/file"
@@ -54,6 +55,9 @@ func InitApp(cfg *conf.Config) *HttpServer {
 
 		friend.InitFriendModule,
 		wire.FieldsOf(new(*friend.Module), "Hdl"),
+
+		config.InitConfigModule,
+		wire.FieldsOf(new(*config.Module), "Hdl"),
 
 		NewHttpServer,
 	)
