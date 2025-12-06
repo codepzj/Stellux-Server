@@ -11,7 +11,7 @@ type Config struct {
 	Id        bson.ObjectID `bson:"_id,omitempty"` // 配置ID
 	CreatedAt time.Time     `bson:"created_at"`    // 创建时间
 	UpdatedAt time.Time     `bson:"updated_at"`    // 更新时间
-	Type      string        `bson:"type"`          // 配置类型: home, about
+	Type      string        `bson:"type"`          // 配置类型: home, about, seo
 	Content   Content       `bson:"content"`       // 网站内容配置
 }
 
@@ -39,6 +39,17 @@ type Content struct {
 	Timeline   []Timeline `bson:"timeline,omitempty"`    // 时间线
 	Interests  []string   `bson:"interests,omitempty"`   // 兴趣爱好
 	FocusItems []string   `bson:"focus_items,omitempty"` // 当前专注事项
+
+	// SEO配置
+	SEOTitle        string   `bson:"seo_title,omitempty"`        // SEO标题
+	SEOKeywords     []string `bson:"seo_keywords,omitempty"`     // SEO关键词
+	SEODescription  string   `bson:"seo_description,omitempty"`  // SEO描述
+	RobotsMeta      string   `bson:"robots_meta,omitempty"`      // Robots指令
+	CanonicalURL    string   `bson:"canonical_url,omitempty"`    // 规范URL
+	OGTitle         string   `bson:"og_title,omitempty"`         // Open Graph标题
+	OGDescription   string   `bson:"og_description,omitempty"`   // Open Graph描述
+	OGImage         string   `bson:"og_image,omitempty"`         // Open Graph图片
+	TwitterCard     string   `bson:"twitter_card,omitempty"`     // Twitter Card类型
 }
 
 // Repo 开源项目

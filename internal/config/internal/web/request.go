@@ -2,7 +2,7 @@ package web
 
 // ConfigDto 网站配置DTO
 type ConfigDto struct {
-	Type    string  `json:"type" binding:"required,oneof=home about"`
+	Type    string  `json:"type" binding:"required,oneof=home about seo"`
 	Content Content `json:"content" binding:"required"`
 }
 
@@ -30,6 +30,17 @@ type Content struct {
 	Timeline   []Timeline `json:"timeline,omitempty"`
 	Interests  []string   `json:"interests,omitempty"`
 	FocusItems []string   `json:"focus_items,omitempty"`
+
+	// SEO配置
+	SEOTitle        string   `json:"seo_title,omitempty"`
+	SEOKeywords     []string `json:"seo_keywords,omitempty"`
+	SEODescription  string   `json:"seo_description,omitempty"`
+	RobotsMeta      string   `json:"robots_meta,omitempty"`
+	CanonicalURL    string   `json:"canonical_url,omitempty"`
+	OGTitle         string   `json:"og_title,omitempty"`
+	OGDescription   string   `json:"og_description,omitempty"`
+	OGImage         string   `json:"og_image,omitempty"`
+	TwitterCard     string   `json:"twitter_card,omitempty"`
 }
 
 // Repo 开源项目
@@ -55,7 +66,7 @@ type Timeline struct {
 // ConfigUpdateDto 更新网站配置DTO
 type ConfigUpdateDto struct {
 	ID      string  `json:"id" binding:"required"`
-	Type    string  `json:"type" binding:"required,oneof=home about"`
+	Type    string  `json:"type" binding:"required,oneof=home about seo"`
 	Content Content `json:"content" binding:"required"`
 }
 
@@ -66,5 +77,5 @@ type ConfigIdRequest struct {
 
 // ConfigTypeRequest 类型请求
 type ConfigTypeRequest struct {
-	Type string `uri:"type" binding:"required,oneof=home about"`
+	Type string `uri:"type" binding:"required,oneof=home about seo"`
 }
